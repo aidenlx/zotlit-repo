@@ -2,8 +2,8 @@ import type {
   CreationProfileSelection,
   ProfilePreview,
 } from "#desktop/note-feature/index.ts";
-import { Scope, SuggestModal } from "obsidian";
 import type { App } from "obsidian";
+import { Scope, SuggestModal } from "obsidian";
 
 import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import type { InstalledCslStyle } from "@zotlit/citations/core/pandoc/csl-style.ts";

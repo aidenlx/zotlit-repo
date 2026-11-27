@@ -2,8 +2,8 @@ import type {
   AnnotationRecord,
   AnnotationSource,
 } from "#obsidian/annotation-repository/service.ts";
-import { Cause, Data, Effect } from "effect";
 import type { Scope } from "effect";
+import { Cause, Data, Effect } from "effect";
 
 import {
   annotationTypeToName,

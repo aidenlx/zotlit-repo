@@ -7,12 +7,12 @@ import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge
 import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
+import type { HistorySurface } from "./actions.ts";
 import {
   addAnnotationHistoryActions,
   HISTORY_DIRECTIONS,
   historyOutcomeNotice,
 } from "./actions.ts";
-import type { HistorySurface } from "./actions.ts";
 import type { HistoryDirection } from "./history.ts";
 import { writeFailureMessage } from "./write.ts";
 

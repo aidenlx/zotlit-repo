@@ -8,8 +8,8 @@ import {
   rm,
   writeFile,
 } from "node:fs/promises";
-import { createServer } from "node:net";
 import type { AddressInfo } from "node:net";
+import { createServer } from "node:net";
 import { loadavg } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -35,12 +35,18 @@ import {
   resolveVaultPlugins,
 } from "@zotlit/scripts/vault-plugins";
 
-import { cdpEval, instanceLayout, launchInstance } from "./startup-instance.ts";
 import type { InstanceLayout } from "./startup-instance.ts";
-import { probePluginFiles } from "./startup-probe.ts";
+import { cdpEval, instanceLayout, launchInstance } from "./startup-instance.ts";
 import type { ProbeConfig, ProbeResult } from "./startup-probe.ts";
-import { splitProfile } from "./startup-profile.ts";
+import { probePluginFiles } from "./startup-probe.ts";
 import type { CpuProfile, ProfileSplit } from "./startup-profile.ts";
+import { splitProfile } from "./startup-profile.ts";
+import type {
+  ModeStartup,
+  StartupBudgets,
+  StartupMode,
+  StartupSummary,
+} from "./startup-record.ts";
 import {
   BUSY_LOAD_LIMIT,
   busyReason,
@@ -50,12 +56,6 @@ import {
   STARTUP_MODES,
   startupCheck,
   summarize,
-} from "./startup-record.ts";
-import type {
-  ModeStartup,
-  StartupBudgets,
-  StartupMode,
-  StartupSummary,
 } from "./startup-record.ts";
 
 const PRIMING_LOADS = 2;

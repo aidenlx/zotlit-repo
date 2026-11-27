@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { around } from "monkey-around";
-import { Platform, setIcon, setTooltip } from "obsidian";
 import type { App, EmptyView, PlatformInternals } from "obsidian";
+import { Platform, setIcon, setTooltip } from "obsidian";
 
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 import {

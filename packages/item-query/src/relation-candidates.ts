@@ -6,15 +6,15 @@ import type {
 } from "@zotlit/db/item-query";
 import { readMaxItemID, SCAN_PAGE_SIZE } from "@zotlit/db/item-query";
 
-import {
-  hasSweep,
-  planCandidates,
-  readCandidatePlan,
-} from "./candidate-plan.ts";
 import type {
   CandidateFallback,
   CandidatePlan,
   CandidateSources,
+} from "./candidate-plan.ts";
+import {
+  hasSweep,
+  planCandidates,
+  readCandidatePlan,
 } from "./candidate-plan.ts";
 import type {
   CandidatePageReader,
@@ -24,8 +24,8 @@ import type {
 import type { FilterNode } from "./filter-plan.ts";
 import type { QuerySources } from "./query-sources.ts";
 import type { TargetLibrary } from "./request.ts";
-import { readTextSweep } from "./text-sweep.ts";
 import type { SweepScope } from "./text-sweep.ts";
+import { readTextSweep } from "./text-sweep.ts";
 
 type CandidateSetReader = (
   page: Parameters<CandidatePageReader>[0] & { sweep?: SweepScope },

@@ -9,6 +9,7 @@ import {
   seedBulkLibrary,
 } from "@zotlit/db-testing/scenario";
 
+import type { AnnotationScanRow } from "./index.ts";
 import {
   ItemQueryDatabase,
   readItemAttachments,
@@ -16,7 +17,6 @@ import {
   readAttachmentAnnotations,
   readItemNotes,
 } from "./index.ts";
-import type { AnnotationScanRow } from "./index.ts";
 
 import { connectClient } from "#desktop/node-client.ts";
 

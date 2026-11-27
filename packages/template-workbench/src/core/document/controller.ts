@@ -6,12 +6,12 @@ import {
   undo,
   undoDepth,
 } from "@codemirror/commands";
-import { Annotation, ChangeSet, EditorState, Text } from "@codemirror/state";
 import type {
   ChangeSpec,
   Transaction,
   TransactionSpec,
 } from "@codemirror/state";
+import { Annotation, ChangeSet, EditorState, Text } from "@codemirror/state";
 import { diffChars } from "diff";
 
 import type { PartialContext } from "@zotlit/notes/core/template-preview/partial-preview.ts";
@@ -38,6 +38,12 @@ import {
 } from "@zotlit/templates/literature-note-pack";
 
 import { jsonSliceHistory } from "./json-source.ts";
+import type {
+  ManagedEntryAction,
+  ManagedEntrySource,
+  ManifestScalar,
+  WorkbenchSliceRange,
+} from "./manifest-patch.ts";
 import {
   managedEntryEdit,
   managedFrontmatterEntries,
@@ -46,17 +52,11 @@ import {
   manifestScalarSlice,
   manifestValueEdit,
 } from "./manifest-patch.ts";
-import type {
-  ManagedEntryAction,
-  ManagedEntrySource,
-  ManifestScalar,
-  WorkbenchSliceRange,
-} from "./manifest-patch.ts";
-import { noteRegions, RESERVED_CALL_NAMES } from "./regions.ts";
 import type { NoteRegions } from "./regions.ts";
+import { noteRegions, RESERVED_CALL_NAMES } from "./regions.ts";
 import { yamlValue } from "./scalar-source.ts";
-import { jsonCodec, scalarCodec, sourceCodec } from "./slice-codec.ts";
 import type { SliceCodec } from "./slice-codec.ts";
+import { jsonCodec, scalarCodec, sourceCodec } from "./slice-codec.ts";
 
 import { pairingState, pairingHistory } from "#core/language/pairing-state.ts";
 

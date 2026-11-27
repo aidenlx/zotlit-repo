@@ -17,8 +17,8 @@ import {
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { WelcomeBanner } from "./banner.tsx";
 import type { WelcomeBannerDeps } from "./banner.tsx";
+import { WelcomeBanner } from "./banner.tsx";
 
 import { buildRelease } from "#__fixtures__/release.ts";
 import { buildSettings } from "#__fixtures__/settings.ts";

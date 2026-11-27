@@ -1,8 +1,8 @@
 import type { SetupActions } from "#desktop/welcome/setup-actions.ts";
 import { Component } from "obsidian";
 import type { ReactNode } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";

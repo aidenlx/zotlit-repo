@@ -1,12 +1,12 @@
 import { compareStrings } from "./collation.ts";
-import { compareDates, dateText, durationsEqual } from "./filter-dates.ts";
 import type {
   DateComparison,
   DateValue,
   DurationValue,
 } from "./filter-dates.ts";
-import { errorValue, isError, renderEvaluationFault } from "./filter-error.ts";
+import { compareDates, dateText, durationsEqual } from "./filter-dates.ts";
 import type { ErrorValue } from "./filter-error.ts";
+import { errorValue, isError, renderEvaluationFault } from "./filter-error.ts";
 import type { QueryClock } from "./query-clock.ts";
 
 export type FilterValue =

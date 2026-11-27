@@ -19,8 +19,8 @@ import type { QueryContext } from "@zotlit/item-query";
 import type { Span } from "@zotlit/template-workbench/core/language/index.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { planVaultFilter } from "./vault-filter.ts";
 import type { VaultFilter } from "./vault-filter.ts";
+import { planVaultFilter } from "./vault-filter.ts";
 
 import { isVaultProperty } from "#core/query-view/query-file.ts";
 import { splitFilters } from "#core/query-view/view-plan/filter-split.ts";

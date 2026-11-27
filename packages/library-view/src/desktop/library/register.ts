@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
-import { addIcon } from "obsidian";
 import type { App, Plugin } from "obsidian";
+import { addIcon } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
@@ -10,8 +10,8 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { LIBRARY_VIEW_ROW_LIMIT } from "./document.ts";
 import { libraryItemCommand } from "./item-actions.ts";
-import { LIBRARY_VIEW_TYPE, LibraryView } from "./view.ts";
 import type { LibraryViewDeps } from "./view.ts";
+import { LIBRARY_VIEW_TYPE, LibraryView } from "./view.ts";
 
 import { ZOTLIT_MARK_ICON, zotlitMarkSvg } from "#core/library/icon.ts";
 

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { INITIAL_PANELS } from "./panel-layout.ts";
 import type { WorkbenchPanels } from "./panel-layout.ts";
+import { INITIAL_PANELS } from "./panel-layout.ts";
 import { panelSizeMenus } from "./panel-menu.ts";
 
 const BOTH: WorkbenchPanels = {

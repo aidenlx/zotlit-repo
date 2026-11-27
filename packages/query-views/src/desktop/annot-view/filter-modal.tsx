@@ -3,10 +3,10 @@ import type { QueryView } from "#desktop/query-view/view.tsx";
 import { useAtomValue } from "@effect/atom-react";
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
-import { Modal } from "obsidian";
 import type { App } from "obsidian";
-import { createRoot } from "react-dom/client";
+import { Modal } from "obsidian";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { resultValue } from "@zotlit/annotations/desktop/annot-view/atoms.ts";
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";

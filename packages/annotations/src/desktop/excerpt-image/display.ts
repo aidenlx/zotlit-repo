@@ -1,8 +1,8 @@
 import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import type { AvailableExcerpt } from "#obsidian/excerpt-image/service.ts";
-import { hashKey } from "@tanstack/query-core";
 import type { QueryKey } from "@tanstack/query-core";
+import { hashKey } from "@tanstack/query-core";
 import { Context, Effect, Fiber, FiberSet, Layer, Ref, Schema } from "effect";
 
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";

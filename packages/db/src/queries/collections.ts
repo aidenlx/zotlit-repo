@@ -1,7 +1,7 @@
 import type { ZoteroDatabase } from "#client/database.ts";
 
-import { defineQuery } from "./_shared.ts";
 import type { QueryRow } from "./_shared.ts";
+import { defineQuery } from "./_shared.ts";
 
 export const collectionIDsByItemQuery = defineQuery<{ itemID: number }>()(
   (db, { placeholder }) =>

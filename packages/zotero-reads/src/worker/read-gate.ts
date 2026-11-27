@@ -1,5 +1,5 @@
-import { Deferred, Duration, Effect, Exit, Latch, Semaphore } from "effect";
 import type { Scope } from "effect";
+import { Deferred, Duration, Effect, Exit, Latch, Semaphore } from "effect";
 
 export const READ_GATE_HOLD_BACK = Duration.seconds(1);
 

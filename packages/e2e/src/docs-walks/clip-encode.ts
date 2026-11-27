@@ -6,10 +6,10 @@ import sharp from "sharp";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { closingPad, openingPad, planCamera, viewAt } from "./camera.ts";
 import type { CameraEvent, CameraTrack } from "./camera.ts";
-import { cutKeys, recordedKeys, recutSettings } from "./clip-settings.ts";
+import { closingPad, openingPad, planCamera, viewAt } from "./camera.ts";
 import type { ClipSettings } from "./clip-settings.ts";
+import { cutKeys, recordedKeys, recutSettings } from "./clip-settings.ts";
 
 const execFileAsync = promisify(execFile);
 

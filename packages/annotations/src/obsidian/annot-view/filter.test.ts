@@ -1,6 +1,7 @@
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 import { describe, expect, it } from "vitest";
 
+import type { AnnotFilter } from "./filter.ts";
 import {
   cappedSelection,
   deriveSwatchColors,
@@ -9,7 +10,6 @@ import {
   isFilterActive,
   sanitizeSavedFilter,
 } from "./filter.ts";
-import type { AnnotFilter } from "./filter.ts";
 
 function makeAnnot(
   overrides: Partial<AnnotationRecord> = {},

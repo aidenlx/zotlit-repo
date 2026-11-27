@@ -1,7 +1,7 @@
-import { Effect, Predicate, Schema, SchemaGetter } from "effect";
 import type { SchemaIssue } from "effect";
-import { Rpc, RpcGroup } from "effect/rpc";
+import { Effect, Predicate, Schema, SchemaGetter } from "effect";
 import type { RpcClient, RpcClientError } from "effect/rpc";
+import { Rpc, RpcGroup } from "effect/rpc";
 import { Transferable } from "effect/workers";
 
 import type {
@@ -42,8 +42,8 @@ import type {
 import { DbUnavailable } from "./db-unavailable.ts";
 import { Instant } from "./instant-codec.ts";
 import type { ItemQueryAnswer, ItemQueryJob } from "./item-query.ts";
-import { libraryScopeWire } from "./library-scope.ts";
 import type { LibraryScope } from "./library-scope.ts";
+import { libraryScopeWire } from "./library-scope.ts";
 import { DecodedQuery, DecodedValues } from "./query-codec.ts";
 import type { ItemSnapshot } from "./snapshot/types.ts";
 import { SourceIdentitySchema } from "./source-identity.ts";

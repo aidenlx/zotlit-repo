@@ -1,6 +1,6 @@
 import type { InstalledCslStyle } from "#core/pandoc/csl-style.ts";
-import { stringifyYaml } from "obsidian";
 import type { CachedMetadata } from "obsidian";
+import { stringifyYaml } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";

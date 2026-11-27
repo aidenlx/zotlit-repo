@@ -9,13 +9,13 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { OperatingSystem } from "@zotlit/shared/platform";
 
+import type { ResolverHarnessOptions } from "./__fixtures__.ts";
 import {
   DATA_DIR,
   nextAnnouncement,
   openResolver,
   resolverFixture,
 } from "./__fixtures__.ts";
-import type { ResolverHarnessOptions } from "./__fixtures__.ts";
 import { buildPathIndex } from "./service.ts";
 
 import { LibrarySource } from "#obsidian/library-source/service.ts";

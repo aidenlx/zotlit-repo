@@ -1,8 +1,8 @@
 import type { ExpressionVocabulary } from "#core/language/filter-expression-completion.ts";
 import type { PlacedFault } from "#core/language/span.ts";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { setDiagnostics, setDiagnosticsEffect } from "@codemirror/lint";
 import type { Diagnostic } from "@codemirror/lint";
+import { setDiagnostics, setDiagnosticsEffect } from "@codemirror/lint";
 import { Annotation, Compartment, EditorState } from "@codemirror/state";
 import {
   EditorView,

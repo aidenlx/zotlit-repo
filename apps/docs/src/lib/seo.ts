@@ -5,8 +5,8 @@ import { getLocale } from "@/paraglide/runtime.js";
 
 import type { SiteLocale } from "./i18n.ts";
 import { getPageLocaleState } from "./locale-state.ts";
-import { appName, baseURL, ogImageUrl } from "./shared.ts";
 import type { OgType } from "./shared.ts";
+import { appName, baseURL, ogImageUrl } from "./shared.ts";
 import { absoluteUrl, serializeJsonLd } from "./structured-data.ts";
 
 const OG_IMAGE_DIMENSIONS = { width: "1200", height: "630" } as const;

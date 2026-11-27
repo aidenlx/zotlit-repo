@@ -10,8 +10,8 @@ import type { WebApiLibraryExport } from "@zotlit/db-testing/web-api";
 import { loadSqliteWasm } from "@zotlit/drizzle-sqlite-wasm";
 import type { WebApiItem } from "@zotlit/zotero-types/web-api";
 
-import { openNodeReplica } from "./__fixtures__/parity.ts";
 import type { ReplicaClient } from "./__fixtures__/parity.ts";
+import { openNodeReplica } from "./__fixtures__/parity.ts";
 import { applyRecords, upsertGroupLibrary } from "./apply.ts";
 import { createReplica } from "./create.ts";
 

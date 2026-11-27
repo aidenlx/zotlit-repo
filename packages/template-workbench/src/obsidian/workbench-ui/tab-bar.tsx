@@ -1,6 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
@@ -10,8 +10,8 @@ import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
 import { useContainerName, useWorkbenchHost } from "./host.tsx";
 import { setTab as tabTransition } from "./model.ts";
 import { SliceEditorVisibility } from "./slice-editor.tsx";
-import { TABS, tabDocs, tabLabel, tabLede } from "./tabs.ts";
 import type { WorkbenchTab } from "./tabs.ts";
+import { TABS, tabDocs, tabLabel, tabLede } from "./tabs.ts";
 import { useRetention } from "./visited.ts";
 
 const tabBarTabBar =

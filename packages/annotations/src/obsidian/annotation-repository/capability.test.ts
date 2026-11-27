@@ -7,8 +7,8 @@ import type {
   WriteAuthorizationState,
 } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
-import { editingCapabilityOf } from "./capability.ts";
 import type { EditingCapability } from "./capability.ts";
+import { editingCapabilityOf } from "./capability.ts";
 
 import { cooldownFailureOf } from "#__fixtures__/annotation-repository/capability.ts";
 

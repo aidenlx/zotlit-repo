@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
-import { normalizePath } from "vite";
 import type { Plugin } from "vite";
+import { normalizePath } from "vite";
 
 import { chineseFile, scanChinesePages } from "./content-scan.ts";
 

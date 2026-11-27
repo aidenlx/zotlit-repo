@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Context, Effect, Exit, Layer, Scope } from "effect";
-import { Events, Scope as ObsidianScope, WorkspaceLeaf } from "obsidian";
 import type { App, PaneType, PluginManifest, TFile, View } from "obsidian";
-import { afterEach, beforeEach, expect, expectTypeOf, vi } from "vitest";
+import { Events, Scope as ObsidianScope, WorkspaceLeaf } from "obsidian";
 import type { MockInstance } from "vitest";
+import { afterEach, beforeEach, expect, expectTypeOf, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";

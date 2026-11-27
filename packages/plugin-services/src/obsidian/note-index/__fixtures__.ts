@@ -1,7 +1,7 @@
 import { Context, Effect, Layer } from "effect";
 import { basename } from "node:path/posix";
-import { TFile } from "obsidian";
 import type { CachedMetadata } from "obsidian";
+import { TFile } from "obsidian";
 
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";

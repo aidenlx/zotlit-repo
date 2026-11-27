@@ -1,8 +1,8 @@
 import "./style.css";
 import type { WorkbenchActionDeps } from "#desktop/editor/actions.ts";
 import type { DefaultProfileTarget } from "#desktop/view/customize.ts";
-import { MarkdownView, Platform } from "obsidian";
 import type { App, Plugin, TFile, WorkspaceLeaf } from "obsidian";
+import { MarkdownView, Platform } from "obsidian";
 
 import {
   profileStateAtom,
@@ -17,13 +17,13 @@ import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 
 import type { WorkbenchOpen } from "./open.ts";
-import { openTemplateWorkbench } from "./open.ts";
 import type { WorkbenchOpenOptions } from "./open.ts";
+import { openTemplateWorkbench } from "./open.ts";
+import type { TemplateWorkbenchDeps } from "./view.tsx";
 import {
   TEMPLATE_WORKBENCH_VIEW_TYPE,
   TemplateWorkbenchView,
 } from "./view.tsx";
-import type { TemplateWorkbenchDeps } from "./view.tsx";
 
 import {
   explainNoOpen,

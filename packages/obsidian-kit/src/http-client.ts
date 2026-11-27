@@ -1,8 +1,8 @@
 import { Effect, Layer, Option } from "effect";
-import { HttpClient, HttpClientError, HttpClientResponse } from "effect/http";
 import type { HttpClientRequest } from "effect/http";
-import { requestUrl } from "obsidian";
+import { HttpClient, HttpClientError, HttpClientResponse } from "effect/http";
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
+import { requestUrl } from "obsidian";
 
 const NULL_BODY_STATUS: ReadonlySet<number> = new Set([
   101, 103, 204, 205, 304,

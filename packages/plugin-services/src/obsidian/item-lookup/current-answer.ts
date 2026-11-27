@@ -1,5 +1,5 @@
-import { Scope } from "obsidian";
 import type { SuggestModal } from "obsidian";
+import { Scope } from "obsidian";
 
 export function takeEnter(modal: SuggestModal<unknown>): void {
   modal.scope = new Scope(modal.scope);

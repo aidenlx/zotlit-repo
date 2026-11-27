@@ -11,8 +11,8 @@ import { Effect } from "effect";
 import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 
 import type { HeadlessDocument } from "@zotlit/pdf-reader";
 

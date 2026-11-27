@@ -2,8 +2,8 @@ import type TurndownService from "turndown";
 
 import { highlightColorToName, textColorToName } from "@zotlit/db";
 
-import { renderColorMark, renderHighlight } from "./color-mark.ts";
 import type { HighlightOptions } from "./color-mark.ts";
+import { renderColorMark, renderHighlight } from "./color-mark.ts";
 import { createObsidianTurndown } from "./obsidian-base.ts";
 
 export const ANNOTATION_CALLOUT_ATTR = "data-zt-callout";

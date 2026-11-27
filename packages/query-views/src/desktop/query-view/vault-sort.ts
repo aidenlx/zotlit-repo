@@ -16,11 +16,11 @@ import {
 } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
 
-import { sortOptions } from "./properties.ts";
 import type { PropertyOption } from "./properties.ts";
+import { sortOptions } from "./properties.ts";
 import { propertyIcon } from "./property-icon.ts";
-import { layoutRows } from "./rows.ts";
 import type { LayoutRows } from "./rows.ts";
+import { layoutRows } from "./rows.ts";
 import type { VaultPropertyType, VaultValue } from "./table-notes.ts";
 
 import {

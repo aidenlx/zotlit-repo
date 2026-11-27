@@ -15,6 +15,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
+import type { DocsWalk } from "./docs-walk.ts";
 import {
   captureRequested,
   closeWelcome,
@@ -22,7 +23,6 @@ import {
   readNotices,
   watchNotices,
 } from "./docs-walk.ts";
-import type { DocsWalk } from "./docs-walk.ts";
 
 const execFileAsync = promisify(execFile);
 const root = await getWorkspaceRoot(import.meta.dirname);

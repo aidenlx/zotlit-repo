@@ -4,8 +4,8 @@ import type {
   QueryFileDirection,
 } from "#core/query-view/query-file.ts";
 import { Menu, Platform } from "obsidian";
-import { useEffect, useRef } from "react";
 import type { CSSProperties, DragEvent, MouseEvent, PointerEvent } from "react";
+import { useEffect, useRef } from "react";
 
 import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -13,17 +13,17 @@ import { pointerDrag } from "@zotlit/obsidian-kit/pointer-drag.ts";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { columnMenuEntries } from "./column-menu.ts";
 import type { ColumnMenuAction } from "./column-menu.ts";
-import { ColumnPropertyPopover } from "./column-property-popover.tsx";
+import { columnMenuEntries } from "./column-menu.ts";
 import type { ColumnPropertyHandle } from "./column-property-popover.tsx";
+import { ColumnPropertyPopover } from "./column-property-popover.tsx";
 import { useQueryViewState } from "./model.ts";
 import { groupOptions } from "./properties.ts";
 import { propertyIcon } from "./property-icon.ts";
 import { useVaultPropertyNames, useVaultVersion } from "./vault-cell.tsx";
 import { viewSortOptions } from "./vault-sort.ts";
-import { viewProperties } from "./view-properties.ts";
 import type { ViewProperties } from "./view-properties.ts";
+import { viewProperties } from "./view-properties.ts";
 import type { QueryView } from "./view.tsx";
 import "./table-header.css";
 

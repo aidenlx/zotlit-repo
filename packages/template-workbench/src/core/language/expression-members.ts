@@ -7,18 +7,18 @@ import type {
   PropertyDefinition,
 } from "@zotlit/item-query";
 
-import {
-  fieldOption,
-  rankedOptions,
-  signature,
-  takesArguments,
-} from "./expression-options.ts";
 import type {
   Caret,
   ExpressionCompletionResult,
   ExpressionOption,
   ExpressionReceiver,
   ExpressionVocabulary,
+} from "./expression-options.ts";
+import {
+  fieldOption,
+  rankedOptions,
+  signature,
+  takesArguments,
 } from "./expression-options.ts";
 
 type Entry = readonly [

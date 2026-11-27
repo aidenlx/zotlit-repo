@@ -1,7 +1,7 @@
 import type { NoteImportView } from "#desktop/note-import/view.ts";
 import { Effect, Layer, ManagedRuntime } from "effect";
-import { TFile } from "obsidian";
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import { expect, it, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";

@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fakeHost, TEST_RUNTIME } from "./__fixtures__/test-host.tsx";
 import { createWorkbenchEditor } from "./editor.tsx";
+import type { WorkbenchItemData, WorkbenchViewState } from "./model.ts";
 import {
   chooseAnnotation,
   chooseCitation,
@@ -17,14 +18,13 @@ import {
   setRoot,
   setTab,
 } from "./model.ts";
-import type { WorkbenchItemData, WorkbenchViewState } from "./model.ts";
+import type { ViewSize } from "./panel-layout.ts";
 import {
   PANEL_WIDTH,
   setPanelWidth,
   setPreviewHeight,
   showPreview,
 } from "./panel-layout.ts";
-import type { ViewSize } from "./panel-layout.ts";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";

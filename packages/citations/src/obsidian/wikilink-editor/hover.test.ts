@@ -1,8 +1,8 @@
+import type { EditorStateConfig, Text } from "@codemirror/state";
 // @vitest-environment happy-dom
 import { EditorState, StateEffect, StateField } from "@codemirror/state";
-import type { EditorStateConfig, Text } from "@codemirror/state";
-import { Decoration, EditorView } from "@codemirror/view";
 import type { DecorationSet } from "@codemirror/view";
+import { Decoration, EditorView } from "@codemirror/view";
 import { describe, expect, it, vi } from "vitest";
 
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";

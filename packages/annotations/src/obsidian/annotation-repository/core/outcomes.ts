@@ -4,8 +4,8 @@ import type {
 } from "#obsidian/annotation-repository/write.ts";
 import { Effect } from "effect";
 
-import { ANNOTATIONS } from "./model.ts";
 import type { AnnotationMutation, OutcomeWrite } from "./model.ts";
+import { ANNOTATIONS } from "./model.ts";
 import type { CoreState } from "./state.ts";
 
 import { IDLE } from "#obsidian/annotation-repository/write.ts";

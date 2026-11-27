@@ -5,8 +5,8 @@ import { Effect, Layer } from "effect";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { libraryFilePaths } from "./paths.ts";
-import { LibrarySource } from "./service.ts";
 import type { LibrarySourceKind } from "./service.ts";
+import { LibrarySource } from "./service.ts";
 
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 

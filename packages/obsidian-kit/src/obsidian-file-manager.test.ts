@@ -1,6 +1,5 @@
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { TFile } from "obsidian";
 import type {
   App,
   FileManager as FileManagerApi,
@@ -8,6 +7,7 @@ import type {
   Vault as VaultApi,
   Workspace as WorkspaceApi,
 } from "obsidian";
+import { TFile } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";

@@ -22,8 +22,8 @@ import {
   it,
 } from "vitest";
 
-import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
+import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import { AGENT_ENV } from "./ai-attribution.ts";
 import {
   CREATION_WINDOW_MS,

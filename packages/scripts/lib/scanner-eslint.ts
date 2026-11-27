@@ -1,5 +1,5 @@
-import { PUBLISHED_PLUGINS } from "./shell/plugins.ts";
 import type { PublishedPlugin, PublishedPluginName } from "./shell/plugins.ts";
+import { PUBLISHED_PLUGINS } from "./shell/plugins.ts";
 
 export function reviewedPlugin(): PublishedPlugin {
   const name = process.env.ZOTLIT_REVIEW_PLUGIN ?? "desktop";

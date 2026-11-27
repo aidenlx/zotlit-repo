@@ -2,6 +2,7 @@ import { addDuration } from "./filter-dates.ts";
 import { errorValue, firstError, isError } from "./filter-error.ts";
 import { finite, invoke, methodOf, propertyOf } from "./filter-functions.ts";
 import type { FilterNode } from "./filter-plan.ts";
+import type { FilterValue } from "./filter-values.ts";
 import {
   compare,
   equals,
@@ -12,7 +13,6 @@ import {
   truthy,
   typeOf,
 } from "./filter-values.ts";
-import type { FilterValue } from "./filter-values.ts";
 import type { QueryClock } from "./query-clock.ts";
 
 type Bindings = ReadonlyMap<string, FilterValue>;

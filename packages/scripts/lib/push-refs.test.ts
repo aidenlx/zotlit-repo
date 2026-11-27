@@ -4,8 +4,8 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
+import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import { acquireDesktopSlot } from "./desktop-slot.ts";
 import { landAdmission, LAND_TURN_ENV } from "./land-queue.ts";
 

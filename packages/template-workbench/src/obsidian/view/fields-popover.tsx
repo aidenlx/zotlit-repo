@@ -4,8 +4,8 @@ import type {
   WorkbenchFieldsPopoverProps,
 } from "#obsidian/workbench-ui/index.tsx";
 import { Platform } from "obsidian";
-import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { PinnedPopover } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
 import type {

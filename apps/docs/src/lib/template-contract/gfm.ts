@@ -1,4 +1,3 @@
-import { sectionOf } from "./model.ts";
 import type {
   Doc,
   ItemTypeRow,
@@ -6,6 +5,7 @@ import type {
   RowModel,
   TableModel,
 } from "./model.ts";
+import { sectionOf } from "./model.ts";
 
 export function renderContractTableMarkdown(
   model: Pick<PageModel, "sections">,

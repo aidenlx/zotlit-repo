@@ -7,6 +7,7 @@ import type {
 import { Compartment } from "@codemirror/state";
 import { tooltips, ViewPlugin } from "@codemirror/view";
 import { Effect } from "effect";
+import type { App, HoverParent } from "obsidian";
 import {
   AbstractInputSuggest,
   Component,
@@ -14,13 +15,12 @@ import {
   prepareSimpleSearch,
   renderMatches,
 } from "obsidian";
-import type { App, HoverParent } from "obsidian";
 import { useEffect, useRef } from "react";
 
 import { communityUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 
-import { extractPartialMenu } from "./extract-partial.ts";
 import type { ExtractPartial } from "./extract-partial.ts";
+import { extractPartialMenu } from "./extract-partial.ts";
 import { obsidianPopupKeys } from "./field-popup.ts";
 import { templateHover } from "./hover.tsx";
 

@@ -1,6 +1,6 @@
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
-import { Context } from "effect";
 import type { Effect } from "effect";
+import { Context } from "effect";
 import type { HoverParent } from "obsidian";
 
 import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";

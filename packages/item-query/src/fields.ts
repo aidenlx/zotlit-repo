@@ -26,8 +26,8 @@ import {
   timestamp,
 } from "./filter-dates.ts";
 import type { FilterRegistry } from "./filter-plan.ts";
-import { isQueryRecord } from "./filter-values.ts";
 import type { FilterValue, FilterValueType } from "./filter-values.ts";
+import { isQueryRecord } from "./filter-values.ts";
 import { keyField, indexedKeyField } from "./key-fields.ts";
 import { libraryField } from "./library-field.ts";
 import type { QueryNote } from "./note-fields.ts";

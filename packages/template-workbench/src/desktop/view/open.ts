@@ -4,8 +4,8 @@ import type {
 } from "#desktop/editor/actions.ts";
 import type { ProfileTarget } from "#desktop/view/customize.ts";
 import { Effect, Layer, Semaphore } from "effect";
-import { TFile } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
+import { TFile } from "obsidian";
 
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import type { ArrivingProblem } from "@zotlit/notes/obsidian/template/workbench-recovery.ts";

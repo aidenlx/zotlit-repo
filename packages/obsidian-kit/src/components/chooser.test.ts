@@ -2,12 +2,12 @@
 import type { App } from "obsidian";
 import { render } from "preact";
 import { act } from "preact/test-utils";
-import { createElement as h } from "react";
 import type { ReactNode } from "react";
+import { createElement as h } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { chooserRowKey } from "./chooser-logic.ts";
 import type { ChooserRow } from "./chooser-logic.ts";
+import { chooserRowKey } from "./chooser-logic.ts";
 import { Chooser } from "./chooser.tsx";
 
 import { editorApp } from "#__fixtures__/editor-app.ts";

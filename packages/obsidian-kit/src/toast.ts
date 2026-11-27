@@ -6,8 +6,8 @@ import {
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 
-import { LazyNotice, loadingNotice, noticeText } from "./notice.ts";
 import type { NoticeMessage } from "./notice.ts";
+import { LazyNotice, loadingNotice, noticeText } from "./notice.ts";
 
 interface ToastPromiseOptions<T> {
   loading?: NoticeMessage;

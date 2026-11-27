@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import type { HoverParent } from "obsidian";
-import { createElement, Fragment } from "react";
 import type { ReactNode } from "react";
+import { createElement, Fragment } from "react";
 
 import { hasActiveMenu } from "@zotlit/obsidian-kit/menu.ts";
 import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -12,10 +12,10 @@ import {
 
 import type { Point } from "./hit-test.ts";
 import { MarkPopup } from "./mark-popup.tsx";
-import { current } from "./reader-surface-model.ts";
 import type { ReaderSurface } from "./reader-surface-model.ts";
-import { drawsNoPopup, selectFloatingHead } from "./reader-surface-state.ts";
+import { current } from "./reader-surface-model.ts";
 import type { Floating, PopuplessFloating } from "./reader-surface-state.ts";
+import { drawsNoPopup, selectFloatingHead } from "./reader-surface-state.ts";
 
 export interface MarkPopupVariant {
   anchor: () => Point | null;

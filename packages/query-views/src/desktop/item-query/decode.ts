@@ -38,8 +38,8 @@ import type {
   NamedLibraries,
 } from "@zotlit/zotero-reads/contract/query-codec.ts";
 
-import { GUIDE_TOPIC_NAMES } from "./guide.ts";
 import type { GuideTopic } from "./guide.ts";
+import { GUIDE_TOPIC_NAMES } from "./guide.ts";
 
 import {
   DEFAULT_CLI_LIMIT,

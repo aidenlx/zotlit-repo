@@ -4,8 +4,8 @@ import type { Menu } from "obsidian";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { copyIndexedKey } from "./actions.ts";
 import type { IndexedKeyCopyTarget, IndexedKeyKind } from "./actions.ts";
+import { copyIndexedKey } from "./actions.ts";
 
 const COPY_LABEL: Record<IndexedKeyKind, () => string> = {
   item: m.command_copy_item_key_name,

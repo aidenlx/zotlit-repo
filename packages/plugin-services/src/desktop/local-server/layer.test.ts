@@ -1,7 +1,7 @@
 import { Effect, Stream } from "effect";
 import { get } from "node:http";
-import { createServer } from "node:net";
 import type { AddressInfo } from "node:net";
+import { createServer } from "node:net";
 import { expect, it } from "vitest";
 
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";

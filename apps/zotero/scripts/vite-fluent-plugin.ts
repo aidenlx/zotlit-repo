@@ -8,8 +8,8 @@ import {
   loadMessageData,
 } from "@zotlit/obsidian-i18n/compiler";
 
-import { emitFluent } from "./inlang-fluent.ts";
 import type { FluentEmitOptions, FluentEmitResult } from "./inlang-fluent.ts";
+import { emitFluent } from "./inlang-fluent.ts";
 import type { ZoteroBuildEnv } from "./vite-zotero-plugin.ts";
 
 export interface FluentPluginOpts extends FluentEmitOptions {

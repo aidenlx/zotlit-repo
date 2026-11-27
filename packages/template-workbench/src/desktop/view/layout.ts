@@ -1,5 +1,5 @@
-import { Deferred, Effect } from "effect";
 import type { Cause } from "effect";
+import { Deferred, Effect } from "effect";
 import type { ViewState, WorkspaceLeaf } from "obsidian";
 
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";

@@ -5,16 +5,16 @@ import { Effect } from "effect";
 
 import type { TagCandidateLeaf, KeysCandidateLeaf } from "./candidate-leaf.ts";
 import { candidateTag, candidateKeys } from "./candidate-predicates.ts";
-import { defineStatement, idSlots, unindexed } from "./database.ts";
 import type {
   IdSlot,
   ItemQueryDatabase,
   ItemQueryReaderError,
 } from "./database.ts";
+import { defineStatement, idSlots, unindexed } from "./database.ts";
 import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk.ts";
 import { recordUniverse } from "./record-universe.ts";
-import { epochMilliseconds, SCAN_PAGE_SIZE } from "./scan-page.ts";
 import type { ScanRow } from "./scan-page.ts";
+import { epochMilliseconds, SCAN_PAGE_SIZE } from "./scan-page.ts";
 
 import {
   itemData,

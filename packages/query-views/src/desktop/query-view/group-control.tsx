@@ -11,8 +11,8 @@ import { Select } from "@zotlit/obsidian-kit/components/select.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { directionLabel } from "./properties.ts";
 import type { PropertyOption } from "./properties.ts";
+import { directionLabel } from "./properties.ts";
 import type { LayoutGroup } from "./rows.ts";
 import {
   JoinedSelects,

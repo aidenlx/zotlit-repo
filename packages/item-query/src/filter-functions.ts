@@ -1,4 +1,5 @@
 import { compareStrings } from "./collation.ts";
+import type { DateValue } from "./filter-dates.ts";
 import {
   compareStarts,
   dateOnly,
@@ -11,9 +12,13 @@ import {
   timestamp,
   today,
 } from "./filter-dates.ts";
-import type { DateValue } from "./filter-dates.ts";
-import { errorValue, firstError } from "./filter-error.ts";
 import type { ErrorValue } from "./filter-error.ts";
+import { errorValue, firstError } from "./filter-error.ts";
+import type {
+  FilterValue,
+  FilterValueType,
+  RegexpValue,
+} from "./filter-values.ts";
 import {
   equals,
   isDate,
@@ -22,11 +27,6 @@ import {
   toText,
   truthy,
   typeOf,
-} from "./filter-values.ts";
-import type {
-  FilterValue,
-  FilterValueType,
-  RegexpValue,
 } from "./filter-values.ts";
 import type { QueryClock } from "./query-clock.ts";
 

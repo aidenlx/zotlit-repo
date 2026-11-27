@@ -17,8 +17,8 @@ import { NO_RESULTS } from "./results.ts";
 import type { LiteratureNotes, VaultHost, VaultValue } from "./table-notes.ts";
 import { cellText } from "./value-text.ts";
 import { VaultCellContent, useVaultVersion, vaultText } from "./vault-cell.tsx";
-import { useViewProperties } from "./view-properties.ts";
 import type { PropertyEntry } from "./view-properties.ts";
+import { useViewProperties } from "./view-properties.ts";
 import type { QueryView } from "./view.tsx";
 
 import { vaultName } from "#core/query-view/query-file.ts";

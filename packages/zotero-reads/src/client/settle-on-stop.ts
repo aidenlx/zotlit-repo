@@ -1,5 +1,5 @@
-import { Deferred, Effect, Fiber, Schema, Stream } from "effect";
 import type { Scope } from "effect";
+import { Deferred, Effect, Fiber, Schema, Stream } from "effect";
 import { RpcClientError, RpcSchema } from "effect/rpc";
 
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";

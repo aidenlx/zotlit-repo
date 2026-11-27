@@ -30,17 +30,17 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 
-import { CreateProfileModal } from "./create-profile-modal.ts";
 import type {
   CreatedProfile,
   CreateProfileOptions,
   ProfileCreationData,
 } from "./create-profile-modal.ts";
+import { CreateProfileModal } from "./create-profile-modal.ts";
+import type { ImportSource } from "./import-profile-modal.ts";
 import {
   ImportProfileModal,
   ImportSourceModal,
 } from "./import-profile-modal.ts";
-import type { ImportSource } from "./import-profile-modal.ts";
 
 import { installedStyles } from "#desktop/note-feature/creation-view.ts";
 import { NoteFeature } from "#desktop/note-feature/service.ts";

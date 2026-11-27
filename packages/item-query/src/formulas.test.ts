@@ -11,6 +11,7 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { ItemQueryError } from "./error.ts";
+import type { ItemQueryRequest, QueryDataset, QueryResult } from "./index.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
@@ -18,7 +19,6 @@ import {
   formulaReferences,
   ITEMS,
 } from "./index.ts";
-import type { ItemQueryRequest, QueryDataset, QueryResult } from "./index.ts";
 
 const { personal } = SCENARIO_LIBRARIES;
 let scenario: ScenarioDatabase<NodeDatabaseClient>;

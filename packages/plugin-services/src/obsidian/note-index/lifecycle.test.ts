@@ -21,8 +21,8 @@ import {
   noteIndexOver,
   startup,
 } from "./__fixtures__.ts";
-import { NoteIndex } from "./service.ts";
 import type { NoteIndexChange } from "./service.ts";
+import { NoteIndex } from "./service.ts";
 
 it.effect(
   "a failed metadata update leaves the next valid update consumable",

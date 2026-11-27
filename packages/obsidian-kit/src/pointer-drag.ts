@@ -1,5 +1,5 @@
-import { Scope } from "obsidian";
 import type { App } from "obsidian";
+import { Scope } from "obsidian";
 
 export interface PointerDrag {
   app: Pick<App, "scope" | "keymap">;

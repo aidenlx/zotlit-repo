@@ -18,12 +18,12 @@ import type { ChildNote } from "#queries/notes.ts";
 import type { TagMemo } from "#queries/tags.ts";
 import { distinct } from "@std/collections";
 
-import { buildNoteContext } from "./zt-template-note.ts";
 import type {
   AnnotationResolvers,
   NoteTemplateContext,
   TemplateNoteLink,
 } from "./zt-template-note.ts";
+import { buildNoteContext } from "./zt-template-note.ts";
 
 import { annotationToTemplateData } from "#lib/context/zt-template-annot.ts";
 import { resolveTemplateAttachment } from "#lib/context/zt-template-attach.ts";

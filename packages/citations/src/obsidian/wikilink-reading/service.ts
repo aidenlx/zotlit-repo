@@ -4,8 +4,8 @@ import type {
 } from "#obsidian/citation-text/present.ts";
 import type { CitationHover } from "#obsidian/citekey-navigation/index.ts";
 import { Effect, Exit, Layer, Scope } from "effect";
-import { setTooltip } from "obsidian";
 import type { MarkdownPostProcessorContext } from "obsidian";
+import { setTooltip } from "obsidian";
 
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -46,13 +46,13 @@ import {
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
+import type { RenderedRuns, SectionRuns } from "./render.ts";
 import {
   hasInternalLink,
   renderCitationRuns,
   sectionCitationRuns,
   sectionLinktexts,
 } from "./render.ts";
-import type { RenderedRuns, SectionRuns } from "./render.ts";
 
 import { CitationPopover } from "#obsidian/citation-popover/service.ts";
 import {

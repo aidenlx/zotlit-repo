@@ -4,8 +4,8 @@ import type {
 } from "#core/excerpt-image/format.ts";
 import { Effect } from "effect";
 import { PreventSchedulerYield } from "effect/Scheduler";
-import { openDB } from "idb";
 import type { DBSchema } from "idb";
+import { openDB } from "idb";
 
 import type { ExcerptCache, ExcerptEntry, ExcerptIdentity } from "./service.ts";
 

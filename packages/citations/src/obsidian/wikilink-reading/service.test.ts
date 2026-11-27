@@ -8,13 +8,13 @@ import type {
 import type { ProfilePresentationFailure } from "#obsidian/pandoc/document-presentation.ts";
 import { it } from "@effect/vitest";
 import { Effect, Exit, Layer, Scope } from "effect";
-import { Keymap, MarkdownView } from "obsidian";
 import type {
   MarkdownPostProcessor,
   MarkdownPostProcessorContext,
   MarkdownRenderChild,
   WorkspaceLeaf,
 } from "obsidian";
+import { Keymap, MarkdownView } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";

@@ -1,5 +1,5 @@
-import { compile } from "./compiler.ts";
 import type { CompileOptions } from "./compiler.ts";
+import { compile } from "./compiler.ts";
 
 export type CliIo = {
   cwd: string;

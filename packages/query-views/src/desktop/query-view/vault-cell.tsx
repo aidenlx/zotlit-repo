@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+import type { MouseEvent, ReactNode } from "react";
 import {
   useCallback,
   useEffect,
@@ -9,7 +10,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { MouseEvent, ReactNode } from "react";
 
 import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
@@ -20,7 +20,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useQueryTask } from "./model.ts";
-import { LIST_TYPES } from "./table-notes.ts";
 import type {
   LiteratureNotes,
   VaultHost,
@@ -28,6 +27,8 @@ import type {
   VaultValue,
   VaultWrite,
 } from "./table-notes.ts";
+import { LIST_TYPES } from "./table-notes.ts";
+import type { ChipMenu, VaultDraft, VaultEditEnd } from "./vault-editors.tsx";
 import {
   CHIPS,
   FIELD,
@@ -42,7 +43,6 @@ import {
   openListMenu,
   valueOf,
 } from "./vault-editors.tsx";
-import type { ChipMenu, VaultDraft, VaultEditEnd } from "./vault-editors.tsx";
 
 import {
   dateInputValue,

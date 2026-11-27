@@ -1,6 +1,6 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
-import { Context, Effect, Layer } from "effect";
 import type { PlatformError } from "effect";
+import { Context, Effect, Layer } from "effect";
 import type { App } from "obsidian";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";

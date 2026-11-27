@@ -10,8 +10,8 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { join } from "node:path";
-import { FileSystemAdapter } from "obsidian";
 import type { TFile } from "obsidian";
+import { FileSystemAdapter } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { availableOutcome } from "@zotlit/annotations/__fixtures__/excerpt-image/outcome.ts";

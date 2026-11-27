@@ -3,6 +3,7 @@ import type { LinkMode } from "#lib/zt-attach.ts";
 import type { CreatorFieldMode } from "#lib/zt-creator.ts";
 import type { TagType } from "#lib/zt-tag.ts";
 import { sql } from "drizzle-orm";
+import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 import {
   sqliteTable,
   primaryKey,
@@ -12,7 +13,6 @@ import {
   text,
   customType,
 } from "drizzle-orm/sqlite-core";
-import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 
 type SqliteAnyOut = null | number | string | Uint8Array;
 type SqliteAnyIn = null | number | bigint | string | Uint8Array;

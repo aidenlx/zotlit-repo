@@ -1,5 +1,5 @@
-import { Menu } from "obsidian";
 import type { Workspace } from "obsidian";
+import { Menu } from "obsidian";
 
 import {
   menuEvent,

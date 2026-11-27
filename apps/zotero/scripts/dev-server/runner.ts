@@ -1,12 +1,12 @@
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
-import { connectWithRetry, findFreePort } from "./rdp-client.ts";
 import type { RdpClient } from "./rdp-client.ts";
+import { connectWithRetry, findFreePort } from "./rdp-client.ts";
 
 import { DEV_READY_FILE_NAME } from "#constant";
 

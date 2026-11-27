@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { Layer, Logger, References } from "effect";
-import { Events, Plugin } from "obsidian";
 import type { App, PluginManifest, SettingDefinitionItem } from "obsidian";
+import { Events, Plugin } from "obsidian";
 import { expect, it } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";

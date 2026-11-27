@@ -3,6 +3,7 @@ import {
   PINNED_ZOTERO_VERSION,
 } from "./paired-zotero.ts";
 import { PRISTINE_SCHEMA_VERSIONS } from "./pristine.ts";
+import type { FixtureItem, FixtureNote } from "./spec.ts";
 import {
   COLLECTIONS,
   DEFAULT_STRESS_ITEM_COUNT,
@@ -26,7 +27,6 @@ import {
   UPGRADER_SETTINGS_VERSION,
   VAULT_CASES,
 } from "./spec.ts";
-import type { FixtureItem, FixtureNote } from "./spec.ts";
 
 import { DEV_VAULT_CASE_ENV } from "#dev-vault";
 import { OBSIDIAN_HOST_VAULT_ENV } from "#obsidian-host-readiness";

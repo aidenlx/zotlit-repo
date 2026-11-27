@@ -1,3 +1,4 @@
+import type { BatchRow } from "./dom.ts";
 import {
   listGroup,
   ROW_ICON,
@@ -7,7 +8,6 @@ import {
   profileChoiceControl,
   profileListGroup,
 } from "./dom.ts";
-import type { BatchRow } from "./dom.ts";
 import type {
   BatchCounts,
   BatchManifest,

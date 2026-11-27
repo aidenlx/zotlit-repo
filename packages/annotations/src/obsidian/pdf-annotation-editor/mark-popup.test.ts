@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { markPopupRow } from "./mark-popup.tsx";
 import type { MarkPopupRow } from "./mark-popup.tsx";
+import { markPopupRow } from "./mark-popup.tsx";
 
 import { annotation } from "#__fixtures__/pdf-annotation-editor.ts";
 import { capabilityBlocks } from "#obsidian/annot-view/card-controls.ts";

@@ -1,3 +1,4 @@
+import type { Duration } from "effect";
 import {
   Context,
   Deferred,
@@ -7,9 +8,8 @@ import {
   Scope,
   Stream,
 } from "effect";
-import type { Duration } from "effect";
-import { TExternalFile } from "obsidian";
 import type { TFile } from "obsidian";
+import { TExternalFile } from "obsidian";
 
 import type { AttachmentWithParentKey } from "@zotlit/db";
 import { attachmentAbsPath, attachmentPathKey } from "@zotlit/db/path";

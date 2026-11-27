@@ -13,8 +13,8 @@ import {
 } from "effect";
 import { TestClock } from "effect/testing";
 import { readFileSync } from "node:fs";
-import { createServer } from "node:http";
 import type { IncomingHttpHeaders } from "node:http";
+import { createServer } from "node:http";
 import { createRequire } from "node:module";
 import type { AddressInfo } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
@@ -28,23 +28,23 @@ import { loadSqliteWasm } from "@zotlit/drizzle-sqlite-wasm";
 import { setLibraryLogSink } from "@zotlit/shared/logging";
 import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
 
-import { crossOriginFetch } from "./__fixtures__/fake-zotero-api.ts";
 import type { FakeRequest } from "./__fixtures__/fake-zotero-api.ts";
+import { crossOriginFetch } from "./__fixtures__/fake-zotero-api.ts";
+import type { SyncHarness } from "./__fixtures__/harness.ts";
 import {
   libraryVersions,
   syncAndApply,
   syncHarness,
 } from "./__fixtures__/harness.ts";
-import type { SyncHarness } from "./__fixtures__/harness.ts";
 import { readerView } from "./__fixtures__/reader-view.ts";
 import { newApiKey, READ_ALL_ACCESS } from "./__fixtures__/scenario.ts";
+import type { WebApiFetch } from "./index.ts";
 import {
   applyDownload,
   downloadReplica,
   listKeyLibraries,
   verifyKey,
 } from "./index.ts";
-import type { WebApiFetch } from "./index.ts";
 
 const USER = `/users/${PARITY_USER.userID}`;
 const GROUP_ID = 4815;

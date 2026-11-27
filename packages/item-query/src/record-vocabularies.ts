@@ -1,29 +1,29 @@
+import type { QueryAnnotation } from "./annotation-fields.ts";
 import {
   ANNOTATION_PARENTS,
   annotationFieldDefinition,
   annotationFilterRegistry,
 } from "./annotation-fields.ts";
-import type { QueryAnnotation } from "./annotation-fields.ts";
 import type { AnnotationNeeds } from "./annotation-hydration.ts";
+import type { QueryAttachment } from "./attachment-fields.ts";
 import {
   ATTACHMENT_PARENTS,
   attachmentFieldDefinition,
   attachmentFilterRegistry,
 } from "./attachment-fields.ts";
-import type { QueryAttachment } from "./attachment-fields.ts";
 import type { AttachmentNeeds } from "./attachment-hydration.ts";
+import type { QueryItem, FieldNeeds } from "./fields.ts";
 import {
   ACTIVITY_FIELDS,
   fieldDefinition,
   itemFilterRegistry,
 } from "./fields.ts";
-import type { QueryItem, FieldNeeds } from "./fields.ts";
+import type { QueryNote } from "./note-fields.ts";
 import {
   NOTE_PARENTS,
   noteFieldDefinition,
   noteFilterRegistry,
 } from "./note-fields.ts";
-import type { QueryNote } from "./note-fields.ts";
 import type { NoteNeeds } from "./note-hydration.ts";
 import type { RecordVocabulary } from "./record-field.ts";
 

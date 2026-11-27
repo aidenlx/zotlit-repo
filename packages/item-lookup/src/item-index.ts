@@ -22,13 +22,13 @@ import type {
 } from "@zotlit/db";
 import { withLogCategory } from "@zotlit/shared/logging";
 
-import { makeEngineIndexBuilder, searchEngineIndex } from "./engine.ts";
 import type { EngineIndex, SearchMatches, SearchOptions } from "./engine.ts";
+import { makeEngineIndexBuilder, searchEngineIndex } from "./engine.ts";
+import type { SegmenterBinary, SegmenterStatus } from "./segmenter-switch.ts";
 import {
   makeSegmenterSwitch,
   SegmenterBinaryReader,
 } from "./segmenter-switch.ts";
-import type { SegmenterBinary, SegmenterStatus } from "./segmenter-switch.ts";
 import { layerSegmenterNone, Segmenter } from "./segmenter.ts";
 
 export class SourceUnavailable extends Schema.TaggedError<

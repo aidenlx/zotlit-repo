@@ -1,6 +1,5 @@
 import type { SyntaxNode } from "@lezer/common";
 
-import { noteOf, ranked } from "./expression-options.ts";
 import type {
   Caret,
   ExpressionCompletionResult,
@@ -8,6 +7,7 @@ import type {
   ExpressionOption,
   ExpressionVocabulary,
 } from "./expression-options.ts";
+import { noteOf, ranked } from "./expression-options.ts";
 
 function bracketKeyAt({ inner, pos, source }: Caret): {
   path: string;

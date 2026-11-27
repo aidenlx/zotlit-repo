@@ -9,8 +9,8 @@ import {
 } from "@zotlit/db-testing/scenario";
 import type { ScenarioItemName } from "@zotlit/db-testing/scenario";
 
-import { connectClient } from "./node-client.ts";
 import type { NodeDatabaseClient } from "./node-client.ts";
+import { connectClient } from "./node-client.ts";
 
 import {
   ItemQueryDatabase,

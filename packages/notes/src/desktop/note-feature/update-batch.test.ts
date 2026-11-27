@@ -21,8 +21,8 @@ import {
   Stream,
 } from "effect";
 import { TestClock } from "effect/testing";
-import { TFile } from "obsidian";
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import { beforeEach, describe, expect, vi } from "vitest";
 
 import { excerptReuseProbe } from "@zotlit/annotations/__fixtures__/excerpt-image/reuse.ts";
@@ -81,6 +81,12 @@ import type {
   UpdateResult,
 } from "./operations.ts";
 import { layerNoteFeature, NoteFeature } from "./service.ts";
+import type {
+  BatchUpdateOptions,
+  BatchUpdatePorts,
+  BatchUpdateResult,
+  BatchUpdateServices,
+} from "./update-batch.ts";
 import {
   batchCreateOutcome,
   BatchCreateRefusedError,
@@ -88,12 +94,6 @@ import {
   batchUpdateResultNotice,
   runBatchUpdate as runBatchUpdateEffect,
   runBatchUpdateAll as runBatchUpdateAllEffect,
-} from "./update-batch.ts";
-import type {
-  BatchUpdateOptions,
-  BatchUpdatePorts,
-  BatchUpdateResult,
-  BatchUpdateServices,
 } from "./update-batch.ts";
 import { batchUpdateNotices } from "./update-single.ts";
 

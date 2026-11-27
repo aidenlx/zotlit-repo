@@ -13,8 +13,8 @@ import { connectClient } from "@zotlit/db/client/node";
 import { SCAN_PAGE_SIZE } from "@zotlit/db/item-query";
 
 import type { RunEvent } from "./__fixtures__/test-helpers.ts";
-import { runEffect } from "./__fixtures__/test-helpers.ts";
 import type { CapturedLog } from "./__fixtures__/test-helpers.ts";
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { ANNOTATIONS, ATTACHMENTS, collectQuery } from "./index.ts";
 import { PRODUCTION_TUNING } from "./tuning.ts";
 

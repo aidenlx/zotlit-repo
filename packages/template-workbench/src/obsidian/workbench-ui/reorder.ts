@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import type { DragEvent, KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { pathStartsWith, samePath } from "./row-path.ts";
 import type { RowPath } from "./row-path.ts";
+import { pathStartsWith, samePath } from "./row-path.ts";
 
 const DRAG_TYPE = "application/x-zotlit-reorder";
 

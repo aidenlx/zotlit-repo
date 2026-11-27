@@ -3,8 +3,8 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import type { Plugin, ResolvedConfig } from "vite";
 
-import { compile, resolveCompilePaths } from "./compiler.ts";
 import type { CompileOptions } from "./compiler.ts";
+import { compile, resolveCompilePaths } from "./compiler.ts";
 import { isLanguagePackFileName } from "./core/language-pack.ts";
 
 export type ObsidianI18nViteOptions = Omit<CompileOptions, "root"> & {

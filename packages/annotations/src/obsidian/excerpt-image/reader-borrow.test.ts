@@ -6,12 +6,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, vi } from "vitest";
 
-import { MAX_PDF_BYTES, borrowedExcerptPage } from "./reader-borrow.ts";
 import type {
   BorrowedExcerptDocument,
   ExcerptCropPage,
   ExcerptReaderDocuments,
 } from "./reader-borrow.ts";
+import { MAX_PDF_BYTES, borrowedExcerptPage } from "./reader-borrow.ts";
 
 const folders: string[] = [];
 

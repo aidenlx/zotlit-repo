@@ -7,8 +7,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { mediaStorePlugin, scanVideos, uploadMissing } from "./media-store.ts";
 import type { SignedFetch } from "./media-store.ts";
+import { mediaStorePlugin, scanVideos, uploadMissing } from "./media-store.ts";
 
 const lessonBytes = Buffer.alloc(2048, "a");
 const landingBytes = Buffer.alloc(3000, "b");

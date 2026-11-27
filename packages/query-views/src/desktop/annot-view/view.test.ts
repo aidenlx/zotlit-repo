@@ -5,8 +5,8 @@ import type {
   QueryViewRow,
 } from "#worker/item-query/query-view.ts";
 import { Effect, Layer, Stream } from "effect";
-import { debounce, Scope, TFile } from "obsidian";
 import type { App, Menu as ObsidianMenu, WorkspaceLeaf } from "obsidian";
+import { debounce, Scope, TFile } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
@@ -44,8 +44,8 @@ import { stubbedReads } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { AnnotationView } from "./view.tsx";
 import type { AnnotViewDeps } from "./view.tsx";
+import { AnnotationView } from "./view.tsx";
 
 import { makeQueryHost } from "#__fixtures__/query-view/host.ts";
 import { noLiteratureNotes } from "#__fixtures__/query-view/literature-notes.ts";

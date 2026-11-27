@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { Events } from "obsidian";
 import type { App, SecretStorage } from "obsidian";
+import { Events } from "obsidian";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";

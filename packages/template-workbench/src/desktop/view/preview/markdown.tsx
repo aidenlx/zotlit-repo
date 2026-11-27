@@ -2,8 +2,8 @@ import type { RenderedProperty, RenderedRange } from "#core/render/index.ts";
 import type { PreviewCitation } from "#obsidian/view/preview/citations.ts";
 import type { WorkbenchMarkdownProps } from "#obsidian/workbench-ui/index.tsx";
 import { Effect } from "effect";
-import { Component, MarkdownRenderer } from "obsidian";
 import type { App } from "obsidian";
+import { Component, MarkdownRenderer } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 
 import { citationElement } from "@zotlit/citations/obsidian/citation-text/present.ts";

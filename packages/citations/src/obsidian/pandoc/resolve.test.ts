@@ -3,8 +3,8 @@ import { Effect } from "effect";
 import type { LinkCache } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { resolveCitations } from "./resolve.ts";
 import type { ResolvePorts, ResolveResponse, ResolvedItem } from "./resolve.ts";
+import { resolveCitations } from "./resolve.ts";
 
 const FILE = "/vault/Notes/Paper.md";
 const SOURCE = "Notes/Paper.md";

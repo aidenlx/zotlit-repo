@@ -31,17 +31,17 @@ import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-categor
 
 import { closeClient, nodeClient } from "./node-client.ts";
 import { readParentBeside } from "./read-parent.ts";
+import type {
+  PreparedRead,
+  ReadFallbackReason,
+  SourceFingerprint,
+} from "./read-source.ts";
 import {
   buildSqliteUri,
   prepareRead,
   snapshotSource,
   sourceFingerprintsEqual,
   walGenerationSize,
-} from "./read-source.ts";
-import type {
-  PreparedRead,
-  ReadFallbackReason,
-  SourceFingerprint,
 } from "./read-source.ts";
 import { reapReadClones } from "./reap-temps.ts";
 

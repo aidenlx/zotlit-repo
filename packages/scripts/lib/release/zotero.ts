@@ -4,8 +4,8 @@ import { join } from "node:path";
 import { gt } from "semver";
 
 import { releaseLine, releaseTag } from "./lines.ts";
-import { pushSourceTag } from "./obsidian.ts";
 import type { SourceTags } from "./obsidian.ts";
+import { pushSourceTag } from "./obsidian.ts";
 
 export const UPDATE_HOST_TAG = "zotero-release";
 const UPDATE_MANIFESTS = "update*.json";

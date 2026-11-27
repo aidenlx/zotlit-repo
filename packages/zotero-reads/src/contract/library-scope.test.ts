@@ -5,6 +5,7 @@ import { describe, expect } from "vitest";
 
 import type { Library } from "@zotlit/db";
 
+import type { LibraryScope, ResolvedLibraryScope } from "./library-scope.ts";
 import {
   DEFAULT_LIBRARY_SCOPE,
   libraryScopeSchema,
@@ -12,7 +13,6 @@ import {
   sameResolution,
   selectorKeySchema,
 } from "./library-scope.ts";
-import type { LibraryScope, ResolvedLibraryScope } from "./library-scope.ts";
 
 const MY_LIBRARY: Library = {
   libraryID: 1,

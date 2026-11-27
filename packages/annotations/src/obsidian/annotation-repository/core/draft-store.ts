@@ -6,14 +6,6 @@ import { Effect, FiberMap } from "effect";
 
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 
-import {
-  DRAFT_FIELDS,
-  TEXT_FIELD_SPECS,
-  indexedID,
-  proposedText,
-  sameText,
-  sourceServerID,
-} from "./model.ts";
 import type {
   AnnotationList,
   AnnotationRecord,
@@ -21,6 +13,14 @@ import type {
   DraftFields,
   TagDraft,
   TextFieldDraft,
+} from "./model.ts";
+import {
+  DRAFT_FIELDS,
+  TEXT_FIELD_SPECS,
+  indexedID,
+  proposedText,
+  sameText,
+  sourceServerID,
 } from "./model.ts";
 import { pendingWrites, settle } from "./outcomes.ts";
 import type { CoreState } from "./state.ts";

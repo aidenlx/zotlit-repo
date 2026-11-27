@@ -1,5 +1,5 @@
-import { Keymap, normalizePath } from "obsidian";
 import type { App, Menu, Plugin, TFile, TFolder } from "obsidian";
+import { Keymap, normalizePath } from "obsidian";
 
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";

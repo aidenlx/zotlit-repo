@@ -1,5 +1,13 @@
-import { Scope, prepareFuzzySearch } from "obsidian";
 import type { IconName } from "obsidian";
+import { Scope, prepareFuzzySearch } from "obsidian";
+import type {
+  ButtonHTMLAttributes,
+  HTMLAttributes,
+  KeyboardEvent as ReactKeyboardEvent,
+  ReactNode,
+  Ref,
+  RefObject,
+} from "react";
 import {
   Fragment,
   createContext,
@@ -12,19 +20,17 @@ import {
   useRef,
   useState,
 } from "react";
-import type {
-  ButtonHTMLAttributes,
-  HTMLAttributes,
-  KeyboardEvent as ReactKeyboardEvent,
-  ReactNode,
-  Ref,
-  RefObject,
-} from "react";
 
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
+import type {
+  ChooserActivation,
+  ChooserGroup,
+  ChooserMove,
+  ChooserRow,
+} from "./chooser-logic.ts";
 import {
   activatedRow,
   chooserActionKey,
@@ -35,14 +41,8 @@ import {
   movedHighlight,
   rehomedHighlight,
 } from "./chooser-logic.ts";
-import type {
-  ChooserActivation,
-  ChooserGroup,
-  ChooserMove,
-  ChooserRow,
-} from "./chooser-logic.ts";
-import { PinnedPopover } from "./pinned-popover.tsx";
 import type { PinnedPopoverHandle } from "./pinned-popover.tsx";
+import { PinnedPopover } from "./pinned-popover.tsx";
 
 import { useObsidianApp } from "#app-context.ts";
 import { Icon } from "#components/obsidian/icon.tsx";

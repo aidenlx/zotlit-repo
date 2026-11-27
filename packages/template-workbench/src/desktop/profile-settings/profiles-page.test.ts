@@ -2,7 +2,6 @@ import type { CustomizeRequest } from "#desktop/view/customize.ts";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Effect, Layer, Queue } from "effect";
-import { SuggestModal, TFile } from "obsidian";
 import type {
   App,
   Modal as ObsidianModal,
@@ -11,6 +10,7 @@ import type {
   SettingDefinitionList,
   SettingDefinitionPage,
 } from "obsidian";
+import { SuggestModal, TFile } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";

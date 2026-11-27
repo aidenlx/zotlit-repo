@@ -1,13 +1,13 @@
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
-import { Effect } from "effect";
 import type { FileSystem, Scope } from "effect";
+import { Effect } from "effect";
 import { RpcClient, RpcServer } from "effect/rpc";
 
 import { makeInMemoryRpcProtocols } from "@zotlit/plugin-kernel/worker/effect-rpc-in-process.ts";
 
 import type { Connection } from "./connection.ts";
-import { handlersLayer } from "./handlers.ts";
 import type { HandlersOptions } from "./handlers.ts";
+import { handlersLayer } from "./handlers.ts";
 
 import { ZoteroReads } from "#contract/rpc.ts";
 

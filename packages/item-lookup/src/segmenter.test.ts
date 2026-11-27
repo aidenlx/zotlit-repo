@@ -1,5 +1,5 @@
-import { Effect, Stream } from "effect";
 import type { Layer } from "effect";
+import { Effect, Stream } from "effect";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";

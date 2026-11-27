@@ -12,8 +12,8 @@ import type {
 // @vitest-environment happy-dom
 import { Effect } from "effect";
 import { act } from "preact/test-utils";
-import { createElement } from "react";
 import type { ReactNode } from "react";
+import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -26,6 +26,7 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 
 import { Explorer } from "./Explorer.tsx";
+import type { ExplorerModel } from "./model.ts";
 import {
   annotationIndexedKey,
   ExplorerModelContext,
@@ -33,7 +34,6 @@ import {
   setFilter,
   toggleNode,
 } from "./model.ts";
-import type { ExplorerModel } from "./model.ts";
 
 import { makeExplorerHost } from "#__fixtures__/data-explorer.ts";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";

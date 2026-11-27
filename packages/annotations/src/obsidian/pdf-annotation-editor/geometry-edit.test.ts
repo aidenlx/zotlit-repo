@@ -7,6 +7,7 @@ import type {
   PdfTextPosition,
 } from "@zotlit/db";
 
+import type { Grip } from "./geometry-edit.ts";
 import {
   bodyRect,
   captureRect,
@@ -22,7 +23,6 @@ import {
   releasedPosition,
   sameGeometry,
 } from "./geometry-edit.ts";
-import type { Grip } from "./geometry-edit.ts";
 
 const VIEW_BOX = [10, 20, 622, 812] as const;
 

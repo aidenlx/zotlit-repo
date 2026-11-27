@@ -1,5 +1,5 @@
-import { Effect, Fiber } from "effect";
 import type { Exit } from "effect";
+import { Effect, Fiber } from "effect";
 
 export function awaitOwned<A, E>(
   fiber: Fiber.Fiber<A, E>,

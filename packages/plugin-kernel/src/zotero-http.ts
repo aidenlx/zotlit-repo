@@ -1,12 +1,12 @@
 import type { EffectBridge } from "#effect-bridge.ts";
 import { Cause, Context, Effect, Exit, Layer, Option } from "effect";
+import type { HttpMethod } from "effect/http";
 import {
   HttpBody,
   HttpClient,
   HttpClientError,
   HttpClientRequest,
 } from "effect/http";
-import type { HttpMethod } from "effect/http";
 
 import { AbortError } from "#abort-error.ts";
 

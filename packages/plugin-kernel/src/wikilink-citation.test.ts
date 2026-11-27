@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import type {
+  LiteratureNoteTarget,
+  WikilinkCitationContext,
+} from "./wikilink-citation.ts";
 import {
   citationOfRun,
   citationRuns,
   wikilinkCitation,
-} from "./wikilink-citation.ts";
-import type {
-  LiteratureNoteTarget,
-  WikilinkCitationContext,
 } from "./wikilink-citation.ts";
 
 const WANG: LiteratureNoteTarget = {

@@ -1,4 +1,3 @@
-import { evalToken, Tag } from "liquidjs";
 import type {
   Context,
   Emitter,
@@ -9,6 +8,7 @@ import type {
   TopLevelToken,
   ValueToken,
 } from "liquidjs";
+import { evalToken, Tag } from "liquidjs";
 
 import { withCitationInputProvenance } from "./citation-input.ts";
 export { CitationInputError } from "./citation-input.ts";
@@ -20,34 +20,34 @@ import type {
   TemplateLanguage,
 } from "./constants.ts";
 import { mergeManagedFrontmatterEntries } from "./frontmatter-merge.ts";
+import type {
+  CompiledFrontmatter,
+  CompiledManagedFrontmatter,
+} from "./frontmatter.ts";
 import {
   compileFrontmatterFields as compileFrontmatterFieldsImpl,
   compileManagedFrontmatterEntries as compileManagedFrontmatterEntriesImpl,
   evalManagedFrontmatterEntries,
   validateFrontmatterExpr as validateFrontmatterExprImpl,
 } from "./frontmatter.ts";
-import type {
-  CompiledFrontmatter,
-  CompiledManagedFrontmatter,
-} from "./frontmatter.ts";
 import { TemplateEngine } from "./index.ts";
 import { inlineCitation } from "./inline-citation.ts";
+import type { LegacyCitationSources } from "./legacy-citation.ts";
 import {
   DEFAULT_CITATION_BRANCHES,
   foldLegacyCitationTemplates,
 } from "./legacy-citation.ts";
-import type { LegacyCitationSources } from "./legacy-citation.ts";
 import { createLiquidEngine } from "./liquid.ts";
+import type {
+  LegacyLiteratureNoteTemplates,
+  LiteratureNoteTemplateDocument,
+  ManagedFrontmatterEntry,
+} from "./literature-note-template.ts";
 import {
   LegacyTemplateConversionError,
   LiteratureNoteTemplateError,
   parseLiteratureNoteTemplate as parseLiteratureNoteTemplateImpl,
   synthesizeLegacyLiteratureNoteTemplate,
-} from "./literature-note-template.ts";
-import type {
-  LegacyLiteratureNoteTemplates,
-  LiteratureNoteTemplateDocument,
-  ManagedFrontmatterEntry,
 } from "./literature-note-template.ts";
 import { formatManagedRegion } from "./obsidian.ts";
 

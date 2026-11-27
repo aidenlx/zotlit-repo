@@ -5,8 +5,8 @@ import type { AnnotViewAttachment } from "@zotlit/db";
 import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { selectActiveAttachment } from "./state.ts";
 import type { AnnotState, FollowMode } from "./state.ts";
+import { selectActiveAttachment } from "./state.ts";
 
 import { editingCapabilityCopy } from "#obsidian/annotation-repository/capability-copy.ts";
 

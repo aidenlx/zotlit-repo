@@ -2,8 +2,6 @@ import { history, undo } from "@codemirror/commands";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Cause, Effect, Exit, Fiber, FiberSet, Scope } from "effect";
-import { MarkdownView } from "obsidian";
-import { TFile } from "obsidian";
 import type {
   App,
   Editor,
@@ -12,6 +10,8 @@ import type {
   Workspace,
   WorkspaceLeaf,
 } from "obsidian";
+import { MarkdownView } from "obsidian";
+import { TFile } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";

@@ -1,7 +1,7 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
-import { Effect, FileSystem, Layer } from "effect";
 import type { Scope } from "effect";
+import { Effect, FileSystem, Layer } from "effect";
 import { join } from "node:path";
 import { describe, expect } from "vitest";
 

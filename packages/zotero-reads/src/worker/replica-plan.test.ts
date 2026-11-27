@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { plan } from "./replica-plan.ts";
 import type { ReplicaAction, ReplicaFacts } from "./replica-plan.ts";
+import { plan } from "./replica-plan.ts";
 
 const A = 42;
 const B = 99;

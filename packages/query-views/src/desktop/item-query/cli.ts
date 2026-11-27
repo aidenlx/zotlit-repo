@@ -12,8 +12,8 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { queryValuesFlags, queryFlags, queryCancelFlags } from "./contract.ts";
 import { decodeCancelArguments, decodeGuideArguments } from "./decode.ts";
 import { GUIDE_TOPIC_NAMES, renderGuide } from "./guide.ts";
-import { QueryService } from "./service.ts";
 import type { ItemQueryError, QueryCancelled } from "./service.ts";
+import { QueryService } from "./service.ts";
 
 import {
   envelope,

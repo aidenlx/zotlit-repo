@@ -1,6 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { paneDivider } from "@zotlit/plugin-kernel/pane-divider.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -14,12 +14,6 @@ import {
   FieldsPopoverPanel,
 } from "./fields-panel.tsx";
 import { useContainerName, useWorkbenchHost } from "./host.tsx";
-import {
-  drawnMax,
-  PANEL_HANDLES,
-  PANEL_SIDES,
-  resizePanel,
-} from "./panel-layout.ts";
 import type {
   HandleSizing,
   PanelHandle,
@@ -27,6 +21,12 @@ import type {
   PanelSide,
   ViewSize,
   WorkbenchPanels,
+} from "./panel-layout.ts";
+import {
+  drawnMax,
+  PANEL_HANDLES,
+  PANEL_SIDES,
+  resizePanel,
 } from "./panel-layout.ts";
 
 const panelsPanel =

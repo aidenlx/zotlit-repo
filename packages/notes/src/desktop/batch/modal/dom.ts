@@ -1,6 +1,6 @@
 import type { BatchFailure } from "#obsidian/batch/batch-run.ts";
-import { setIcon, setTooltip } from "obsidian";
 import type { App } from "obsidian";
+import { setIcon, setTooltip } from "obsidian";
 
 import { renderProfileRecovery } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";

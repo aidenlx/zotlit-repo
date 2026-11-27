@@ -1,10 +1,10 @@
-import { Effect } from "effect";
 import type { Context } from "effect";
+import { Effect } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import { readCitationData, readTemplateData, withSettings } from "./data.ts";
 import type { TemplateDataLoader, TemplateDataServices } from "./data.ts";
+import { readCitationData, readTemplateData, withSettings } from "./data.ts";
 
 export function bindTemplateData(
   bridge: Pick<EffectBridge, "runPromise">,

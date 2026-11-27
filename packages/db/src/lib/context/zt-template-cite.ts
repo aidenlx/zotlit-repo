@@ -4,11 +4,11 @@ import type { Item } from "#queries/items.ts";
 
 import { emptyToNull } from "./normalize.ts";
 import { cslToTemplateItem } from "./zt-csl.ts";
-import { itemToTemplateBaseData } from "./zt-template-item.ts";
 import type {
   TemplateCreator,
   TemplateItemBaseData,
 } from "./zt-template-item.ts";
+import { itemToTemplateBaseData } from "./zt-template-item.ts";
 
 /**
  * A cited item's data, in the same template vocabulary as the note root and

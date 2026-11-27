@@ -10,8 +10,8 @@ import {
   Scope,
   Stream,
 } from "effect";
-import { TFile } from "obsidian";
 import type { Vault as VaultApi } from "obsidian";
+import { TFile } from "obsidian";
 import { assert, expect, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";

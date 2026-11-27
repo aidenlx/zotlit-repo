@@ -5,13 +5,13 @@ import { expect, it, vi } from "vitest";
 
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
-import { creationToolbar, renderCreationToolbar } from "./creation-toolbar.ts";
 import type {
   CreationToolbarControl,
   CreationToolbarControlId,
 } from "./creation-toolbar.ts";
-import { MARK_TOOLS } from "./tools.ts";
+import { creationToolbar, renderCreationToolbar } from "./creation-toolbar.ts";
 import type { MarkTool } from "./tools.ts";
+import { MARK_TOOLS } from "./tools.ts";
 
 import { deadlineAfter } from "#__fixtures__/annotation-repository/capability.ts";
 import { editingCapabilityCopy } from "#obsidian/annotation-repository/capability-copy.ts";

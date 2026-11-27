@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+import type { App, TFolder } from "obsidian";
 import {
   AbstractInputSuggest,
   Modal,
@@ -6,7 +7,6 @@ import {
   prepareSimpleSearch,
   TextComponent,
 } from "obsidian";
-import type { App, TFolder } from "obsidian";
 
 import {
   dialogFooter,
@@ -24,8 +24,8 @@ import {
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { composing } from "@zotlit/ui";
 
-import { savedQueryFileText } from "./sidebar-query.ts";
 import type { SaveQueryFileInput, SavedRecords } from "./sidebar-query.ts";
+import { savedQueryFileText } from "./sidebar-query.ts";
 
 import {
   QUERY_FILE_EXTENSION,

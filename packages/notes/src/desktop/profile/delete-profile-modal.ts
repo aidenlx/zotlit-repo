@@ -1,6 +1,6 @@
 import type { ProfileDeletionPlan } from "#obsidian/profile/service.ts";
-import { ConfirmationModal } from "obsidian";
 import type { App } from "obsidian";
+import { ConfirmationModal } from "obsidian";
 
 import type { InstalledCslStyle } from "@zotlit/citations/core/pandoc/csl-style.ts";
 import { normalizeFolderPath } from "@zotlit/obsidian-kit/ensure-folder.ts";

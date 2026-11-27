@@ -6,12 +6,12 @@ import { prefs } from "@/prefs/index.ts";
 import type { FluentMessageId } from "@/types/fluent.ts";
 
 import databaseIcon from "./database.svg?inline";
+import type { DatabaseIconState } from "./model.ts";
 import {
   databaseIconState,
   databaseStatusMenuModel,
   manualOutcomeMessages,
 } from "./model.ts";
-import type { DatabaseIconState } from "./model.ts";
 
 const logger = getLogger(["zotlit", "zotero", "database-status"]);
 

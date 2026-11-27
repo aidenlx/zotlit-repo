@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
-import { demoMotion } from "./demo-motion.ts";
 import type { DemoInputs, DemoMotion } from "./demo-motion.ts";
+import { demoMotion } from "./demo-motion.ts";
 
 const idle: DemoInputs = {
   wasEligible: false,

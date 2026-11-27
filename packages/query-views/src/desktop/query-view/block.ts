@@ -1,5 +1,5 @@
-import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, Plugin } from "obsidian";
+import { MarkdownRenderChild } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";

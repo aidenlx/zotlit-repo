@@ -1,5 +1,5 @@
-import { FuzzySuggestModal } from "obsidian";
 import type { App, TFolder } from "obsidian";
+import { FuzzySuggestModal } from "obsidian";
 
 import { openSettingsTab } from "@zotlit/obsidian-kit/open-settings.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";

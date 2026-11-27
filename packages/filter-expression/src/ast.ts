@@ -1,7 +1,7 @@
 import type { SyntaxNode, Tree } from "@lezer/common";
 
-import { parseExpression, parser } from "./index.ts";
 import type { ExpressionSyntaxError } from "./index.ts";
+import { parseExpression, parser } from "./index.ts";
 
 interface Positioned {
   from: number;

@@ -6,12 +6,12 @@ import type {
   WorkbenchItemChoice,
 } from "#obsidian/workbench-ui/index.tsx";
 import type { ChooserScope } from "#obsidian/workbench-ui/suggester.ts";
-import { Effect } from "effect";
 import type { Cause } from "effect";
-import { ItemView, setIcon } from "obsidian";
+import { Effect } from "effect";
 import type { Menu, ViewStateResult, WorkspaceLeaf } from "obsidian";
-import { createRoot } from "react-dom/client";
+import { ItemView, setIcon } from "obsidian";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
@@ -45,6 +45,7 @@ import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { makeExportTemplateDataCommand } from "./atoms.ts";
 import { Explorer } from "./Explorer.tsx";
 import { exportTarget } from "./export-file.ts";
+import type { ExplorerSession, ExplorerState } from "./model.ts";
 import {
   allSectionsCollapsed,
   annotationIndexedKey,
@@ -58,7 +59,6 @@ import {
   setTarget,
   toggleSections,
 } from "./model.ts";
-import type { ExplorerSession, ExplorerState } from "./model.ts";
 
 import { getSampleItem } from "#core/editor/selection-data.ts";
 import {

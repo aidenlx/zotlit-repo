@@ -5,8 +5,8 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { describe, expect } from "vitest";
 
-import { startWebWorker } from "./web-worker.ts";
 import type { StartWebWorkerOptions } from "./web-worker.ts";
+import { startWebWorker } from "./web-worker.ts";
 
 import { SEED } from "#__fixtures__/reads-seed.ts";
 import { seededApi, webApiConfig } from "#__fixtures__/web-api.ts";

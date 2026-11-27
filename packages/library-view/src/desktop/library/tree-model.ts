@@ -25,6 +25,7 @@ import type {
   LibraryScope,
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
+import type { LibraryNode, ReadingStateFacet } from "./document.ts";
 import {
   nodeCount,
   nodeKey,
@@ -33,9 +34,8 @@ import {
   tagNames,
   unreadCount,
 } from "./document.ts";
-import type { LibraryNode, ReadingStateFacet } from "./document.ts";
-import { collectionTree, sameLibrary } from "./tree.ts";
 import type { LibraryCounts, TreeLibrary } from "./tree.ts";
+import { collectionTree, sameLibrary } from "./tree.ts";
 
 export interface TreeSession {
   readonly node: LibraryNode;

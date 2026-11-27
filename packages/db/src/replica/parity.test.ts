@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { WebApiLibraryExport } from "@zotlit/db-testing/web-api";
 import { loadSqliteWasm } from "@zotlit/drizzle-sqlite-wasm";
 
+import type { ParityPair, ReplicaClient } from "./__fixtures__/parity.ts";
 import {
   CITATION_KEYS,
   openParityPair,
@@ -15,7 +16,6 @@ import {
   PARITY_USER,
   openNodeReplica,
 } from "./__fixtures__/parity.ts";
-import type { ParityPair, ReplicaClient } from "./__fixtures__/parity.ts";
 import type { ApplyResult } from "./apply.ts";
 
 import { relations } from "#drizzle/relations.ts";

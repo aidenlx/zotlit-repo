@@ -1,5 +1,5 @@
-import { ItemView } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
+import { ItemView } from "obsidian";
 import { createRoot } from "react-dom/client";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";

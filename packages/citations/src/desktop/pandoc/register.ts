@@ -6,8 +6,8 @@ import type {
 } from "#obsidian/pandoc/resolve.ts";
 import { Effect, FileSystem, Layer } from "effect";
 import { isAbsolute, relative } from "node:path";
-import { normalizePath } from "obsidian";
 import type { CliData, CliFlag, CliFlags, TFile } from "obsidian";
+import { normalizePath } from "obsidian";
 
 import type { VersionedCliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import {
@@ -32,6 +32,7 @@ import { resolveLiteratureNoteIn } from "@zotlit/plugin-services/obsidian/note-i
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
+import type { CslResponse, DocumentStyleRead } from "./csl.ts";
 import {
   CSL_COMMAND,
   CSL_SELECTOR_MESSAGE,
@@ -40,7 +41,6 @@ import {
   resolveCslStyle,
   resolveDocumentCslStyle,
 } from "./csl.ts";
-import type { CslResponse, DocumentStyleRead } from "./csl.ts";
 import {
   createPandocIntegrationHandlers,
   PANDOC_FILES_COMMAND,

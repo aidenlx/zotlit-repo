@@ -1,5 +1,5 @@
-import { lazy, Suspense } from "react";
 import type { ReactNode } from "react";
+import { lazy, Suspense } from "react";
 
 import type { RecordingPlayerProps } from "./recording-player.tsx";
 

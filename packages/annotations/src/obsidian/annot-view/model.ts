@@ -2,6 +2,7 @@ import type { MutationState } from "#obsidian/annotation-repository/service.ts";
 import { useAtomValue } from "@effect/atom-react";
 import * as Atom from "effect/reactivity/Atom";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
+import type { ReactNode } from "react";
 import {
   createContext,
   createElement,
@@ -9,26 +10,25 @@ import {
   useContext,
   useMemo,
 } from "react";
-import type { ReactNode } from "react";
 
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 
 import type { CaretPoint } from "./editor-sheet.ts";
 import type { AnnotFilter } from "./filter.ts";
+import type { AnnotState, EditingField, FollowMode } from "./state.ts";
 import {
   initialAnnotState,
   isEditing,
   filterOf,
   toggledTags,
 } from "./state.ts";
-import type { AnnotState, EditingField, FollowMode } from "./state.ts";
+import type { AnnotViewState } from "./view-state.ts";
 import {
   DEFAULT_FOLLOW_MODE,
   parseAnnotViewState,
   unpinnedMode,
 } from "./view-state.ts";
-import type { AnnotViewState } from "./view-state.ts";
 
 import { IDLE } from "#obsidian/annotation-repository/write.ts";
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { markInertPlaceholder } from "@zotlit/db/template-data";
 
+import type { DisplayNode } from "./display-tree.ts";
 import {
   annotationKeyAtPath,
   buildDisplayTree,
@@ -10,7 +11,6 @@ import {
   findAnnotationRoot,
   formatPath,
 } from "./display-tree.ts";
-import type { DisplayNode } from "./display-tree.ts";
 import { withText } from "./test-records.ts";
 
 function expectValueChildren(node: DisplayNode): readonly DisplayNode[] {

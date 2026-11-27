@@ -15,13 +15,14 @@ import type {
   Span,
 } from "./fault.ts";
 export type { Span } from "./fault.ts";
-import { BUILT_IN_NAMES, itemFilterRegistry } from "./fields.ts";
 import type {
   FieldNeeds,
   FilterValueDefinition,
   QueryItem,
   FilterField,
 } from "./fields.ts";
+import { BUILT_IN_NAMES, itemFilterRegistry } from "./fields.ts";
+import type { FunctionDefinition } from "./filter-functions.ts";
 import {
   GLOBAL_FUNCTION_NAMES,
   GLOBAL_FUNCTIONS,
@@ -35,13 +36,12 @@ import {
   propertyOf,
   takesType,
 } from "./filter-functions.ts";
-import type { FunctionDefinition } from "./filter-functions.ts";
-import { isQueryRecord } from "./filter-values.ts";
 import type {
   FilterValue,
   FilterValueType,
   RecordValue,
 } from "./filter-values.ts";
+import { isQueryRecord } from "./filter-values.ts";
 import { FORMULA_SEGMENT } from "./formulas.ts";
 import type { FilterNavigation } from "./record-field.ts";
 import type { QueryContext } from "./request.ts";

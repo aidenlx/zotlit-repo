@@ -1,10 +1,10 @@
 import { Effect, Schema } from "effect";
-import { Menu } from "obsidian";
 import type {
   SettingDefinitionItem,
   SettingDefinitionList,
   SettingDefinitionPage,
 } from "obsidian";
+import { Menu } from "obsidian";
 
 import { installedStyles } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
 import type { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";

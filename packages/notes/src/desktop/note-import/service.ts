@@ -4,8 +4,8 @@ import type {
 } from "#obsidian/profile/bindings.ts";
 import type { ProfileOperationError } from "#obsidian/profile/service.ts";
 import { Context, Effect, Layer, Schema, Semaphore } from "effect";
-import { normalizePath, stringifyYaml } from "obsidian";
 import type { TFile } from "obsidian";
+import { normalizePath, stringifyYaml } from "obsidian";
 
 import { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import type {

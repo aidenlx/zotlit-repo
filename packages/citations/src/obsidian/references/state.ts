@@ -6,8 +6,8 @@ import type {
 import type { DocumentPresentationFailure } from "#obsidian/pandoc/document-presentation.ts";
 import type { PandocEngineStatus } from "#obsidian/pandoc/service.ts";
 
-import { buildReferenceEntries } from "./entries.ts";
 import type { ReferenceEntry } from "./entries.ts";
+import { buildReferenceEntries } from "./entries.ts";
 
 export type ReferencesListMode =
   | { kind: "minimal" }

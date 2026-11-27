@@ -6,8 +6,8 @@ import type {
 import { annotationColorLabel } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { noRetryLands } from "./card-controls.ts";
 import type { CardBlock } from "./card-controls.ts";
+import { noRetryLands } from "./card-controls.ts";
 
 import { isTextField } from "#obsidian/annotation-repository/write.ts";
 

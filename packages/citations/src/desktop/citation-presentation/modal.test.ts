@@ -16,8 +16,8 @@ import { modalAnswer } from "@zotlit/obsidian-kit/modal-answer.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { openCitationPresentationModal } from "./modal.ts";
 import type { CitationPresentationModalOptions } from "./modal.ts";
+import { openCitationPresentationModal } from "./modal.ts";
 
 import { nodeFileSystem } from "#__fixtures__/pandoc/file-effects.ts";
 

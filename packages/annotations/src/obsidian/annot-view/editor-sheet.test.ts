@@ -10,12 +10,12 @@ import {
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { textFieldWording } from "./card-controls.ts";
-import { renderEditorSheet } from "./editor-sheet.ts";
 import type {
   EditorSheetProps,
   EditorSheetStatus,
   EditorSurface,
 } from "./editor-sheet.ts";
+import { renderEditorSheet } from "./editor-sheet.ts";
 
 import { TEXT_FIELDS } from "#obsidian/annotation-repository/write.ts";
 

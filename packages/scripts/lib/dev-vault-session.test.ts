@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 
+import type { FixturePaths } from "./dev-vault-session.ts";
 import {
   checkFixtureLink,
   createVaultSession,
@@ -9,7 +10,6 @@ import {
   trustVault,
   ZOTERO_PATHS_KEY,
 } from "./dev-vault-session.ts";
-import type { FixturePaths } from "./dev-vault-session.ts";
 
 const FIXTURE_ROOT = "/work/.scratch/acceptance-fixture";
 const FIXTURE: FixturePaths = {

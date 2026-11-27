@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpDown,
   ChevronDown,
@@ -10,7 +11,6 @@ import {
   Search,
   Table,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { Message } from "@/components/message.tsx";

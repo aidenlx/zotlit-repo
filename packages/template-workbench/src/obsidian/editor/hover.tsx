@@ -1,10 +1,10 @@
 import type { Suggestion, SuggestionSource } from "#core/language/index.ts";
-import { ViewPlugin } from "@codemirror/view";
 import type { EditorView, Rect, ViewUpdate } from "@codemirror/view";
+import { ViewPlugin } from "@codemirror/view";
 import type { HoverParent, Point } from "obsidian";
 import { flushSync } from "react-dom";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { SingletonHoverPopover } from "@zotlit/obsidian-kit/singleton-hover-popover.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";

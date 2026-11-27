@@ -19,18 +19,18 @@ import {
   syntaxTree,
   tokenClassNodeProp,
 } from "@codemirror/language";
-import { Prec, RangeSetBuilder, StateEffect } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
+import { Prec, RangeSetBuilder, StateEffect } from "@codemirror/state";
+import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import {
   Decoration,
   EditorView,
   ViewPlugin,
   WidgetType,
 } from "@codemirror/view";
-import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import { Effect } from "effect";
-import { editorInfoField, livePreviewState } from "obsidian";
 import type { Workspace } from "obsidian";
+import { editorInfoField, livePreviewState } from "obsidian";
 
 import {
   livePreviewOf,
@@ -49,6 +49,7 @@ import type {
   CitekeyResolution,
 } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
+import type { CitationRange } from "./decorate.ts";
 import {
   citationRanges,
   citekeyMarks,
@@ -58,7 +59,6 @@ import {
   marksOutside,
   stateCitekeyMarks,
 } from "./decorate.ts";
-import type { CitationRange } from "./decorate.ts";
 
 import { EditorLookup } from "#obsidian/citation-index/editor-lookup.ts";
 import {

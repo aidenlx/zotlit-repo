@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PUBLISHED_PLUGINS } from "./plugins.ts";
 import type { PublishedPlugin } from "./plugins.ts";
+import { PUBLISHED_PLUGINS } from "./plugins.ts";
 
 describe("the profile of a published plugin", () => {
   it.each(Object.entries<PublishedPlugin>(PUBLISHED_PLUGINS))(

@@ -1,8 +1,6 @@
 // @vitest-environment happy-dom
 import { it as effectIt } from "@effect/vitest";
 import { Effect, Layer, DateTime } from "effect";
-import { MarkdownView } from "obsidian";
-import { TFile } from "obsidian";
 import type {
   App,
   Editor,
@@ -10,6 +8,8 @@ import type {
   Workspace,
   WorkspaceLeaf,
 } from "obsidian";
+import { MarkdownView } from "obsidian";
+import { TFile } from "obsidian";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";
@@ -27,8 +27,8 @@ import {
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { libraryItemCommand, itemActions } from "./item-actions.ts";
 import type { CitationTarget, ItemActionsDeps } from "./item-actions.ts";
+import { libraryItemCommand, itemActions } from "./item-actions.ts";
 
 import { makeLibraryHost } from "#__fixtures__/library.ts";
 import { waitFor } from "#__fixtures__/welcome.ts";

@@ -7,8 +7,8 @@ import type {
   QueryViewRow,
 } from "#worker/item-query/query-view.ts";
 import { Effect } from "effect";
-import { Scope } from "obsidian";
 import type { App } from "obsidian";
+import { Scope } from "obsidian";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
@@ -50,7 +50,6 @@ import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.t
 
 import { filterValuesAtom } from "./atoms.ts";
 import { formulaIssuesOf } from "./results.ts";
-import { inferType } from "./table-notes.ts";
 import type {
   VaultEdit,
   VaultHost,
@@ -58,13 +57,14 @@ import type {
   VaultValue,
   VaultWrite,
 } from "./table-notes.ts";
+import { inferType } from "./table-notes.ts";
+import type { QueryViewDeps } from "./view.tsx";
 import {
   QueryView,
   RERUN_DELAY_MS,
   SaveAsButton,
   SortButton,
 } from "./view.tsx";
-import type { QueryViewDeps } from "./view.tsx";
 
 // @vitest-environment happy-dom
 import { makeQueryHost } from "#__fixtures__/query-view/host.ts";

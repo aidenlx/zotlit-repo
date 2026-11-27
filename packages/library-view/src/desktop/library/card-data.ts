@@ -2,6 +2,7 @@ import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { QueryViewValue } from "@zotlit/query-views/worker/item-query/query-view.ts";
 
+import type { CardField, CardHeader } from "./card-fields.ts";
 import {
   addedText,
   cardHeader,
@@ -10,7 +11,6 @@ import {
   record,
   text,
 } from "./card-fields.ts";
-import type { CardField, CardHeader } from "./card-fields.ts";
 export type Values = Readonly<Record<string, QueryViewValue>>;
 
 export interface CardFile {

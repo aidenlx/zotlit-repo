@@ -1,5 +1,5 @@
-import { setIcon } from "obsidian";
 import type { App } from "obsidian";
+import { setIcon } from "obsidian";
 
 import { claimClick } from "@zotlit/obsidian-kit/utils.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
@@ -12,8 +12,8 @@ import type {
   HeldDraftAction,
   HeldTags,
 } from "./card-controls.ts";
-import { createFieldEditor } from "./field-editor.ts";
 import type { FieldEditor, FieldEditorWording } from "./field-editor.ts";
+import { createFieldEditor } from "./field-editor.ts";
 
 import { tagChipVariants } from "#core/annot-view/tag-chip.ts";
 

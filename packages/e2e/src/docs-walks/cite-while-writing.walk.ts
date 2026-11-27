@@ -11,8 +11,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { closeWelcome, openDocsWalk, watchNotices } from "./docs-walk.ts";
 import type { DocsWalk } from "./docs-walk.ts";
+import { closeWelcome, openDocsWalk, watchNotices } from "./docs-walk.ts";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
 const reachable = await isObsidianReachable(root);

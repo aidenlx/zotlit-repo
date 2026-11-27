@@ -27,11 +27,11 @@ import { createFixtureSchema } from "@zotlit/db-testing";
 import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/node-file-system.ts";
 import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@zotlit/plugin-kernel/constants.ts";
 
-import { prepareRead, snapshotSource } from "./read-source.ts";
 import type { PreparedRead, SourceFingerprint } from "./read-source.ts";
+import { prepareRead, snapshotSource } from "./read-source.ts";
 import { snapshotRevision } from "./snapshot-revision.ts";
-import { layerSource } from "./source.ts";
 import type { SourceOptions, SourcePorts } from "./source.ts";
+import { layerSource } from "./source.ts";
 
 import { DbUnavailable } from "#contract/rpc.ts";
 import { Connection } from "#worker/connection.ts";

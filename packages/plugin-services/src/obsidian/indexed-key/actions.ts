@@ -1,5 +1,5 @@
-import { TFile } from "obsidian";
 import type { Plugin } from "obsidian";
+import { TFile } from "obsidian";
 
 import * as toast from "@zotlit/obsidian-kit/toast.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";

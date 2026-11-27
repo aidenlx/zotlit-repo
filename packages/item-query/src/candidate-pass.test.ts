@@ -1,8 +1,8 @@
 import { Effect, Exit } from "effect";
 import { beforeEach, expect, it } from "vitest";
 
-import { runEffect } from "./__fixtures__/test-helpers.ts";
 import type { CapturedLog } from "./__fixtures__/test-helpers.ts";
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { runCandidatePass } from "./candidate-pass.ts";
 import type { CandidateDataset } from "./dataset.ts";
 import { planFilter } from "./filter-plan.ts";

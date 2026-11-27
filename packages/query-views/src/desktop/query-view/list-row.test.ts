@@ -7,8 +7,8 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it, onTestFinished } from "vitest";
 
 import { LIST_LAYOUT_DEFAULTS } from "./list-layout.tsx";
-import { drawListRow, listRowText } from "./list-row.tsx";
 import type { ListRows } from "./list-row.tsx";
+import { drawListRow, listRowText } from "./list-row.tsx";
 import type { RecordCells } from "./record-rows.tsx";
 import type { PropertyEntry } from "./view-properties.ts";
 

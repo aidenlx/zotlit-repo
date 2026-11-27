@@ -12,6 +12,7 @@ import type {
   MutationState,
   WriteFailure,
 } from "#obsidian/annotation-repository/write.ts";
+import type { Scope } from "effect";
 import {
   Cause,
   Effect,
@@ -21,7 +22,6 @@ import {
   Schema,
   Semaphore,
 } from "effect";
-import type { Scope } from "effect";
 
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type {
@@ -35,8 +35,8 @@ import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import type { EditablePosition } from "./geometry-edit.ts";
-import { readerSurfaceRegistry } from "./reader-surface-model.ts";
 import type { ReaderSurfaceRegistry } from "./reader-surface-model.ts";
+import { readerSurfaceRegistry } from "./reader-surface-model.ts";
 
 import { historyOutcomeNotice } from "#obsidian/annotation-repository/actions.ts";
 import {

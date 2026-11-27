@@ -16,6 +16,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { join } from "node:path";
+import type { App } from "obsidian";
 import {
   FileSystemAdapter,
   getFrontMatterInfo,
@@ -23,7 +24,6 @@ import {
   TFile,
   TFolder,
 } from "obsidian";
-import type { App } from "obsidian";
 import { afterAll, afterEach, describe, expect, vi } from "vitest";
 
 import { NodeExcerptImageFixture as ExcerptImageService } from "@zotlit/annotations/__fixtures__/excerpt-image/node-service.ts";

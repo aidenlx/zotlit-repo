@@ -9,8 +9,8 @@ import type {
   FilterTree,
 } from "@zotlit/filter-expression";
 
-import { pathStartsWith, samePath } from "./row-path.ts";
 import type { RowPath } from "./row-path.ts";
+import { pathStartsWith, samePath } from "./row-path.ts";
 
 export interface ExpressionCondition {
   kind: "expression";

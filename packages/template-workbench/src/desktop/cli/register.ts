@@ -14,12 +14,12 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 
+import type { CheckServices } from "./check.ts";
 import {
   createCheckHandler,
   checkFlags,
   TEMPLATE_CHECK_COMMAND,
 } from "./check.ts";
-import type { CheckServices } from "./check.ts";
 import {
   createTemplateWorkbenchHandlers,
   FRONTMATTER_EVAL_COMMAND,
@@ -35,8 +35,8 @@ import {
   TEMPLATE_SOURCE_COMMAND,
   TEMPLATE_STATUS_COMMAND,
 } from "./cli.ts";
-import { diagnostic, envelope } from "./envelope.ts";
 import type { WorkbenchCommand } from "./envelope.ts";
+import { diagnostic, envelope } from "./envelope.ts";
 import { GUIDE_TOPIC_NAMES } from "./guide.ts";
 import { readWorkbenchIdentity } from "./identity.ts";
 import {
@@ -45,15 +45,6 @@ import {
   inspectFlags,
   TEMPLATE_INSPECT_COMMAND,
 } from "./inspect.ts";
-import {
-  CITATION_EXAMPLE_NAMES,
-  CITATION_VARIANT_NAMES,
-  FRONTMATTER_LANGUAGE_NAMES,
-  FRONTMATTER_MERGE_NAMES,
-  PARTIAL_CONTEXT_NAMES,
-  RENDER_TEMPLATE_NAMES,
-  TEMPLATE_SLOT_NAMES,
-} from "./request.ts";
 import type {
   DataParam,
   DocumentRenderParam,
@@ -64,6 +55,15 @@ import type {
   GuideParam,
   RenderParam,
   SourceParam,
+} from "./request.ts";
+import {
+  CITATION_EXAMPLE_NAMES,
+  CITATION_VARIANT_NAMES,
+  FRONTMATTER_LANGUAGE_NAMES,
+  FRONTMATTER_MERGE_NAMES,
+  PARTIAL_CONTEXT_NAMES,
+  RENDER_TEMPLATE_NAMES,
+  TEMPLATE_SLOT_NAMES,
 } from "./request.ts";
 
 import { CONTRACT_ROOT_NAMES } from "#core/cli/schema.ts";

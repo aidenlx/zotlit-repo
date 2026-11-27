@@ -2,13 +2,13 @@ import type {
   WorkbenchDocumentController,
   WorkbenchSliceRange,
 } from "#core/document/index.ts";
-import { MapMode, StateEffect } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
-import { Decoration, EditorView, WidgetType } from "@codemirror/view";
+import { MapMode, StateEffect } from "@codemirror/state";
 import type { DecorationSet } from "@codemirror/view";
+import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 import { useAtomValue } from "@effect/atom-react";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -25,10 +25,10 @@ import {
 } from "./editor-boxes.ts";
 import { useWorkbenchHost } from "./host.tsx";
 import { editorChip, chipIcon } from "./look.ts";
-import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
-import { SliceEditor } from "./slice-editor.tsx";
+import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { SuggestionSource } from "./slice-editor.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
 
 import { documentRevision } from "#core/document/atoms.ts";
 import { noteRegions } from "#core/document/index.ts";

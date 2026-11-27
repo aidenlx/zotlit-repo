@@ -16,12 +16,12 @@ import {
 import type { FixtureItem } from "@zotlit/scripts/fixture";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
+import type { VaultScript } from "./vault-script.ts";
 import {
   e2eVaultDir,
   isObsidianReachable,
   vaultScript,
 } from "./vault-script.ts";
-import type { VaultScript } from "./vault-script.ts";
 
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 const e2eVaultPath = e2eVaultDir(workspaceRoot, "fixture-vault");

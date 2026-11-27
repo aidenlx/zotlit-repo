@@ -10,8 +10,8 @@ import {
   sourceIdFromUris,
 } from "@zotlit/protocol";
 
-import { createLiveUpdateApp } from "./live-update-app.ts";
 import type { LiveUpdateAppDeps } from "./live-update-app.ts";
+import { createLiveUpdateApp } from "./live-update-app.ts";
 
 const SOURCE_ID = "a1b2c3d4";
 

@@ -1,7 +1,7 @@
-import { ItemView } from "obsidian";
 import type { App, ViewStateResult, WorkspaceLeaf } from "obsidian";
-import { createRoot } from "react-dom/client";
+import { ItemView } from "obsidian";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -10,6 +10,7 @@ import { activeKeyAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms
 
 import { revisionsAtom } from "./atoms.ts";
 import { CitedBy } from "./CitedBy.tsx";
+import type { CitedByLayout } from "./model.ts";
 import {
   CitedByModelContext,
   dropExpansions,
@@ -18,7 +19,6 @@ import {
   makeCitedByModel,
   readSavedLayout,
 } from "./model.ts";
-import type { CitedByLayout } from "./model.ts";
 
 export const CITED_BY_VIEW_TYPE = "zotlit-cited-by";
 

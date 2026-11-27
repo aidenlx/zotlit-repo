@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { globSync, readFileSync, rmSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
-import { loadEnv, normalizePath } from "vite";
 import type { Plugin } from "vite";
+import { loadEnv, normalizePath } from "vite";
 
 export const mediaBucket = "zotlit-docs-media";
 

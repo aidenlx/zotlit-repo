@@ -5,8 +5,8 @@ import type {
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
 import { Effect } from "effect";
 import { around } from "monkey-around";
-import { Keymap, PopoverState } from "obsidian";
 import type { GraphData, MetadataCache, Workspace } from "obsidian";
+import { Keymap, PopoverState } from "obsidian";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import {

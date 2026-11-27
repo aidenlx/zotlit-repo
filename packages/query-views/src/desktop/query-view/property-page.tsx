@@ -21,10 +21,10 @@ import {
   useViewCustomFields,
 } from "./expression-vocabulary.ts";
 import { useQueryViewState } from "./model.ts";
-import { formulaIssuesOf } from "./results.ts";
 import type { FormulaIssue } from "./results.ts";
-import { fieldLabel, useViewProperties } from "./view-properties.ts";
+import { formulaIssuesOf } from "./results.ts";
 import type { PropertyEntry } from "./view-properties.ts";
+import { fieldLabel, useViewProperties } from "./view-properties.ts";
 import type { QueryView } from "./view.tsx";
 
 import { displayName, formulaProperty } from "#core/query-view/query-file.ts";

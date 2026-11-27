@@ -17,8 +17,8 @@ import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { TemplateDataExplorerView } from "./view.tsx";
 import type { ExplorerViewDeps } from "./view.tsx";
+import { TemplateDataExplorerView } from "./view.tsx";
 
 import { makeExplorerHost } from "#__fixtures__/data-explorer.ts";
 import {

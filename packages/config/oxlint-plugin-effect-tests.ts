@@ -1,5 +1,5 @@
-import { isMemberOf } from "./oxlint-ast.ts";
 import type { AstNode, Rule } from "./oxlint-ast.ts";
+import { isMemberOf } from "./oxlint-ast.ts";
 
 const TEST_FUNCTIONS = new Set(["it", "test"]);
 const EFFECT_TESTERS = new Set(["effect", "live", "layer", "prop"]);

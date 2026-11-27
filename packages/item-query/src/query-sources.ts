@@ -7,16 +7,16 @@ import {
 import type { CollectionPaths, FieldVocabulary } from "@zotlit/db/item-query";
 
 import type { CandidateSources } from "./candidate-plan.ts";
+import type { ExpressionUse } from "./custom-field-uses.ts";
 import {
   expressionUse,
   isMissing,
   missingCustomField,
   missingFault,
 } from "./custom-field-uses.ts";
-import type { ExpressionUse } from "./custom-field-uses.ts";
 import type { QueryDataset } from "./dataset.ts";
-import { ItemQueryError } from "./error.ts";
 import type { ItemQueryErrorLocation } from "./error.ts";
+import { ItemQueryError } from "./error.ts";
 import type { FormulaSourceCheck } from "./formulas.ts";
 import type { LoadRequest } from "./record-loader.ts";
 import type { ItemQueryRequest, TargetLibrary } from "./request.ts";

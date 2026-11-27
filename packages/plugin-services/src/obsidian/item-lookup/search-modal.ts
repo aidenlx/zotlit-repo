@@ -1,7 +1,7 @@
 import type { PluginSettings } from "#obsidian/settings/service.ts";
 import type { Effect } from "effect";
-import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
+import { SuggestModal } from "obsidian";
 
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { modalAnswer } from "@zotlit/obsidian-kit/modal-answer.ts";
@@ -11,8 +11,8 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { CurrentAnswer, takeEnter } from "./current-answer.ts";
 import type { ItemLookupHandle, SearchSession } from "./handle.ts";
 import { renderSuggestion as renderSearchHit } from "./render-hit.ts";
-import { DEFAULT_LIMIT } from "./service.ts";
 import type { SearchHit, SearchOptions } from "./service.ts";
+import { DEFAULT_LIMIT } from "./service.ts";
 
 import { FirstAnswerGate } from "#core/item-lookup/first-answer.ts";
 

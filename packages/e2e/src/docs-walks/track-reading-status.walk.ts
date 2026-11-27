@@ -7,13 +7,13 @@ import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
 import type { QueryFileView } from "@zotlit/query-views/desktop/query-view/file-view.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
+import type { DocsWalk } from "./docs-walk.ts";
 import {
   closeWelcome,
   openDocsWalk,
   readNotices,
   watchNotices,
 } from "./docs-walk.ts";
-import type { DocsWalk } from "./docs-walk.ts";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
 const reachable = await isObsidianReachable(root);

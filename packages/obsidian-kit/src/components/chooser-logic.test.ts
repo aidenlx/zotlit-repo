@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 
+import type { ChooserMatcher, ChooserRow } from "./chooser-logic.ts";
 import {
   activatedRow,
   chooserItemKey,
@@ -10,7 +11,6 @@ import {
   rehomedHighlight,
   toggledValues,
 } from "./chooser-logic.ts";
-import type { ChooserMatcher, ChooserRow } from "./chooser-logic.ts";
 
 const ROWS: ChooserRow[] = [
   { value: "method", label: "method" },

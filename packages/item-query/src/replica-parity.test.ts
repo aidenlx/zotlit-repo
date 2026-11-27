@@ -9,12 +9,12 @@ import type { ParityPair } from "@zotlit/db/replica/parity-pair";
 
 import { ATTACHMENT_SCENARIO_QUERIES } from "./__fixtures__/attachment-scenario-queries.ts";
 import { RELATION_SCENARIO_QUERIES } from "./__fixtures__/relation-scenario-queries.ts";
-import { SCENARIO_QUERIES } from "./__fixtures__/scenario-queries.ts";
 import type { ScenarioQuery } from "./__fixtures__/scenario-queries.ts";
+import { SCENARIO_QUERIES } from "./__fixtures__/scenario-queries.ts";
 import { runEffect } from "./__fixtures__/test-helpers.ts";
 import type { QueryDataset } from "./dataset.ts";
-import { ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
+import { ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import { ItemQueryScheduler } from "./scheduler.ts";
 
 let pair: ParityPair;

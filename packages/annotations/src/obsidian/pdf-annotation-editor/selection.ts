@@ -27,8 +27,8 @@ import type { WriteFailure } from "#obsidian/annotation-repository/write.ts";
 import { Effect } from "effect";
 import type { App } from "obsidian";
 import { Keymap, setIcon } from "obsidian";
-import { createElement } from "react";
 import type { ReactNode, RefObject } from "react";
+import { createElement } from "react";
 
 import { confirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { registerDomEvent } from "@zotlit/obsidian-kit/disposables.ts";
@@ -49,6 +49,15 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { inTextEntry, isEditGesture } from "./capability-affordance.ts";
 import { annotationColorMenu } from "./color-menu.ts";
 import type { CreationGestures } from "./creation.ts";
+import type {
+  Arrow,
+  EditablePosition,
+  FreeTextContent,
+  Grip,
+  PdfPoint,
+  RangeGrip,
+  TextRotation,
+} from "./geometry-edit.ts";
 import {
   bodyRect,
   gripAt,
@@ -65,14 +74,11 @@ import {
   releasedPosition,
 } from "./geometry-edit.ts";
 import type {
-  Arrow,
-  EditablePosition,
-  FreeTextContent,
-  Grip,
-  PdfPoint,
-  RangeGrip,
-  TextRotation,
-} from "./geometry-edit.ts";
+  HitPage,
+  MarkSelectionPoint,
+  PageBox,
+  Point,
+} from "./hit-test.ts";
 import {
   distance,
   markAnchor,
@@ -80,22 +86,17 @@ import {
   pagePointOf,
   resolveMarkClick,
 } from "./hit-test.ts";
-import type {
-  HitPage,
-  MarkSelectionPoint,
-  PageBox,
-  Point,
-} from "./hit-test.ts";
 import type { MarkPopupHost } from "./mark-popup-host.ts";
-import { tagSectionShows } from "./mark-popup-tags.tsx";
 import type { MarkPopupTagSectionProps } from "./mark-popup-tags.tsx";
-import { markPopupRow, SelectedMarkPopup } from "./mark-popup.tsx";
+import { tagSectionShows } from "./mark-popup-tags.tsx";
 import type {
   MarkPopupControlId,
   MarkPopupRowInput,
   SelectedMarkPopupProps,
   SelectedPopupComment,
 } from "./mark-popup.tsx";
+import { markPopupRow, SelectedMarkPopup } from "./mark-popup.tsx";
+import type { BindingWrites } from "./operations.ts";
 import {
   eraseMarks,
   logReportFailure,
@@ -105,14 +106,17 @@ import {
   saveGeometry,
   settledOf,
 } from "./operations.ts";
-import type { BindingWrites } from "./operations.ts";
+import type { ReaderSurface } from "./reader-surface-model.ts";
 import {
   current,
   modify,
   recordColorUse,
   update,
 } from "./reader-surface-model.ts";
-import type { ReaderSurface } from "./reader-surface-model.ts";
+import type {
+  ReaderSurfaceState,
+  SelectedRowInput,
+} from "./reader-surface-state.ts";
 import {
   beginAdjust,
   cancelAdjust,
@@ -132,11 +136,8 @@ import {
   setTagging,
   stepStack,
 } from "./reader-surface-state.ts";
-import type {
-  ReaderSurfaceState,
-  SelectedRowInput,
-} from "./reader-surface-state.ts";
 import { readingOrder, stepReadingOrder } from "./reading-order.ts";
+import type { OverlayPageView, PdfPageAnnotation } from "./render.ts";
 import {
   freeTextOf,
   interfaceFont,
@@ -144,7 +145,6 @@ import {
   unitPointOf,
   unitsPerPixel,
 } from "./render.ts";
-import type { OverlayPageView, PdfPageAnnotation } from "./render.ts";
 import {
   colorMenu,
   drawnBoxOf,

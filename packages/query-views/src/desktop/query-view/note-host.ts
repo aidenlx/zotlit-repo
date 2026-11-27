@@ -3,9 +3,9 @@ import { Component, Scope } from "obsidian";
 import { observeResize } from "@zotlit/obsidian-kit/observe-resize.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 
-import { QueryView } from "./view.tsx";
-import "./note-host.css";
 import type { QueryViewDeps, QueryViewHost } from "./view.tsx";
+import "./note-host.css";
+import { QueryView } from "./view.tsx";
 
 import { keepPlaces } from "#obsidian/query-view/keep-places.ts";
 import { makeNoteBindingAtom } from "#obsidian/query-view/note-binding.ts";

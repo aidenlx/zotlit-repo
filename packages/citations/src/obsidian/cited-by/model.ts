@@ -7,6 +7,12 @@ import * as Atom from "effect/reactivity/Atom";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { createContext, useContext } from "react";
 
+import type {
+  CitedBySortMode,
+  ExpandDirection,
+  ReadyPreview,
+  SourceRange,
+} from "./store.ts";
 import {
   CITED_BY_SORT_GROUPS,
   DEFAULT_CITED_BY_SORT,
@@ -16,12 +22,6 @@ import {
   expandExcerptRange,
   occurrenceID,
   previewContexts,
-} from "./store.ts";
-import type {
-  CitedBySortMode,
-  ExpandDirection,
-  ReadyPreview,
-  SourceRange,
 } from "./store.ts";
 
 export interface CitedByLayout {

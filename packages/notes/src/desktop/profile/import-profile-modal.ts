@@ -6,6 +6,7 @@ import type {
   ProfileImportOptions,
 } from "#obsidian/profile/service.ts";
 import { Effect } from "effect";
+import type { App, ButtonComponent } from "obsidian";
 import {
   DropdownComponent,
   Modal,
@@ -13,7 +14,6 @@ import {
   TextComponent,
   ToggleComponent,
 } from "obsidian";
-import type { App, ButtonComponent } from "obsidian";
 
 import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import type { InstalledCslStyle } from "@zotlit/citations/core/pandoc/csl-style.ts";

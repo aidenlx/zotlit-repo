@@ -1,6 +1,6 @@
 import type { ChangeSpec } from "@codemirror/state";
-import { isMap, isNode, isScalar, isSeq, parseDocument, stringify } from "yaml";
 import type { Document, Node, Pair, YAMLMap } from "yaml";
+import { isMap, isNode, isScalar, isSeq, parseDocument, stringify } from "yaml";
 
 import { literatureNoteTemplateManifestRange } from "@zotlit/templates/facade";
 

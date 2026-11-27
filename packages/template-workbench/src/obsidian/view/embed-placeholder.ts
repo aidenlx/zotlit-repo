@@ -1,5 +1,5 @@
-import { parseLinktext, setIcon } from "obsidian";
 import type { App, MarkdownPostProcessor, TFile } from "obsidian";
+import { parseLinktext, setIcon } from "obsidian";
 
 import { isDraftMarkdown } from "@zotlit/obsidian-kit/reading-view.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";

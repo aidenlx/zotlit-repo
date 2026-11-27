@@ -1,12 +1,12 @@
 import { missingCustomField } from "./custom-field-uses.ts";
 import type { Diagnostic } from "./diagnose.ts";
-import { ItemQueryError } from "./error.ts";
 import type { ItemQueryErrorCode } from "./error.ts";
+import { ItemQueryError } from "./error.ts";
 import type { QueryItem } from "./fields.ts";
 import { matches } from "./filter-evaluate.ts";
 import { planFilter } from "./filter-plan.ts";
-import { queryItemFrom } from "./item-seed.ts";
 import type { QueryItemSeed } from "./item-seed.ts";
+import { queryItemFrom } from "./item-seed.ts";
 import type { QueryClock } from "./query-clock.ts";
 import { ITEMS } from "./query-items.ts";
 

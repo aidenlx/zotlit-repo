@@ -11,8 +11,8 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { faultCode, runEffect } from "./__fixtures__/test-helpers.ts";
 import { describeAttachmentQuery } from "./describe-attachment-query.ts";
-import { ATTACHMENTS, collectQuery } from "./index.ts";
 import type { ItemQueryRequest, ItemQuerySchema } from "./index.ts";
+import { ATTACHMENTS, collectQuery } from "./index.ts";
 import { describeQueryVocabulary } from "./schema.ts";
 
 let scenario: ScenarioDatabase<NodeDatabaseClient>;

@@ -7,8 +7,8 @@ import type {
 } from "#core/data-tree/index.ts";
 import { regex } from "arkregex";
 import type { IconName } from "obsidian";
-import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
+import { createContext, useContext, useState } from "react";
 
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -16,8 +16,8 @@ import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { SECTION_ICONS } from "./explorer-sections.ts";
 import type { ExplorerSectionId } from "./explorer-sections.ts";
+import { SECTION_ICONS } from "./explorer-sections.ts";
 import {} from "./host.tsx";
 import { paneCover } from "./look.ts";
 

@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Effect, Layer, Logger, References, Stream } from "effect";
-import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import type { App, Workspace } from "obsidian";
+import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
@@ -25,6 +25,7 @@ import type {
 } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
+import type { NoteActionPorts, NoteActionServices } from "./actions-view.ts";
 import {
   batchUpdateAllNotice,
   overwriteNote,
@@ -33,7 +34,6 @@ import {
   updateAll,
   updateNotes,
 } from "./actions-view.ts";
-import type { NoteActionPorts, NoteActionServices } from "./actions-view.ts";
 import { NoteFeature } from "./service.ts";
 import type { BatchUpdatePorts } from "./update-batch.ts";
 

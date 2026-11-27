@@ -1,3 +1,4 @@
+import type { Inode } from "@bjorn3/browser_wasi_shim";
 import {
   ConsoleStdout,
   File as WasiFile,
@@ -5,7 +6,6 @@ import {
   PreopenDirectory,
   WASI,
 } from "@bjorn3/browser_wasi_shim";
-import type { Inode } from "@bjorn3/browser_wasi_shim";
 import { Effect } from "effect";
 
 import {

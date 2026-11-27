@@ -11,11 +11,11 @@ import type { NoticeAction } from "@zotlit/obsidian-kit/notice.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { CHINESE_PACK, fakeDevice, startOn } from "./__fixtures__.ts";
 import type { FakeDevice } from "./__fixtures__.ts";
+import { CHINESE_PACK, fakeDevice, startOn } from "./__fixtures__.ts";
 import { layerLanguagePackNotices } from "./notices.ts";
-import { LanguagePack } from "./service.ts";
 import type { LanguagePackSituation } from "./service.ts";
+import { LanguagePack } from "./service.ts";
 
 const loadOn = Effect.fn("test.loadOn")(function* (
   device: FakeDevice,

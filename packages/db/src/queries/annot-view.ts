@@ -3,8 +3,8 @@ import { and, count, eq, notExists } from "drizzle-orm";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { defineQuery } from "./_shared.ts";
 import type { QueryRow } from "./_shared.ts";
+import { defineQuery } from "./_shared.ts";
 import { groupIDForLibrary } from "./libraries.ts";
 
 import { deletedItems, itemAnnotations } from "#drizzle/schema.ts";

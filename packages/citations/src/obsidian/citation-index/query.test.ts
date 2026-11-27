@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { citationsEqual, groupCitations } from "./query.ts";
 import type { ResolvedNote } from "./query.ts";
+import { citationsEqual, groupCitations } from "./query.ts";
 import type { CitationOccurrence } from "./scan.ts";
 
 const KEY_A = "ABCD2345";

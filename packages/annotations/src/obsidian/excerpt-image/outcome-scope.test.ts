@@ -5,8 +5,8 @@ import { TestClock } from "effect/testing";
 import { describe, expect, vi } from "vitest";
 
 import { ExcerptOutcomeScope } from "./outcome-scope.ts";
-import { ExcerptImageService as ExcerptImages } from "./service.ts";
 import type { ExcerptEntry, ExcerptRequest } from "./service.ts";
+import { ExcerptImageService as ExcerptImages } from "./service.ts";
 
 import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/node-service.ts";
 import { availableOutcome } from "#__fixtures__/excerpt-image/outcome.ts";

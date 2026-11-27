@@ -4,12 +4,12 @@ import * as Atom from "effect/reactivity/Atom";
 import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 
-import { AnnotationRepository } from "./service.ts";
 import type {
   AnnotationList,
   AnnotationState,
   EditingCapability,
 } from "./service.ts";
+import { AnnotationRepository } from "./service.ts";
 
 export const annotationChangeAtom = held<ReadonlyMap<string, AnnotationState>>(
   Stream.unwrap(

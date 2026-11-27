@@ -11,15 +11,15 @@ import type {
   ExcerptRequest,
 } from "#obsidian/excerpt-image/service.ts";
 import { Effect } from "effect";
-import { open } from "node:fs/promises";
 import type { FileHandle } from "node:fs/promises";
+import { open } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 
 import type { HeadlessDocument } from "@zotlit/pdf-reader";
 import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
 
-import { EXCERPT_DISPLAY } from "./display.ts";
 import type { ExcerptDisplayDemand, ExcerptImageDisplay } from "./display.ts";
+import { EXCERPT_DISPLAY } from "./display.ts";
 import { excerptKey } from "./key.ts";
 
 import { settledDisplay } from "#__fixtures__/excerpt-image/display-state.ts";

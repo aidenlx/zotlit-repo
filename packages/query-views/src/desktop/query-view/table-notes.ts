@@ -1,11 +1,11 @@
 import type { ItemQueryError } from "#desktop/item-query/service.ts";
-import { Effect, Option } from "effect";
 import type { Cause } from "effect";
+import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
-import { Keymap, parseLinktext } from "obsidian";
 import type { App, TFile } from "obsidian";
+import { Keymap, parseLinktext } from "obsidian";
 
 import { createNoteInteractively } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
 import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/creation-view.ts";

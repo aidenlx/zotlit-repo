@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 
 import type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 
-import { registerViewerRouting, routedViewState, viewerOf } from "./viewer.ts";
 import type { ViewerRouting } from "./viewer.ts";
+import { registerViewerRouting, routedViewState, viewerOf } from "./viewer.ts";
 
 const READER = "zotlit-pdf";
 const ZOTERO_PDF = "attachments/rougier-2014.pdf";

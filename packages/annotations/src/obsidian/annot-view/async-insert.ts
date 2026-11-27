@@ -1,11 +1,11 @@
 import { isolateHistory } from "@codemirror/commands";
+import type { Text } from "@codemirror/state";
 import {
   Compartment,
   StateEffect,
   StateField,
   Transaction,
 } from "@codemirror/state";
-import type { Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import type { Editor, MarkdownFileInfo } from "obsidian";
 

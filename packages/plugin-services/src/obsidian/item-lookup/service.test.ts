@@ -41,8 +41,8 @@ import {
   layerTestItemLookup,
   scopeState,
 } from "./__fixtures__.ts";
-import { ItemLookup } from "./service.ts";
 import type { SearchHit } from "./service.ts";
+import { ItemLookup } from "./service.ts";
 
 import {
   layerDeviceSegmenter,

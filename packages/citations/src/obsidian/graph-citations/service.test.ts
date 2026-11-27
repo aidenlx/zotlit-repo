@@ -15,7 +15,6 @@ import {
 } from "effect";
 import { TestClock } from "effect/testing";
 import { around } from "monkey-around";
-import { PopoverState, TFile, debounce } from "obsidian";
 import type {
   App,
   EventRef,
@@ -31,8 +30,9 @@ import type {
   Plugin,
   WorkspaceLeaf,
 } from "obsidian";
-import { afterEach, beforeEach, describe, expect, vi } from "vitest";
+import { PopoverState, TFile, debounce } from "obsidian";
 import type { Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
 import { settingsOf } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
@@ -68,8 +68,8 @@ import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-l
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import type { WorkLabelSource } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { citedWorkNodeId } from "./adapter.ts";
 import type { LinkMap } from "./adapter.ts";
+import { citedWorkNodeId } from "./adapter.ts";
 import { GRAPH_CORE_PLUGIN_ID } from "./install.ts";
 import { GraphCitations, layerGraphCitations } from "./service.ts";
 

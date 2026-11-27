@@ -4,8 +4,8 @@ import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { defineQuery, defineKeyedQuery } from "./_shared.ts";
 import type { Item } from "./items.ts";
-import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
+import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 
 export type ItemRef = Pick<
   Item,

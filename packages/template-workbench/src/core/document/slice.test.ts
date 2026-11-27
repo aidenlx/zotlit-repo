@@ -4,8 +4,8 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { describe, expect, it } from "vitest";
 
-import { WorkbenchDocumentController } from "./controller.ts";
 import type { WorkbenchSliceId } from "./controller.ts";
+import { WorkbenchDocumentController } from "./controller.ts";
 import { jsonCodec } from "./slice-codec.ts";
 import { sliceShownText, workbenchSlice } from "./slice.ts";
 

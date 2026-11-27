@@ -6,8 +6,8 @@ import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { activeKeyAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 
 import { CitationLookup } from "./lookup-service.ts";
-import { CitationIndex } from "./service.ts";
 import type { CitedBySnapshot } from "./service.ts";
+import { CitationIndex } from "./service.ts";
 
 const citedBy = (key: string) =>
   Stream.unwrap(

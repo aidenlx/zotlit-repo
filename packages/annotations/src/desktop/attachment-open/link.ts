@@ -1,6 +1,6 @@
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
-import { Effect, Result } from "effect";
 import type { Scope } from "effect";
+import { Effect, Result } from "effect";
 import type { App, ObsidianProtocolData, PaneType } from "obsidian";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
@@ -23,8 +23,8 @@ import {
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { openGesture, pdfPickerReader } from "./actions.ts";
-import { openAttachments, withFixedPane } from "./open-attachments.ts";
 import type { AttachmentReader } from "./open-attachments.ts";
+import { openAttachments, withFixedPane } from "./open-attachments.ts";
 import { TargetOpener } from "./open-target.ts";
 
 import { toObsidianOpenable } from "#core/attachment-open/openable.ts";

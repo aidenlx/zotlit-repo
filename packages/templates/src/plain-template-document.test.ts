@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import type { PlainTemplateDocumentError } from "./facade.ts";
 import {
   formatPlainTemplateDocument,
   parsePlainTemplateDocument,
 } from "./facade.ts";
-import type { PlainTemplateDocumentError } from "./facade.ts";
 
 describe("plain Template Document", () => {
   it("reads a document with no manifest as Liquid source", () => {

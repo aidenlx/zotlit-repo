@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { Events } from "obsidian";
 import type { App, SecretStorage } from "obsidian";
+import { Events } from "obsidian";
 
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";

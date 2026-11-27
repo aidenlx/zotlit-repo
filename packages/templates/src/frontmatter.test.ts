@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import type { FrontmatterField } from "./frontmatter.ts";
 import {
   compileFrontmatterFields,
   compileManagedFrontmatterEntries,
   evalFrontmatterFields,
   evalManagedFrontmatterEntries,
 } from "./frontmatter.ts";
-import type { FrontmatterField } from "./frontmatter.ts";
 import { createLiquidEngine } from "./liquid.ts";
 import type { ManagedFrontmatterEntry } from "./literature-note-template.ts";
 

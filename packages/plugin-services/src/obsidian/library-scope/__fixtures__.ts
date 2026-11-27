@@ -1,6 +1,6 @@
 import type { SettingsDefinition } from "#core/settings/schema.ts";
-import { Context, Effect, Layer } from "effect";
 import type { Scope } from "effect";
+import { Context, Effect, Layer } from "effect";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";

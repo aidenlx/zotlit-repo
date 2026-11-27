@@ -4,6 +4,8 @@ import type {
   ReadsConfig,
 } from "#contract/rpc.ts";
 import type { SourceIdentity } from "#contract/source-identity.ts";
+import type { Stream } from "effect";
+import type { Scope } from "effect";
 import {
   Context,
   Duration,
@@ -14,8 +16,6 @@ import {
   Ref,
   Schema,
 } from "effect";
-import type { Stream } from "effect";
-import type { Scope } from "effect";
 
 import { getZoteroDatabaseIdentity, getZoteroIdentity } from "@zotlit/db";
 import type { ZoteroDatabase } from "@zotlit/db";

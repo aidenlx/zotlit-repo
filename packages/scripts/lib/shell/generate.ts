@@ -8,8 +8,8 @@ import { SOURCE_REPOSITORY } from "@zotlit/config/repositories";
 
 import { workspaceLicense, writeShellEntry } from "./bundle-package.ts";
 import { LEGAL_FILES } from "./legal-files.ts";
-import { PUBLISHED_PLUGINS } from "./plugins.ts";
 import type { PublishedPlugin, PublishedPluginName } from "./plugins.ts";
+import { PUBLISHED_PLUGINS } from "./plugins.ts";
 import { SHELL_BUILD_SCRIPT, SHELL_RELEASE_WORKFLOW } from "./profiles.ts";
 
 import { parseManifest } from "#obsidian-manifest";

@@ -5,8 +5,8 @@ import type {
 import type { ResolvedProfile } from "#obsidian/profile/bindings.ts";
 import type { ResolvedLiteratureNoteTemplate } from "#obsidian/template/service.ts";
 import { Cause, DateTime, Effect, Fiber, Option, Result, Stream } from "effect";
-import { getFrontMatterInfo } from "obsidian";
 import type { TFile } from "obsidian";
+import { getFrontMatterInfo } from "obsidian";
 
 import {
   nonEmptySummary,
@@ -66,8 +66,8 @@ import { replaceManagedRegion } from "@zotlit/templates/obsidian";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { buildNoteResolvers, itemFacets } from "./context.ts";
 import type { NoteResolverServices } from "./context.ts";
+import { buildNoteResolvers, itemFacets } from "./context.ts";
 import {
   composeWarn,
   frontmatterRefusal,

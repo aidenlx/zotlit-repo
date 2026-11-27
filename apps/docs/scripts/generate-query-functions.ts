@@ -5,8 +5,8 @@ import { format } from "oxfmt";
 import schema from "@zotlit/item-query/query.schema.json" with { type: "json" };
 
 import formatConfig from "../oxfmt.config.ts";
-import { renderFunctionsReference } from "../src/lib/query-functions/reference.ts";
 import type { LanguageVocabulary } from "../src/lib/query-functions/reference.ts";
+import { renderFunctionsReference } from "../src/lib/query-functions/reference.ts";
 
 const packageRoot = resolve(import.meta.dirname, "..");
 

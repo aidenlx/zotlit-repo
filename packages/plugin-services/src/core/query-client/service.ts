@@ -1,10 +1,10 @@
+import type { Query, QueryFunction, QueryKey } from "@tanstack/query-core";
 import {
   CancelledError,
   focusManager,
   partialMatchKey,
   QueryClient,
 } from "@tanstack/query-core";
-import type { Query, QueryFunction, QueryKey } from "@tanstack/query-core";
 import {
   Clock,
   Context,

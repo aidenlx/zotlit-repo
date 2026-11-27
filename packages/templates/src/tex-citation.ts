@@ -1,5 +1,5 @@
-import { assertCitationItems } from "./citation-items.ts";
 import type { CitationItemInput, CitationLocator } from "./citation-items.ts";
+import { assertCitationItems } from "./citation-items.ts";
 
 const CONTROL_WORD = /^[A-Za-z]+\*?$/u;
 

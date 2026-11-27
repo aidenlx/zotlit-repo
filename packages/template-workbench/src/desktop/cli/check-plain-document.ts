@@ -26,8 +26,8 @@ import type {
   InspectedSource,
   PlainCheckBranch,
 } from "./check.ts";
-import { INSPECT_DIAGNOSTICS } from "./inspect-contract.ts";
 import type { InspectDiagnosticCode } from "./inspect-contract.ts";
+import { INSPECT_DIAGNOSTICS } from "./inspect-contract.ts";
 import { createInspectHandler, sourceRevision } from "./inspect.ts";
 
 import { isCitationExampleId } from "#core/render/index.ts";

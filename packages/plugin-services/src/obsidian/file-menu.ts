@@ -1,5 +1,5 @@
-import { TFile, TFolder } from "obsidian";
 import type { Menu, Plugin, WorkspaceLeaf } from "obsidian";
+import { TFile, TFolder } from "obsidian";
 
 import {
   itemKeyFromFrontmatter,

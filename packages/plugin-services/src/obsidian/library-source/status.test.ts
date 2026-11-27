@@ -6,8 +6,8 @@ import type {
   WebSyncStatus,
 } from "@zotlit/zotero-reads/contract/web-worker-rpc.ts";
 
-import { statusText } from "./status.ts";
 import type { OnlineLibraryStatus } from "./status.ts";
+import { statusText } from "./status.ts";
 
 const LAST = Temporal.Instant.from("2026-11-20T09:30:00Z");
 const time = (instant: Temporal.Instant) => `at ${instant.toString()}`;

@@ -9,12 +9,12 @@ import {
   Scope,
   Stream,
 } from "effect";
-import { MarkdownView, TextFileView, TFile } from "obsidian";
 import type {
   Editor,
   Workspace as WorkspaceApi,
   WorkspaceLeaf,
 } from "obsidian";
+import { MarkdownView, TextFileView, TFile } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";

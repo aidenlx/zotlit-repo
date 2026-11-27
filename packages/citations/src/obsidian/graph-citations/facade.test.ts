@@ -3,8 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { citedWorkNodeId } from "./adapter.ts";
 import type { GraphCitationAdditions } from "./adapter.ts";
+import { citedWorkNodeId } from "./adapter.ts";
+import type { FacadeEngine } from "./facade.ts";
 import {
   facadeApp,
   mergeLinkMaps,
@@ -12,7 +13,6 @@ import {
   renderWithFacade,
   withoutLinks,
 } from "./facade.ts";
-import type { FacadeEngine } from "./facade.ts";
 
 function additionsOf(
   overrides: Partial<GraphCitationAdditions>,

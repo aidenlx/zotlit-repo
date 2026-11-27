@@ -3,8 +3,8 @@ import { Deferred, Effect, Exit, Fiber, Ref, Schedule, Scope } from "effect";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
 
-import { ParseFailed, ParseWorkerDied } from "./client.ts";
 import type { ParseClient, ParseRequest } from "./client.ts";
+import { ParseFailed, ParseWorkerDied } from "./client.ts";
 import type { ParseConnection } from "./worker-host.ts";
 
 export interface RecoveringParseClient extends ParseClient {

@@ -1,6 +1,6 @@
 import type { Effect } from "effect";
-import { ConfirmationModal } from "obsidian";
 import type { App } from "obsidian";
+import { ConfirmationModal } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 

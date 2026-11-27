@@ -33,11 +33,11 @@ import {
   noteFeatureFileMenu,
 } from "./note-feature/actions.ts";
 import { citationTemplateOf } from "./note-feature/citation-template.ts";
-import { bindNoteCitations } from "./note-feature/citations-handle.ts";
 import type { NoteCitationServices } from "./note-feature/citations-handle.ts";
+import { bindNoteCitations } from "./note-feature/citations-handle.ts";
 import { layerCitekeyNoteActions } from "./note-feature/citekey-actions.ts";
-import { bindNoteCreation } from "./note-feature/creation-handle.ts";
 import type { NoteCreationServices } from "./note-feature/creation-handle.ts";
+import { bindNoteCreation } from "./note-feature/creation-handle.ts";
 import { bindNoteFeature } from "./note-feature/handle.ts";
 import { layerNoteFeatureNotices } from "./note-feature/notices.ts";
 import type { NoteFeatureHandle } from "./note-feature/operations.ts";

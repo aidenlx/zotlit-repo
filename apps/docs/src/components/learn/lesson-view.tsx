@@ -5,6 +5,7 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
+import type { ReactNode } from "react";
 import {
   use,
   useEffect,
@@ -14,7 +15,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { ReactNode } from "react";
 
 import { cn } from "@/lib/cn.ts";
 import type { LessonOpeningView } from "@/lib/lesson-opening.ts";
@@ -34,6 +34,11 @@ import {
   TickButton,
   titleClass,
 } from "./lesson-mdx.tsx";
+import type {
+  LessonProgress,
+  LessonStepMeta,
+  LessonState,
+} from "./lesson-state.ts";
 import {
   firstOpenStep,
   LessonContext,
@@ -41,11 +46,6 @@ import {
   openOnLoad,
   readProgress,
   saveTicks,
-} from "./lesson-state.ts";
-import type {
-  LessonProgress,
-  LessonStepMeta,
-  LessonState,
 } from "./lesson-state.ts";
 import { StepPicture } from "./step-picture.tsx";
 

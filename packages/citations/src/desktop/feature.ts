@@ -26,8 +26,8 @@ import {
   citationPresentationFileMenu,
   registerCitationPresentation,
 } from "./citation-presentation/register.ts";
-import { registerPandocExport } from "./pandoc-export/register.ts";
 import type { PandocExportServices } from "./pandoc-export/register.ts";
+import { registerPandocExport } from "./pandoc-export/register.ts";
 import { pandocIntegrationDefinition } from "./pandoc/integration-settings-row.ts";
 import { layerPandocResolve } from "./pandoc/register.ts";
 import { layerBibliographyRender } from "./pandoc/render-cache-layer.ts";

@@ -2,8 +2,8 @@ import type { Runtime } from "#runtime-table";
 
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 
-import { bundledPlugin, CONTAINER_PLUGIN } from "./profiles.ts";
 import type { PluginProfile } from "./profiles.ts";
+import { bundledPlugin, CONTAINER_PLUGIN } from "./profiles.ts";
 
 import { RUNTIMES } from "#runtime-table";
 

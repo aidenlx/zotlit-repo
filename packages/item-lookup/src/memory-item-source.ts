@@ -2,8 +2,8 @@ import { Effect, Layer, PubSub, Stream } from "effect";
 
 import type { IndexedItem, IndexSignature, Item } from "@zotlit/db";
 
-import { ItemSource, SourceUnavailable } from "./item-index.ts";
 import type { PinnedItemSource } from "./item-index.ts";
+import { ItemSource, SourceUnavailable } from "./item-index.ts";
 import { makeGate } from "./make-gate.ts";
 
 export interface MemoryItemSourceReads {

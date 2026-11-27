@@ -20,11 +20,11 @@ import { createClient } from "@zotlit/db/client/node";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
 import { inertPlaceholderReason } from "@zotlit/db/template-data";
 
-import { buildInertNoteResolvers } from "./inert-resolvers.ts";
 import type {
   InertNoteFile,
   InertNoteResolverDeps,
 } from "./inert-resolvers.ts";
+import { buildInertNoteResolvers } from "./inert-resolvers.ts";
 
 type ItemRef = Parameters<NoteResolvers["item"]["notePath"]>[0];
 

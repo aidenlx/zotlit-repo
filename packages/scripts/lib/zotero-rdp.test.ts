@@ -1,10 +1,10 @@
-import { createServer } from "node:net";
 import type { AddressInfo, Socket } from "node:net";
+import { createServer } from "node:net";
 import { createContext, runInContext } from "node:vm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { evalAsync, openRdpSession } from "./zotero-rdp.ts";
 import type { Packet } from "./zotero-rdp.ts";
+import { evalAsync, openRdpSession } from "./zotero-rdp.ts";
 
 function createEvaluator(): (source: string) => Promise<Packet> {
   const context = createContext({ setTimeout });

@@ -2,8 +2,8 @@ import type { ProfilePick } from "#desktop/profile/profile-picker.ts";
 import type { LiteratureNoteProfile } from "#obsidian/profile/service.ts";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Layer } from "effect";
-import { TFile } from "obsidian";
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import { expect, vi } from "vitest";
 
 import type { Item } from "@zotlit/db";
@@ -16,15 +16,15 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import type { PlannedCreationProfile } from "./creation-planning.ts";
+import type {
+  InteractiveCreationOptions,
+  InteractiveCreationPorts,
+} from "./creation-view.ts";
 import {
   createdNoteNotice,
   createThroughSelection,
   profilePickNotice,
   resolveProfilePick,
-} from "./creation-view.ts";
-import type {
-  InteractiveCreationOptions,
-  InteractiveCreationPorts,
 } from "./creation-view.ts";
 import type { CreationProfileSelection } from "./operations.ts";
 import { NoteFeature } from "./service.ts";

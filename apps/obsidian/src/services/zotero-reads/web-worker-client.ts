@@ -1,5 +1,5 @@
-import { Context, Effect, Layer, Schema } from "effect";
 import type { Scope } from "effect";
+import { Context, Effect, Layer, Schema } from "effect";
 import type { RpcClient, RpcClientError } from "effect/rpc";
 
 import type {

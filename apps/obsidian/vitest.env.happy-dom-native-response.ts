@@ -1,5 +1,5 @@
-import { builtinEnvironments } from "vitest/runtime";
 import type { Environment } from "vitest/runtime";
+import { builtinEnvironments } from "vitest/runtime";
 
 const happyDom = builtinEnvironments["happy-dom"];
 

@@ -7,8 +7,8 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { rewriteScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 
-import { occurrencesEqual } from "./scan.ts";
 import type { CitationOccurrence } from "./scan.ts";
+import { occurrencesEqual } from "./scan.ts";
 
 import { CitationParse } from "#obsidian/citation-parse/service.ts";
 

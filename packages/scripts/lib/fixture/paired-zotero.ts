@@ -1,5 +1,5 @@
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createReadStream, createWriteStream } from "node:fs";

@@ -5,10 +5,10 @@ import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import type { GraphCitationAdditions } from "./adapter.ts";
-import { membersPresent } from "./install.ts";
 import type { GraphLeafMembers } from "./install.ts";
-import { readThemeColor } from "./node-color.ts";
+import { membersPresent } from "./install.ts";
 import type { ThemeColorRole } from "./node-color.ts";
+import { readThemeColor } from "./node-color.ts";
 
 const ROLE: ThemeColorRole = {
   property: themeProperty.graphCitationLink,

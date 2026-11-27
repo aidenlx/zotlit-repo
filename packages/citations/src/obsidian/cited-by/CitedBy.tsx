@@ -5,8 +5,8 @@ import type {
 } from "#obsidian/citation-index/service.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Keymap, prepareSimpleSearch } from "obsidian";
-import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -34,6 +34,13 @@ import {
   toggleSearch,
   useCitedByModel,
 } from "./model.ts";
+import type {
+  CitedByPreview,
+  ExpandDirection,
+  OccurrenceContext,
+  ReadyPreview,
+  SourceRange,
+} from "./store.ts";
 import {
   contextParts,
   EMPTY_CITED_BY_SNAPSHOT,
@@ -42,13 +49,6 @@ import {
   occurrenceID,
   previewContexts,
   sortCitedByGroups,
-} from "./store.ts";
-import type {
-  CitedByPreview,
-  ExpandDirection,
-  OccurrenceContext,
-  ReadyPreview,
-  SourceRange,
 } from "./store.ts";
 
 import { activeCitedByAtom } from "#obsidian/citation-index/atoms.ts";

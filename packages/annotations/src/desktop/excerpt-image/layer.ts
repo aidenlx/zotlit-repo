@@ -12,8 +12,8 @@ import type {
   PdfStamp,
 } from "#obsidian/excerpt-image/service.ts";
 import type { ExcerptStore } from "#obsidian/excerpt-image/store.ts";
-import { Effect, Fiber, FileSystem, Layer, Scope, Semaphore } from "effect";
 import type { Cause, PlatformError } from "effect";
+import { Effect, Fiber, FileSystem, Layer, Scope, Semaphore } from "effect";
 import { loadPdfJs } from "obsidian";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";

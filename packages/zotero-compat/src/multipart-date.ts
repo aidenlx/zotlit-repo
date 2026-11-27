@@ -1,7 +1,7 @@
 import { regex } from "arkregex";
 
-import { datePatterns } from "./date-locale.ts";
 import type { DatePatterns } from "./date-locale.ts";
+import { datePatterns } from "./date-locale.ts";
 
 const SLASH_RE = regex.as<
   string,

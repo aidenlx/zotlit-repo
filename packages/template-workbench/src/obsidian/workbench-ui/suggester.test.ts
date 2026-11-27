@@ -1,14 +1,14 @@
+import type { Fiber } from "effect";
 // @vitest-environment happy-dom
 import { Cause, Effect, Exit } from "effect";
-import type { Fiber } from "effect";
 import type { App } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
 import { SuggestModal } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { chooseWorkbenchOption } from "./suggester.ts";
 import type { WorkbenchSuggesterRequest } from "./suggester.ts";
+import { chooseWorkbenchOption } from "./suggester.ts";
 
 function settled<A, E>(fiber: Fiber.Fiber<A, E>): Promise<A> {
   return new Promise((resolve, reject) =>

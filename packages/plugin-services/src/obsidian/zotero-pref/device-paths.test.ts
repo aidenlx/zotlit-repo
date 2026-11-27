@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import type { ZoteroPathOverrides } from "./device-paths.ts";
 import {
   loadZoteroPathOverrides,
   saveZoteroPathOverrides,
 } from "./device-paths.ts";
-import type { ZoteroPathOverrides } from "./device-paths.ts";
 
 const KEY = "zotlit-zotero-paths";
 

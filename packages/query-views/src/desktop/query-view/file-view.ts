@@ -1,10 +1,10 @@
-import { Scope, TextFileView } from "obsidian";
 import type { TFile, ViewStateResult, WorkspaceLeaf } from "obsidian";
+import { Scope, TextFileView } from "obsidian";
 
 import "./file-view.css";
 import { readSavedQueryViewName } from "./model.ts";
-import { QueryView } from "./view.tsx";
 import type { QueryViewDeps } from "./view.tsx";
+import { QueryView } from "./view.tsx";
 
 export const QUERY_FILE_VIEW_TYPE = "zotlit-query-file";
 

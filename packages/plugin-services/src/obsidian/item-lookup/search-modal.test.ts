@@ -1,14 +1,14 @@
 import type { PluginSettings } from "#obsidian/settings/service.ts";
 import { Effect } from "effect";
-import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
+import { SuggestModal } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import type { SearchSession } from "./handle.ts";
-import { ItemSearchModal, pickItem } from "./search-modal.ts";
 import type { ItemSearchDeps } from "./search-modal.ts";
+import { ItemSearchModal, pickItem } from "./search-modal.ts";
 import type { SearchHit } from "./service.ts";
 
 import { platformDefaults as defaultSettings } from "#__fixtures__/platform-settings.ts";

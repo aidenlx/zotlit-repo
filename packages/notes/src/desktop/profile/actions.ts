@@ -4,8 +4,8 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { importProfileDialog } from "./dialogs.ts";
 import type { ProfileDialogServices } from "./dialogs.ts";
+import { importProfileDialog } from "./dialogs.ts";
 
 export const layerProfileActions: Layer.Layer<
   never,

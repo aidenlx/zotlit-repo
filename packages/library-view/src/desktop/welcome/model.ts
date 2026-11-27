@@ -18,8 +18,8 @@ import {
   connectionLoadAtom,
   unavailable,
 } from "./connection.ts";
-import { bannerSections } from "./presentation.ts";
 import type { WelcomeState } from "./presentation.ts";
+import { bannerSections } from "./presentation.ts";
 
 import { releaseVersionAtom } from "#obsidian/release/atoms.ts";
 import { Release } from "#obsidian/release/service.ts";

@@ -13,8 +13,8 @@ import type {
 } from "#obsidian/annotation-repository/service.ts";
 import type { BorrowedExcerptDocument } from "#obsidian/excerpt-image/reader-borrow.ts";
 import { Effect } from "effect";
-import { Platform } from "obsidian";
 import type { HoverParent, HoverPopover, TFile, View } from "obsidian";
+import { Platform } from "obsidian";
 
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
 import {
@@ -47,14 +47,15 @@ import {
   removeCapabilityAffordance,
   renderCapabilityAffordance,
 } from "./capability-affordance.ts";
-import { MarkCreation } from "./creation.ts";
 import type { ReaderPage } from "./creation.ts";
-import { isRangeGrip, rangeHandles } from "./geometry-edit.ts";
+import { MarkCreation } from "./creation.ts";
 import type { TextRotation } from "./geometry-edit.ts";
+import { isRangeGrip, rangeHandles } from "./geometry-edit.ts";
 import type { HostedReader } from "./hosted-reader.ts";
-import { decideMarkLanding } from "./mark-landing.ts";
 import type { MarkLandingMiss, MarkLandingTarget } from "./mark-landing.ts";
+import { decideMarkLanding } from "./mark-landing.ts";
 import { MarkPopupHost } from "./mark-popup-host.ts";
+import type { BindingWrites, WriteRun } from "./operations.ts";
 import {
   oneAtATime,
   pressHistory,
@@ -63,8 +64,11 @@ import {
   settledOf,
   stepMarkHistory,
 } from "./operations.ts";
-import type { BindingWrites, WriteRun } from "./operations.ts";
 import { mountReaderKeymap } from "./reader-keymap.ts";
+import type {
+  ReaderSurface,
+  ReaderSurfaceRegistry,
+} from "./reader-surface-model.ts";
 import {
   current,
   ingestAnnotations,
@@ -72,10 +76,7 @@ import {
   makeReaderSurfaceModel,
   update,
 } from "./reader-surface-model.ts";
-import type {
-  ReaderSurface,
-  ReaderSurfaceRegistry,
-} from "./reader-surface-model.ts";
+import type { Adjustment, ReaderSurfaceState } from "./reader-surface-state.ts";
 import {
   ingestCapability,
   initialReaderSurfaceState,
@@ -85,7 +86,7 @@ import {
   selectSelectedKey,
   selectTextDraft,
 } from "./reader-surface-state.ts";
-import type { Adjustment, ReaderSurfaceState } from "./reader-surface-state.ts";
+import type { PdfPageAnnotation } from "./render.ts";
 import {
   groupAnnotationsByPage,
   interfaceFont,
@@ -96,9 +97,8 @@ import {
   scrollMarkIntoView,
   withPosition,
 } from "./render.ts";
-import type { PdfPageAnnotation } from "./render.ts";
-import { MarkSelection } from "./selection.ts";
 import type { MarkGestures } from "./selection.ts";
+import { MarkSelection } from "./selection.ts";
 import {
   createTextDraftArea,
   placeTextDraft,

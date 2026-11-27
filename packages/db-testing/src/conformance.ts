@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
-import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import type { SQLiteAsyncDatabase } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { describe, expect, it } from "vitest";
 
 export type ConformanceClient = Pick<

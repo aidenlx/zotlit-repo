@@ -19,8 +19,8 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { createAnnotActions } from "./actions.tsx";
 import type { AnnotActionDeps as ActionDeps } from "./actions.tsx";
+import { createAnnotActions } from "./actions.tsx";
 
 import { makeAnnotHost } from "#__fixtures__/annot-view/host.ts";
 import { annotation } from "#__fixtures__/pdf-annotation-editor.ts";

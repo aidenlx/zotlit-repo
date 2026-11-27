@@ -41,14 +41,14 @@ import {
   signalDatabaseUpdated,
   syntheticTitles,
 } from "./e2e-run-note-helpers.ts";
-import {
-  expectQueryDiagnostic,
-  itemsByModified,
-} from "./e2e-run-query-types.ts";
 import type {
   ItemQueryReport,
   ItemQuerySchemaReport,
   LibraryScopeReport,
+} from "./e2e-run-query-types.ts";
+import {
+  expectQueryDiagnostic,
+  itemsByModified,
 } from "./e2e-run-query-types.ts";
 import { obRun } from "./obsidian-cli.ts";
 import { obRunUntil } from "./obsidian-cli.ts";

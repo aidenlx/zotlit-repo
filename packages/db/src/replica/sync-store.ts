@@ -7,6 +7,11 @@ import type {
   WebApiItem,
 } from "@zotlit/zotero-types/web-api";
 
+import type {
+  ReplicaObjectType,
+  ReplicaOrphans,
+  ReplicaProblem,
+} from "./apply.ts";
 import {
   applyRecords,
   findLibraryID,
@@ -14,13 +19,8 @@ import {
   purgeOrphans,
   upsertGroupLibrary,
 } from "./apply.ts";
-import type {
-  ReplicaObjectType,
-  ReplicaOrphans,
-  ReplicaProblem,
-} from "./apply.ts";
-import { writeReplicaAccount } from "./create.ts";
 import type { ReplicaAccount } from "./create.ts";
+import { writeReplicaAccount } from "./create.ts";
 
 import { USER_LIBRARY_ID } from "#lib/constants.ts";
 

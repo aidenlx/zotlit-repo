@@ -1,6 +1,6 @@
 import type { NoteScanRecord } from "#core/citation-index/scan-note.ts";
-import { Schema } from "effect";
 import type { Effect } from "effect";
+import { Schema } from "effect";
 
 export class ParseWorkerDied extends Schema.TaggedError<
   ParseWorkerDied,

@@ -1,6 +1,6 @@
 import type { DisplayNode, SnippetKind } from "#core/data-tree/index.ts";
-import { useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import type { Ref } from "react";
+import { useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";

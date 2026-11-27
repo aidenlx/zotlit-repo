@@ -1,7 +1,7 @@
 import { invertedEffects } from "@codemirror/commands";
 import { ChangeSet, StateEffect } from "@codemirror/state";
-import { applyEdits, createScanner, format, parse } from "jsonc-parser";
 import type { ParseError, Edit } from "jsonc-parser";
+import { applyEdits, createScanner, format, parse } from "jsonc-parser";
 
 import { yamlValue } from "./scalar-source.ts";
 

@@ -3,8 +3,8 @@ import type {
   WorkbenchDocumentController,
   WorkbenchSliceRange,
 } from "#core/document/index.ts";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
@@ -19,8 +19,8 @@ import { ExampleActions, useExampleState } from "./example-state.tsx";
 import { templateWorkbenchButton, editorBox } from "./look.ts";
 import { renderDiagnosis } from "./problems.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
-import { SliceEditor } from "./slice-editor.tsx";
 import type { SuggestionSource } from "./slice-editor.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
 
 const nameFolderSourceButton = templateWorkbenchButton;
 const nameFolderPane = cn(

@@ -38,8 +38,8 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type { WorkLabelSource } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { graphCitationAdditions, NO_ADDITIONS } from "./adapter.ts";
 import type { GraphCitationAdditions } from "./adapter.ts";
+import { graphCitationAdditions, NO_ADDITIONS } from "./adapter.ts";
 import { wrapNodeClick } from "./click.ts";
 import {
   AUTHOR_TITLE_LABELS,
@@ -49,19 +49,19 @@ import {
 import { renderWithFacade } from "./facade.ts";
 import { graphCitationFilters, installFilterRows } from "./filters.ts";
 import { installGroupsButton } from "./groups.ts";
-import { wrapNodeHover } from "./hover.ts";
 import type { NodeHoverDeps } from "./hover.ts";
+import { wrapNodeHover } from "./hover.ts";
+import type { GraphLeafMembers } from "./install.ts";
 import {
   GRAPH_CORE_PLUGIN_ID,
   GRAPH_VIEW_TYPES,
   graphMembersOf,
 } from "./install.ts";
-import type { GraphLeafMembers } from "./install.ts";
 import { GraphLinkColor, installLinkColors } from "./link-color.ts";
 import { GraphNodeColors, installNodeColors } from "./node-color.ts";
 import { applyCitationGraphPreset } from "./preset.ts";
-import { wrapNodeRightClick } from "./right-click.ts";
 import type { NodeRightClickDeps } from "./right-click.ts";
+import { wrapNodeRightClick } from "./right-click.ts";
 import { rowFlag } from "./rows.ts";
 import { deferredLeafOptions, savedLeafOptions } from "./saved-options.ts";
 import { installGraphViewState } from "./view-state.ts";

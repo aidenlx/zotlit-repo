@@ -1,5 +1,5 @@
-import { defineConfig } from "oxlint";
 import type { OxlintOverride } from "oxlint";
+import { defineConfig } from "oxlint";
 
 import baseConfig, { testBaselineOverrides } from "@zotlit/config/oxlint";
 import {

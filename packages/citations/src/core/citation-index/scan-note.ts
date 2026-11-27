@@ -1,5 +1,5 @@
-import { InlineContext, parser } from "@lezer/markdown";
 import type { BlockContext, Line } from "@lezer/markdown";
+import { InlineContext, parser } from "@lezer/markdown";
 import { regex } from "arkregex";
 import { decodeHTMLStrict } from "entities/decode";
 

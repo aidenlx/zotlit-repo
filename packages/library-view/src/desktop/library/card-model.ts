@@ -14,6 +14,7 @@ import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts"
 import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
+import type { CardItem, Values } from "./card-data.ts";
 import {
   cardItem,
   previewItem,
@@ -21,7 +22,6 @@ import {
   QUOTED,
   QUOTE_PATHS,
 } from "./card-data.ts";
-import type { CardItem, Values } from "./card-data.ts";
 import { CARD_PATHS } from "./card-fields.ts";
 import type { ReadingCardDisclosures } from "./document.ts";
 import { libraryOf, sameLibrary } from "./tree.ts";

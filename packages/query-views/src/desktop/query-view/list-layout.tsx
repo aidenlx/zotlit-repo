@@ -11,8 +11,8 @@ import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { ItemsWindow } from "./items-window.tsx";
 import type { DrawnEntry, WindowEntry } from "./items-window.tsx";
+import { ItemsWindow } from "./items-window.tsx";
 import type { QueryLayout } from "./layouts.ts";
 import { drawListRow, useListRowHeights } from "./list-row.tsx";
 import { useQueryViewState } from "./model.ts";

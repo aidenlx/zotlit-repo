@@ -77,12 +77,12 @@ import {
 } from "@zotlit/templates/literature-note-pack";
 import type { LiteratureNotePartialUnpack } from "@zotlit/templates/literature-note-pack";
 
-import { bindProfile } from "./bindings.ts";
 import type {
   NoteProfile,
   ResolvedProfile,
   ResolvedLiteratureNoteProfileBindings,
 } from "./bindings.ts";
+import { bindProfile } from "./bindings.ts";
 import { relocatedNotePath } from "./relocation.ts";
 
 import {

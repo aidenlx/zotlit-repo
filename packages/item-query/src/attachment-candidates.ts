@@ -1,7 +1,7 @@
 import type { AttachmentCandidateLeaf } from "@zotlit/db/item-query";
 
-import { equality } from "./candidate-plan.ts";
 import type { CandidateSources } from "./candidate-plan.ts";
+import { equality } from "./candidate-plan.ts";
 import type { FilterNode } from "./filter-plan.ts";
 import { lowerIndexedKeySelection } from "./indexed-key-selection.ts";
 

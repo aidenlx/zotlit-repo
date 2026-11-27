@@ -1,7 +1,7 @@
 import type { WriteConflict } from "#obsidian/annotation-repository/write.ts";
 import type { App } from "obsidian";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { HTMLAttributes, RefObject } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { claimClick, cn } from "@zotlit/obsidian-kit/utils.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
@@ -9,16 +9,9 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { conflictPanel } from "./card-conflict.ts";
-import { sameHeldDraft } from "./card-controls.ts";
 import type { CardBlock, CardControl, HeldDraft } from "./card-controls.ts";
+import { sameHeldDraft } from "./card-controls.ts";
 import type { CommentRenderer } from "./comment-render.ts";
-import {
-  clickEdits,
-  commentViewClass,
-  renderEditorSheet,
-  renderConflictPanel,
-  renderHeldDraftPanel,
-} from "./editor-sheet.ts";
 import type {
   CommentEntry,
   ConflictActions,
@@ -27,6 +20,13 @@ import type {
   EditorSheetProps,
   EditorSheetStatus,
   EditorSurface,
+} from "./editor-sheet.ts";
+import {
+  clickEdits,
+  commentViewClass,
+  renderEditorSheet,
+  renderConflictPanel,
+  renderHeldDraftPanel,
 } from "./editor-sheet.ts";
 
 type DivProps = Omit<HTMLAttributes<HTMLDivElement>, "children">;

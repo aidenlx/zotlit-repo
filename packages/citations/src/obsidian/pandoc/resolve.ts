@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { parseLinktext } from "obsidian";
 import type { LinkCache } from "obsidian";
+import { parseLinktext } from "obsidian";
 
 const CITE_FRAGMENT_PREFIX = "#cite:";
 

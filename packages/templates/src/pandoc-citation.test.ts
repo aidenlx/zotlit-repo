@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+import type { PandocCitationItem } from "./pandoc-citation.ts";
 import {
   formatPandocCitation,
   PandocCitationError,
   scanPandocCitations,
 } from "./pandoc-citation.ts";
-import type { PandocCitationItem } from "./pandoc-citation.ts";
 
 function item(
   citationKey: string | null,

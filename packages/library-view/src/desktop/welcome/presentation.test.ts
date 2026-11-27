@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { bannerBadge, bannerSections } from "./presentation.ts";
 import type { WelcomeState } from "./presentation.ts";
+import { bannerBadge, bannerSections } from "./presentation.ts";
 
 const SET_UP: WelcomeState = {
   migrationPending: false,

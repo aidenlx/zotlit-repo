@@ -2,8 +2,8 @@ import type {
   QueryFileDirection,
   QueryFileSort,
 } from "#core/query-view/query-file.ts";
-import { useState } from "react";
 import type { ReactNode } from "react";
+import { useState } from "react";
 
 import {
   Dropdown,
@@ -16,8 +16,8 @@ import type { SelectOption } from "@zotlit/obsidian-kit/components/select.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { directionLabel } from "./properties.ts";
 import type { PropertyOption } from "./properties.ts";
+import { directionLabel } from "./properties.ts";
 
 import { GripIcon, moved, useReorder } from "#obsidian/query-view/reorder.tsx";
 import {

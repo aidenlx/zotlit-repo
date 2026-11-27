@@ -2,12 +2,12 @@ import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Effect } from "effect";
 
-import { defineStatement, idSlots } from "./database.ts";
 import type { IdSlot } from "./database.ts";
+import { defineStatement, idSlots } from "./database.ts";
 import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk.ts";
 import { recordUniverse } from "./record-universe.ts";
-import { epochMilliseconds, SCAN_PAGE_SIZE } from "./scan-page.ts";
 import type { ScanRow } from "./scan-page.ts";
+import { epochMilliseconds, SCAN_PAGE_SIZE } from "./scan-page.ts";
 
 import { itemNotes, items, itemTypesCombined } from "#drizzle/schema.ts";
 

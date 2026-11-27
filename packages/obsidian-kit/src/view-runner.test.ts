@@ -4,6 +4,7 @@ import { expect } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
+import type { InFlightSlot } from "./view-runner.ts";
 import {
   answerOf,
   inFlightSlot,
@@ -11,7 +12,6 @@ import {
   latestSlot,
   makeViewRunner,
 } from "./view-runner.ts";
-import type { InFlightSlot } from "./view-runner.ts";
 
 import { layerHost } from "#__fixtures__/obsidian-host-app.ts";
 import {

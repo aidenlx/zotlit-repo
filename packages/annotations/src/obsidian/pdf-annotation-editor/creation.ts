@@ -12,10 +12,10 @@ import type {
   TextPosition,
 } from "#obsidian/annotation-repository/write.ts";
 import { Effect } from "effect";
-import { Platform } from "obsidian";
 import type { App } from "obsidian";
-import { createElement } from "react";
+import { Platform } from "obsidian";
 import type { ReactNode, RefObject } from "react";
+import { createElement } from "react";
 
 import { registerDomEvent } from "@zotlit/obsidian-kit/disposables.ts";
 import { raiseMenu } from "@zotlit/obsidian-kit/menu-events.ts";
@@ -34,22 +34,23 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { inTextEntry, isEditGesture } from "./capability-affordance.ts";
 import { annotationColorMenu } from "./color-menu.ts";
-import { CreateMarkPopup, createPopupRow } from "./create-popup.tsx";
 import type { CreatePopupAction } from "./create-popup.tsx";
-import {
-  removeCreationToolbar,
-  renderCreationToolbar,
-} from "./creation-toolbar.ts";
+import { CreateMarkPopup, createPopupRow } from "./create-popup.tsx";
 import type {
   CreationToolbarControl,
   CreationToolbarNodes,
 } from "./creation-toolbar.ts";
-import { captureRect } from "./geometry-edit.ts";
+import {
+  removeCreationToolbar,
+  renderCreationToolbar,
+} from "./creation-toolbar.ts";
 import type { PdfPoint, PdfRect } from "./geometry-edit.ts";
-import { CLICK_SLOP, distance } from "./hit-test.ts";
+import { captureRect } from "./geometry-edit.ts";
 import type { Point } from "./hit-test.ts";
+import { CLICK_SLOP, distance } from "./hit-test.ts";
 import { InkStroke } from "./ink-stroke.ts";
 import type { MarkPopupHost } from "./mark-popup-host.ts";
+import type { BindingWrites, CreateWrite, WriteRun } from "./operations.ts";
 import {
   createMark,
   oneAtATime,
@@ -57,7 +58,7 @@ import {
   queued,
   settledOf,
 } from "./operations.ts";
-import type { BindingWrites, CreateWrite, WriteRun } from "./operations.ts";
+import type { ReaderSurface } from "./reader-surface-model.ts";
 import {
   current,
   modify,
@@ -65,7 +66,13 @@ import {
   setToolColor,
   update,
 } from "./reader-surface-model.ts";
-import type { ReaderSurface } from "./reader-surface-model.ts";
+import type {
+  AnchorAt,
+  Floating,
+  PendingStroke,
+  ReaderSurfaceState,
+  TextDraft,
+} from "./reader-surface-state.ts";
 import {
   appendPendingStroke,
   arm,
@@ -90,17 +97,10 @@ import {
   textDraftPosition,
   toggleMarks,
 } from "./reader-surface-state.ts";
-import type {
-  AnchorAt,
-  Floating,
-  PendingStroke,
-  ReaderSurfaceState,
-  TextDraft,
-} from "./reader-surface-state.ts";
-import { interfaceFont } from "./render.ts";
 import type { OverlayPageView } from "./render.ts";
-import { selectionPagesOf } from "./selection-capture.ts";
+import { interfaceFont } from "./render.ts";
 import type { SelectionPage } from "./selection-capture.ts";
+import { selectionPagesOf } from "./selection-capture.ts";
 import type { SelectOptions } from "./selection.ts";
 import {
   addInkWidths,
@@ -112,18 +112,18 @@ import {
   selectionCollapsed,
   releaseCapture,
 } from "./surface.ts";
+import type {
+  ClickTool,
+  MarkTool,
+  SelectionTool,
+  ToolColorStore,
+} from "./tools.ts";
 import {
   MARK_TOOLS,
   gestureOf,
   isClickTool,
   isSelectionTool,
   selectionToolOf,
-} from "./tools.ts";
-import type {
-  ClickTool,
-  MarkTool,
-  SelectionTool,
-  ToolColorStore,
 } from "./tools.ts";
 
 import {

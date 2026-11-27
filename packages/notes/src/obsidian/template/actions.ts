@@ -1,5 +1,5 @@
-import { Effect, Layer } from "effect";
 import type { Context, Scope } from "effect";
+import { Effect, Layer } from "effect";
 import type { WorkspaceLeaf } from "obsidian";
 
 import { reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";

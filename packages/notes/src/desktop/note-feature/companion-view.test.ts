@@ -2,8 +2,8 @@ import type { LiteratureNoteProfileChoice } from "#desktop/profile/profile-picke
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { TFile } from "obsidian";
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import { expect, vi } from "vitest";
 
 import type { Item, ItemRef } from "@zotlit/db";
@@ -32,12 +32,12 @@ import type {
   PlannedCreation,
   PlannedCreationProfile,
 } from "./creation-planning.ts";
-import { companionNoteNotice } from "./index.ts";
 import type {
   CompanionNoteTarget,
   CreationProfileSelection,
   InteractiveCreationPorts,
 } from "./index.ts";
+import { companionNoteNotice } from "./index.ts";
 import { openLiteratureNote } from "./navigation.ts";
 import { NoteFeature } from "./service.ts";
 

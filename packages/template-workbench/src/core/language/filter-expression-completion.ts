@@ -1,5 +1,5 @@
-import { startCompletion } from "@codemirror/autocomplete";
 import type { Completion, CompletionContext } from "@codemirror/autocomplete";
+import { startCompletion } from "@codemirror/autocomplete";
 import type { Extension } from "@codemirror/state";
 import type { SyntaxNode } from "@lezer/common";
 
@@ -17,6 +17,13 @@ import type { QueryDataset } from "@zotlit/item-query";
 
 import { keyCompletions } from "./expression-keys.ts";
 import { memberCompletions, namespaceAccessAt } from "./expression-members.ts";
+import type {
+  ExpressionCompletionResult,
+  ExpressionField,
+  ExpressionName,
+  ExpressionOption,
+  ExpressionVocabulary,
+} from "./expression-options.ts";
 import {
   fieldOption,
   noteOf,
@@ -25,15 +32,8 @@ import {
   rankedOptions,
   signature,
 } from "./expression-options.ts";
-import type {
-  ExpressionCompletionResult,
-  ExpressionField,
-  ExpressionName,
-  ExpressionOption,
-  ExpressionVocabulary,
-} from "./expression-options.ts";
-import { syntaxCompletion } from "./field-popup.ts";
 import type { CompletionPresentation } from "./field-popup.ts";
+import { syntaxCompletion } from "./field-popup.ts";
 import { bindsNames, boundNameOptions } from "./list-scope.ts";
 
 export type {

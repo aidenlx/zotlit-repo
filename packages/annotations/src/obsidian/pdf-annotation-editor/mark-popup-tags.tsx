@@ -8,8 +8,8 @@ import type {
   AnnotationRecord,
   TagDraft,
 } from "#obsidian/annotation-repository/service.ts";
-import { useMemo } from "react";
 import type { RefObject } from "react";
+import { useMemo } from "react";
 
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 

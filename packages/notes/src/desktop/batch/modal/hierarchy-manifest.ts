@@ -1,5 +1,6 @@
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 
+import type { BatchRow } from "./dom.ts";
 import {
   GROUP_SUMMARY_CLS,
   listGroup,
@@ -10,7 +11,6 @@ import {
   profileChoiceControl,
   profileListGroup,
 } from "./dom.ts";
-import type { BatchRow } from "./dom.ts";
 import type { FlatTask } from "./flat-manifest.ts";
 import type {
   BatchCounts,

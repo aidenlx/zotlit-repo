@@ -1,5 +1,4 @@
 import { Effect } from "effect";
-import { TFile } from "obsidian";
 import type {
   App,
   Command,
@@ -10,6 +9,7 @@ import type {
   Workspace,
   WorkspaceLeaf,
 } from "obsidian";
+import { TFile } from "obsidian";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
 // @vitest-environment happy-dom
@@ -20,12 +20,12 @@ import {
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
+import type { GraphCitationsActionDeps } from "./actions.ts";
 import {
   addGraphCitationsActions,
   citationGraphReadiness,
   openLocalCitationGraph,
 } from "./actions.ts";
-import type { GraphCitationsActionDeps } from "./actions.ts";
 import { installDisplayRows } from "./display.ts";
 import { applyCitationGraphPreset } from "./preset.ts";
 

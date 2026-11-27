@@ -6,12 +6,12 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { Effect } from "effect";
 
 import type { CollectionPaths } from "./collection-paths.ts";
-import { defineStatement, idSlots } from "./database.ts";
 import type {
   IdSlot,
   ItemQueryDatabase,
   ItemQueryReaderError,
 } from "./database.ts";
+import { defineStatement, idSlots } from "./database.ts";
 
 import {
   baseFieldMappingsCombined,

@@ -10,10 +10,10 @@ import type { ProfileReader } from "#obsidian/profile/service.ts";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Layer, Stream } from "effect";
 import { TestClock } from "effect/testing";
-import { TFile } from "obsidian";
 import type { App, CachedMetadata } from "obsidian";
-import { beforeEach, describe, expect, vi } from "vitest";
+import { TFile } from "obsidian";
 import type { Mock } from "vitest";
+import { beforeEach, describe, expect, vi } from "vitest";
 
 import { excerptReuseProbe } from "@zotlit/annotations/__fixtures__/excerpt-image/reuse.ts";
 import type { ExcerptSummary } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
@@ -60,24 +60,24 @@ import {
   batchImportToast,
   childImportToast,
 } from "./batch-import-notices.ts";
-import {
-  runBatchImport,
-  runBatchImportAll,
-  runChildImportByKey,
-} from "./batch-import.ts";
 import type {
   BatchImport,
   BatchImportPorts,
   BatchImportResult,
 } from "./batch-import.ts";
 import type { BatchImportServices } from "./batch-import.ts";
+import {
+  runBatchImport,
+  runBatchImportAll,
+  runChildImportByKey,
+} from "./batch-import.ts";
 import { importAllNotes } from "./commands.ts";
-import { NoteImporter, NoteImportProfileError } from "./service.ts";
 import type {
   ImportNoteOptions,
   PreparedExplicitImport,
   WriteOutcome,
 } from "./service.ts";
+import { NoteImporter, NoteImportProfileError } from "./service.ts";
 import type { NoteImportView } from "./view.ts";
 
 import { unimplementedProfileDialogServices } from "#__fixtures__/profile/dialogs.ts";

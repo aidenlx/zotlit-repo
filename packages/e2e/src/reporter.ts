@@ -1,6 +1,5 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { DefaultReporter } from "vitest/node";
 import type {
   ReportedHookContext,
   TestCase,
@@ -8,6 +7,7 @@ import type {
   TestModuleState,
   TestRunEndReason,
 } from "vitest/node";
+import { DefaultReporter } from "vitest/node";
 
 import {
   paintAfterFailure,

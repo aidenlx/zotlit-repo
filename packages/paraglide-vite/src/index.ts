@@ -1,5 +1,5 @@
-import { compile } from "@inlang/paraglide-js";
 import type { CompilerOptions } from "@inlang/paraglide-js";
+import { compile } from "@inlang/paraglide-js";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";

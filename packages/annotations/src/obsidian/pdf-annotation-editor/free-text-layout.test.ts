@@ -3,13 +3,13 @@ import { describe, expect, it } from "vitest";
 import { parseAnnotationPosition } from "@zotlit/db";
 import type { PdfTextPosition } from "@zotlit/db";
 
+import type { FitMode, TextMeasure } from "./free-text-layout.ts";
 import {
   anchorCorner,
   fitFreeTextBox,
   freeTextLayout,
   freeTextLines,
 } from "./free-text-layout.ts";
-import type { FitMode, TextMeasure } from "./free-text-layout.ts";
 
 import { viewport } from "#__fixtures__/pdf-annotation-editor.ts";
 

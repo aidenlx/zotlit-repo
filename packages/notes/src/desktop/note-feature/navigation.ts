@@ -1,8 +1,8 @@
 import type { ProfileDialogServices } from "#desktop/profile/dialogs.ts";
 import type { ProfileOperationError } from "#obsidian/profile/service.ts";
 import type { TemplateFailure } from "#obsidian/template/service.ts";
-import { Effect } from "effect";
 import type { Cause } from "effect";
+import { Effect } from "effect";
 import type { RpcClientError } from "effect/rpc";
 import type { PaneType, TFile, WorkspaceLeaf } from "obsidian";
 
@@ -19,8 +19,8 @@ import type {
 } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { CompanionLinkOptions } from "./companion-view.ts";
-import { createNoteInteractively } from "./creation-view.ts";
 import type { InteractiveCreationPorts } from "./creation-view.ts";
+import { createNoteInteractively } from "./creation-view.ts";
 import type { CompanionNoteTarget } from "./operations.ts";
 import { NoteFeature } from "./service.ts";
 import {

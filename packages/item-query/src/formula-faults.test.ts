@@ -11,13 +11,13 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { runEffect } from "./__fixtures__/test-helpers.ts";
 import type { FormulaResolver } from "./filter-plan.ts";
+import type { ItemQueryRequest } from "./index.ts";
 import {
   collectQuery,
   formulaReferences,
   ItemQueryError,
   ITEMS,
 } from "./index.ts";
-import type { ItemQueryRequest } from "./index.ts";
 
 const GENERATED_SEED = 1503;
 const GENERATED_COUNT = 250;

@@ -4,8 +4,8 @@ import type { Context } from "effect";
 import { exitOver, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import { literatureNoteAttachments } from "./literature-note.ts";
 import type { LiteratureNoteServices } from "./literature-note.ts";
+import { literatureNoteAttachments } from "./literature-note.ts";
 
 export interface LiteratureNoteAttachmentsHandle {
   literatureNoteAttachments(

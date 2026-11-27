@@ -3,11 +3,12 @@ import { pathToFileURL } from "node:url";
 import * as v from "valibot";
 
 type Messages = typeof import("#paraglide/messages.js");
-import { scanContent } from "./content-scan.ts";
 import type { ContentEntry } from "./content-scan.ts";
-import { chineseCatalogPages } from "./i18n.ts";
+import { scanContent } from "./content-scan.ts";
 import type { SiteLocale } from "./i18n.ts";
+import { chineseCatalogPages } from "./i18n.ts";
 import type { CardProps } from "./og-card.tsx";
+import type { OgType } from "./shared.ts";
 import {
   baseURL,
   docsPageTitle,
@@ -15,7 +16,6 @@ import {
   ogImageUrl,
   publishedOn,
 } from "./shared.ts";
-import type { OgType } from "./shared.ts";
 
 const docsCard = v.object({
   title: v.string(),

@@ -10,8 +10,8 @@ import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts"
 import { startI18n } from "@zotlit/plugin-services/obsidian/language-pack/start.ts";
 
 import type { HostDeclaration, LinkActionsCheck } from "./compose.ts";
-import { shellEntry } from "./entry.ts";
 import type { StartShell } from "./entry.ts";
+import { shellEntry } from "./entry.ts";
 import type { Feature, LinkActionsOf } from "./feature.ts";
 import { logLateRelease } from "./late-release.ts";
 import { createShellRuntime, runFeatureHooks } from "./runtime.ts";

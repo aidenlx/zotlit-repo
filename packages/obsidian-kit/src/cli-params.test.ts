@@ -2,6 +2,7 @@ import { it } from "@effect/vitest";
 import { Cause, Effect, Exit, Schema } from "effect";
 import { describe, expect } from "vitest";
 
+import type { CliParamName } from "./cli-params.ts";
 import {
   cliDefault,
   cliIndexedKey,
@@ -19,7 +20,6 @@ import {
   cliVariants,
   decodeCliParams,
 } from "./cli-params.ts";
-import type { CliParamName } from "./cli-params.ts";
 
 const pick = cliParams({
   key: Schema.optionalKey(

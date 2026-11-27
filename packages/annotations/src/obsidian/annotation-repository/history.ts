@@ -11,7 +11,6 @@ import {
   sameStoredGeometry,
   storedPosition,
 } from "./reconcile.ts";
-import { annotationTags, writablePosition, writePosition } from "./write.ts";
 import type {
   AnnotationDraft,
   AnnotationTag,
@@ -21,6 +20,7 @@ import type {
   WriteConflict,
   WriteFailure,
 } from "./write.ts";
+import { annotationTags, writablePosition, writePosition } from "./write.ts";
 
 export const MAX_HISTORY_STEPS = 100;
 

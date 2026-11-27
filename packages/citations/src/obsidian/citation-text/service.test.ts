@@ -17,8 +17,8 @@ import { it } from "@effect/vitest";
 import { Cause, Context, Exit } from "effect";
 import { Effect, Stream } from "effect";
 import { TestClock } from "effect/testing";
-import { TFile } from "obsidian";
 import type { EventRef, LinkCache } from "obsidian";
+import { TFile } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
@@ -51,8 +51,8 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { citationKey, literalSummaryOf } from "./present.ts";
 import type { DocumentCitations, FormattedOccurrence } from "./present.ts";
+import { citationKey, literalSummaryOf } from "./present.ts";
 
 import { annotationRows } from "#__fixtures__/citation-index/annotations.ts";
 import {

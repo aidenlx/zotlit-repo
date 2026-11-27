@@ -2,8 +2,8 @@ import type { EditorView } from "@codemirror/view";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Effect, FiberSet, Scope } from "effect";
-import { TFile } from "obsidian";
 import type { App, Editor, MarkdownFileInfo } from "obsidian";
+import { TFile } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";

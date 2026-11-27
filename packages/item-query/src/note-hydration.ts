@@ -5,8 +5,8 @@ import type { NoteScanRow } from "@zotlit/db/item-query";
 import type { FieldNeeds, QueryItem } from "./fields.ts";
 import { ITEM_LOADING } from "./hydration.ts";
 import type { QueryNote } from "./note-fields.ts";
-import { parentRecord } from "./record-loader.ts";
 import type { LoadingDescriptor } from "./record-loader.ts";
+import { parentRecord } from "./record-loader.ts";
 
 export interface NoteNeeds {
   readonly item?: readonly FieldNeeds[];

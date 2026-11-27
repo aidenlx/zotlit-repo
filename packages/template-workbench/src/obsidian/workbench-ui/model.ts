@@ -25,11 +25,11 @@ import type { WorkbenchReportContext } from "@zotlit/notes/core/template/render-
 import type { MatchTree } from "@zotlit/templates/facade";
 import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
+import type { AnnotationExamples } from "./annotation-samples.ts";
 import {
   annotationExamples,
   sampleAnnotationParent,
 } from "./annotation-samples.ts";
-import type { AnnotationExamples } from "./annotation-samples.ts";
 import type {
   WorkbenchClipboardError,
   WorkbenchHostError,
@@ -37,12 +37,6 @@ import type {
   WorkbenchMatchResult,
 } from "./host.tsx";
 import type { WorkbenchInsertTarget } from "./host.tsx";
-import {
-  hideFields,
-  INITIAL_PANELS,
-  pinFields,
-  placePanels,
-} from "./panel-layout.ts";
 import type {
   FieldsPanelState,
   FieldsPin,
@@ -52,12 +46,18 @@ import type {
   ViewSize,
   WorkbenchPanels,
 } from "./panel-layout.ts";
+import {
+  hideFields,
+  INITIAL_PANELS,
+  pinFields,
+  placePanels,
+} from "./panel-layout.ts";
 import { patch, patchAt } from "./patch.ts";
-import { makeRenderSchedulerAtoms } from "./scheduler-atoms.ts";
 import type {
   RenderSchedulerAtoms,
   RenderSchedulerInput,
 } from "./scheduler-atoms.ts";
+import { makeRenderSchedulerAtoms } from "./scheduler-atoms.ts";
 import type { SliceReveal } from "./slice-editor.tsx";
 import type { WorkbenchTab } from "./tabs.ts";
 

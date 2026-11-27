@@ -18,8 +18,8 @@ import {
 } from "@videojs/react";
 import { Video } from "@videojs/react/video";
 import { Maximize, Minimize, Pause, Play, RotateCcw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { secondaryButtonClass } from "@/components/learn/action-classes.ts";
 import {

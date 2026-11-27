@@ -1,5 +1,5 @@
-import { Context } from "effect";
 import type { Cause, Effect, Stream } from "effect";
+import { Context } from "effect";
 import type { TFile } from "obsidian";
 
 import type {

@@ -7,8 +7,8 @@ import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
-import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { foldFilterTree } from "@zotlit/filter-expression";
 import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
@@ -47,8 +47,8 @@ import { useQueryViewState } from "./model.ts";
 import { propertyIcon } from "./property-icon.ts";
 import type { LiteratureNotes, VaultPropertyType } from "./table-notes.ts";
 import { useVaultPropertyNames, useVaultVersion } from "./vault-cell.tsx";
-import { fieldLabel, useViewProperties } from "./view-properties.ts";
 import type { ViewProperties } from "./view-properties.ts";
+import { fieldLabel, useViewProperties } from "./view-properties.ts";
 import type { QueryView } from "./view.tsx";
 
 import { allViewsDataset, vaultProperty } from "#core/query-view/query-file.ts";

@@ -3,8 +3,8 @@ import type { TypedMenuOptions } from "@/lib/l10n.ts";
 import { logger as appLogger } from "@/lib/logger.ts";
 import type { FluentMessageId } from "@/types/fluent.ts";
 
-import { contextScope } from "./collection-scope.ts";
 import type { RowScope } from "./collection-scope.ts";
+import { contextScope } from "./collection-scope.ts";
 import { importAllNotesInObsidian, updateAllInObsidian } from "./obsidian.ts";
 
 const logger = appLogger.getChild(["menus", "collection"]);

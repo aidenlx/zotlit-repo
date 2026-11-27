@@ -2,8 +2,8 @@
 import type { Attr, Inline, Inlines } from "#core/pandoc/ast.ts";
 import { describe, expect, it } from "vitest";
 
-import { toCopiedBibliography } from "./copied-bibliography.ts";
 import type { CopiedBibliographyEntry } from "./copied-bibliography.ts";
+import { toCopiedBibliography } from "./copied-bibliography.ts";
 
 const NO_ATTR: Attr = ["", [], []];
 

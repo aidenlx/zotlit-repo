@@ -2,13 +2,13 @@ import type { AnnotationFileLinkAnchor } from "#lib/zt-annot-anchor.ts";
 import type { Annotation } from "#lib/zt-annot.ts";
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  annotationToTemplateData,
-  withAnnotationCitation,
-} from "./zt-template-annot.ts";
 import type {
   AnnotationTemplateDataInput,
   TemplateAnnotation,
+} from "./zt-template-annot.ts";
+import {
+  annotationToTemplateData,
+  withAnnotationCitation,
 } from "./zt-template-annot.ts";
 import type { TemplateAttachment } from "./zt-template-attach.ts";
 

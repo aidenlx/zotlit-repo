@@ -1,7 +1,7 @@
 import { diff, gt } from "semver";
 
-import { PRODUCTS, releaseLine, releaseTag } from "./lines.ts";
 import type { Product } from "./lines.ts";
+import { PRODUCTS, releaseLine, releaseTag } from "./lines.ts";
 
 const STABLE = /^\d+\.\d+\.\d+$/;
 

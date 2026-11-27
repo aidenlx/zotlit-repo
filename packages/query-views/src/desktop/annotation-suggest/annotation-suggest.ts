@@ -1,5 +1,4 @@
 import type { QueryHandle } from "#desktop/item-query/handle.ts";
-import { Component, EditorSuggest } from "obsidian";
 import type {
   Editor,
   EditorPosition,
@@ -7,6 +6,7 @@ import type {
   EditorSuggestTriggerInfo,
   TFile,
 } from "obsidian";
+import { Component, EditorSuggest } from "obsidian";
 
 import {
   appendExcerptText,
@@ -19,10 +19,10 @@ import { CurrentAnswer } from "@zotlit/plugin-services/obsidian/item-lookup/curr
 import { DEFAULT_LIMIT } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { insertAnnotation } from "./annotation-insert.ts";
 import type { AnnotationInsertDeps } from "./annotation-insert.ts";
-import { searchAnnotations } from "./annotation-search.ts";
+import { insertAnnotation } from "./annotation-insert.ts";
 import type { AnnotationHit } from "./annotation-search.ts";
+import { searchAnnotations } from "./annotation-search.ts";
 
 import { resolveAnnotationTrigger } from "#core/annotation-suggest/annotation-trigger.ts";
 

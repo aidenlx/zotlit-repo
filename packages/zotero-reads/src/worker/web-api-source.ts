@@ -3,6 +3,7 @@ import type {
   WebSyncProblem,
   WebSyncStatus,
 } from "#contract/web-worker-rpc.ts";
+import type { Duration } from "effect";
 import {
   Cause,
   Clock,
@@ -18,7 +19,6 @@ import {
   Scope,
   Semaphore,
 } from "effect";
-import type { Duration } from "effect";
 
 import type { ZoteroDatabase } from "@zotlit/db";
 import { openWasmClient } from "@zotlit/db/client/wasm";
@@ -52,16 +52,21 @@ import type {
   WebLibrarySyncError,
 } from "@zotlit/web-library";
 
+import type { OpenClient } from "./connection.ts";
 import {
   Connection,
   makeClientRef,
   makeDatabaseGenerations,
   webApiSourceIdentity,
 } from "./connection.ts";
-import type { OpenClient } from "./connection.ts";
 import { makeKeyPauses } from "./key-pauses.ts";
 import { makeReadGate } from "./read-gate.ts";
 import { plan, planAccount } from "./replica-plan.ts";
+import type {
+  SourceCommand,
+  SourceEvent,
+  SourceState,
+} from "./web-api-machine.ts";
 import {
   describe,
   errorOf,
@@ -70,11 +75,6 @@ import {
   readState,
   transition,
   unconsentedOf,
-} from "./web-api-machine.ts";
-import type {
-  SourceCommand,
-  SourceEvent,
-  SourceState,
 } from "./web-api-machine.ts";
 
 import { makeChangeFeed } from "#contract/change-feed.ts";
@@ -785,7 +785,7 @@ export function layerWebApiSource(
             if (state === "degraded")
               return yield* (
                 errorOf(machine) ??
-                  new DbUnavailable({ message: "The replica is not available" })
+                new DbUnavailable({ message: "The replica is not available" })
               );
             if (state !== "ready") continue;
             const entry = yield* Scope.make();

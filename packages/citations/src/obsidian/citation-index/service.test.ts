@@ -5,8 +5,8 @@ import type {
 import { it } from "@effect/vitest";
 import { Cause, Effect, Exit, Stream } from "effect";
 import { TestClock } from "effect/testing";
-import { TFile } from "obsidian";
 import type { CachedMetadata } from "obsidian";
+import { TFile } from "obsidian";
 import { afterEach, describe, expect } from "vitest";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";

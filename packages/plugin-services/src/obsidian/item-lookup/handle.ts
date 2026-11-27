@@ -1,5 +1,5 @@
-import { Scope } from "effect";
 import type { Exit } from "effect";
+import { Scope } from "effect";
 
 import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";

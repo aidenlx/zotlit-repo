@@ -10,8 +10,8 @@ import {
   References,
   Stream,
 } from "effect";
-import { TFile } from "obsidian";
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";

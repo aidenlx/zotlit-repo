@@ -9,8 +9,8 @@ import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { itemKeyFromFrontmatter } from "./parse.ts";
-import { NoteIndex } from "./service.ts";
 import type { NoteIndexChange } from "./service.ts";
+import { NoteIndex } from "./service.ts";
 
 export interface ActiveNote {
   readonly path: string | null;

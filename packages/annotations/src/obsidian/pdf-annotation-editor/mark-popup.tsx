@@ -17,8 +17,8 @@ import type {
 } from "#obsidian/annotation-repository/write.ts";
 import type { App, HoverParent, IconName } from "obsidian";
 import type { CSSProperties, ReactNode } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
@@ -28,8 +28,8 @@ import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { Point } from "./hit-test.ts";
-import { MarkPopupTagSection } from "./mark-popup-tags.tsx";
 import type { MarkPopupTagSectionProps } from "./mark-popup-tags.tsx";
+import { MarkPopupTagSection } from "./mark-popup-tags.tsx";
 
 import { cardControls } from "#obsidian/annot-view/card-controls.ts";
 import {

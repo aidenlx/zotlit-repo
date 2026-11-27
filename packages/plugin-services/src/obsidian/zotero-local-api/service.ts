@@ -4,14 +4,13 @@ import type {
   LocalApiResult,
   ZoteroReply,
 } from "#core/zotero-local-api/wire.ts";
-import { Context, Effect, Layer, PubSub, Stream } from "effect";
 import type { DateTime } from "effect";
+import { Context, Effect, Layer, PubSub, Stream } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 
-import { makeLocalApiSession } from "./session.ts";
 import type {
   AuthorizedSendOptions,
   LocalApiEvent,
@@ -19,6 +18,7 @@ import type {
   LocalApiState,
   WriteAuthorizationState,
 } from "./session.ts";
+import { makeLocalApiSession } from "./session.ts";
 import type { WriteAuthorizationStore } from "./write-authorization.ts";
 
 import { LocalServer } from "#core/local-server/service.ts";

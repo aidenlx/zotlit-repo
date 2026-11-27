@@ -1,6 +1,6 @@
 import type { IconName } from "obsidian";
-import { useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import type {
   ChooserActionRow,
@@ -25,8 +25,8 @@ import { useQueryViewState } from "./model.ts";
 import { propertyIcon } from "./property-icon.ts";
 import { NewFormulaPage, PropertyPage } from "./property-page.tsx";
 import { useVaultPropertyNames } from "./vault-cell.tsx";
-import { isVaultPropertyName, useViewProperties } from "./view-properties.ts";
 import type { PropertyEntry, ViewProperties } from "./view-properties.ts";
+import { isVaultPropertyName, useViewProperties } from "./view-properties.ts";
 import type { QueryView } from "./view.tsx";
 
 import {

@@ -5,16 +5,16 @@ import {
   ChevronDown,
   CircleCheck,
 } from "lucide-react";
-import { Children, isValidElement, use, useId, useState } from "react";
 import type { ReactNode } from "react";
+import { Children, isValidElement, use, useId, useState } from "react";
 
 import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 
 import { metaClass, secondaryButtonClass } from "./action-classes.ts";
-import { LessonContext, nextOpenStep } from "./lesson-state.ts";
 import type { LessonState, LessonStepMeta } from "./lesson-state.ts";
+import { LessonContext, nextOpenStep } from "./lesson-state.ts";
 import { stepMedia, StepPicture } from "./step-picture.tsx";
 
 export const preHydration = {

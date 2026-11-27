@@ -6,8 +6,8 @@ import {
   CollapsibleTrigger,
 } from "fumadocs-ui/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
 import type { ComponentProps, ReactNode } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";

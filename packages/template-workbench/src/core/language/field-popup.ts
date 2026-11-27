@@ -1,3 +1,4 @@
+import type { CompletionSource } from "@codemirror/autocomplete";
 import {
   acceptCompletion,
   autocompletion,
@@ -5,9 +6,8 @@ import {
   completionKeymap,
   selectedCompletionIndex,
 } from "@codemirror/autocomplete";
-import type { CompletionSource } from "@codemirror/autocomplete";
-import { Facet, Prec } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
+import { Facet, Prec } from "@codemirror/state";
 import { EditorView, ViewPlugin, keymap } from "@codemirror/view";
 
 export interface FieldPopup {

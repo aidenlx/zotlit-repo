@@ -18,6 +18,7 @@ import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
 import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
+import type { DocsWalk } from "./docs-walk.ts";
 import {
   captureRequested,
   closeWelcome,
@@ -25,7 +26,6 @@ import {
   readNotices,
   watchNotices,
 } from "./docs-walk.ts";
-import type { DocsWalk } from "./docs-walk.ts";
 
 const execFileAsync = promisify(execFile);
 const root = await getWorkspaceRoot(import.meta.dirname);

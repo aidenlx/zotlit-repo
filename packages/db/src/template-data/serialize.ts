@@ -5,8 +5,8 @@ import type {
 } from "#contract/ir.ts";
 import type { ContractRoot } from "#contract/roots.ts";
 
-import { formatAccessorPath } from "./accessor-path.ts";
 import type { TemplatePathSegment } from "./accessor-path.ts";
+import { formatAccessorPath } from "./accessor-path.ts";
 import { inertPlaceholderReason } from "./inert-placeholder.ts";
 import { coerceToString } from "./string-coercion.ts";
 

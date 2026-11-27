@@ -1,8 +1,8 @@
 import { syntaxTree, tokenClassNodeProp } from "@codemirror/language";
 import type { EditorState, StateEffect } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
-import { editorLivePreviewField } from "obsidian";
 import type { MarkdownView } from "obsidian";
+import { editorLivePreviewField } from "obsidian";
 
 export interface DocRange {
   from: number;

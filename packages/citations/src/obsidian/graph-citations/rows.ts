@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { around } from "monkey-around";
-import { Setting } from "obsidian";
 import type { GraphControlSection, GraphEngine, GraphOptions } from "obsidian";
+import { Setting } from "obsidian";
 
 import {
   logServices,

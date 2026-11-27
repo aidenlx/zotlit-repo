@@ -1,6 +1,6 @@
 import type { CliHost } from "#cli-command.ts";
-import { Context, Effect, Layer } from "effect";
 import type { Scope } from "effect";
+import { Context, Effect, Layer } from "effect";
 import { around } from "monkey-around";
 import type {
   Command,

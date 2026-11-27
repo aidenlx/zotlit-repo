@@ -5,8 +5,8 @@ import { matches } from "./filter-evaluate.ts";
 import { planFilter } from "./filter-plan.ts";
 import { liftParentRecord, parentFieldSubject } from "./parent-records.ts";
 import { planPath, readPath } from "./projection.ts";
-import { definitionFilter } from "./record-field.ts";
 import type { RecordVocabulary } from "./record-field.ts";
+import { definitionFilter } from "./record-field.ts";
 
 type Row = { title: string; secret: string };
 type Needs = { fields?: readonly string[] };

@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { Keymap } from "obsidian";
 import type { App, Plugin, TFile } from "obsidian";
+import { Keymap } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";

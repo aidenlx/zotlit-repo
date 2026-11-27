@@ -1,8 +1,8 @@
 import type { WorkbenchSliceId } from "#core/document/index.ts";
 import { expect, it } from "vitest";
 
-import { workbenchDiagnoses } from "./problems.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
+import { workbenchDiagnoses } from "./problems.ts";
 import { sourceDiagnostics } from "./source-diagnostics.tsx";
 
 import {

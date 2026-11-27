@@ -1,5 +1,5 @@
-import { openDB } from "idb";
 import type { DBSchema } from "idb";
+import { openDB } from "idb";
 
 import type { NoteScanRecord } from "./scan-note.ts";
 

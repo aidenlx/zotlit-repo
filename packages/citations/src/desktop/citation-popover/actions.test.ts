@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import type { CitationEntryBlock } from "#obsidian/citation-popover/blocks.ts";
 import { Effect } from "effect";
-import { Keymap, Menu } from "obsidian";
 import type { Workspace } from "obsidian";
+import { Keymap, Menu } from "obsidian";
 import type { MouseEvent } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,8 +10,8 @@ import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { createCitationPopoverActions } from "./actions.ts";
 import type { CitationPopoverActionDeps } from "./actions.ts";
+import { createCitationPopoverActions } from "./actions.ts";
 
 const menuMock = Menu as typeof Menu & {
   instances: {

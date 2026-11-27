@@ -1,6 +1,6 @@
+import type { App } from "obsidian";
 // @vitest-environment happy-dom
 import { Component } from "obsidian";
-import type { App } from "obsidian";
 import { h, render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";

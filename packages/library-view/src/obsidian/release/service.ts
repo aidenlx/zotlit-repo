@@ -16,8 +16,8 @@ import type {
 } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { releaseNoteUrl, V1_TEMPLATE_FOLDER } from "./constants.ts";
-import { decideRelease } from "./decide.ts";
 import type { ReleaseDecision } from "./decide.ts";
+import { decideRelease } from "./decide.ts";
 import { companionNotice, showCompanionNotice } from "./notices.ts";
 
 const WEBVIEWER_PLUGIN_ID = "webviewer";

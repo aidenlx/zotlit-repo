@@ -1,5 +1,5 @@
-import { useImperativeHandle, useLayoutEffect, useRef } from "react";
 import type { Ref, RefObject } from "react";
+import { useImperativeHandle, useLayoutEffect, useRef } from "react";
 
 import {
   Chooser,

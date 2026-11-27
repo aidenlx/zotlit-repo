@@ -15,12 +15,12 @@ import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
 import { bar, templateWorkbenchButton } from "./look.ts";
-import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
-import { SampleSuggester } from "./sample-suggester.tsx";
+import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { SampleOption } from "./sample-suggester.tsx";
-import { SliceEditor } from "./slice-editor.tsx";
+import { SampleSuggester } from "./sample-suggester.tsx";
 import type { SliceEditorProps } from "./slice-editor.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
 import { chooseWorkbenchOption } from "./suggester.ts";
 
 import { documentRevision } from "#core/document/atoms.ts";

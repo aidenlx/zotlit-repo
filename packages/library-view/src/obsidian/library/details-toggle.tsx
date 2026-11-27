@@ -1,5 +1,5 @@
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";

@@ -19,24 +19,24 @@ import {
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { lowerAnnotationCandidate } from "./annotation-candidates.ts";
+import type { QueryAnnotation } from "./annotation-fields.ts";
 import {
   ANNOTATION_PARENTS,
   annotationFilterRegistry,
 } from "./annotation-fields.ts";
-import type { QueryAnnotation } from "./annotation-fields.ts";
 import { ANNOTATION_LOADING } from "./annotation-hydration.ts";
 import { lowerAttachmentCandidate } from "./attachment-candidates.ts";
+import type { QueryAttachment } from "./attachment-fields.ts";
 import {
   ATTACHMENT_PARENTS,
   attachmentFilterRegistry,
 } from "./attachment-fields.ts";
-import type { QueryAttachment } from "./attachment-fields.ts";
 import { ATTACHMENT_LOADING } from "./attachment-hydration.ts";
 import { lowerItemCandidate } from "./candidate-plan.ts";
 import type { QueryDataset, QueryEngine } from "./dataset.ts";
 import type { DatasetRun } from "./execution.ts";
-import { filterField } from "./fields.ts";
 import type { QueryItem } from "./fields.ts";
+import { filterField } from "./fields.ts";
 import { matches as isMatch } from "./filter-evaluate.ts";
 import { projectColumns } from "./formulas.ts";
 import { ITEM_LOADING } from "./hydration.ts";

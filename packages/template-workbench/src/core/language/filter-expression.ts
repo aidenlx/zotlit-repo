@@ -1,7 +1,7 @@
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { LRLanguage, syntaxTree } from "@codemirror/language";
-import { Prec } from "@codemirror/state";
 import type { Extension, Range } from "@codemirror/state";
+import { Prec } from "@codemirror/state";
 import { Decoration, EditorView, keymap } from "@codemirror/view";
 import type { SyntaxNode, Tree } from "@lezer/common";
 import { highlightTree, styleTags } from "@lezer/highlight";

@@ -3,10 +3,10 @@ import type { Annotation } from "#lib/zt-annot.ts";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { defineQuery, defineKeyedQuery } from "./_shared.ts";
 import type { FindManyOptions, QueryRow } from "./_shared.ts";
-import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
+import { defineQuery, defineKeyedQuery } from "./_shared.ts";
 import type { GroupIDMemo } from "./libraries.ts";
+import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 
 import { readDatabaseLayout } from "#layout/index.ts";
 

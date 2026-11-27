@@ -5,8 +5,8 @@ import type {
 import { it } from "@effect/vitest";
 import { Context, Effect, Layer } from "effect";
 import { TestClock } from "effect/testing";
-import { TFile } from "obsidian";
 import type { App, Events } from "obsidian";
+import { TFile } from "obsidian";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import { citekeysToCiteTemplateData } from "@zotlit/db";
@@ -24,8 +24,8 @@ import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/s
 import type { SettingsPatch } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { LegacyTemplateConversionError } from "@zotlit/templates/facade";
 
-import { layerTemplateMigration, TemplateMigration } from "./migration.ts";
 import type { TemplateMigrationOptions } from "./migration.ts";
+import { layerTemplateMigration, TemplateMigration } from "./migration.ts";
 
 import { buildSettings } from "#__fixtures__/settings.ts";
 import { defaults } from "#__fixtures__/settings.ts";

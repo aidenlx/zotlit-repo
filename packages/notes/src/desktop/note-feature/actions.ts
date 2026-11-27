@@ -1,5 +1,4 @@
 import type { ActiveNote } from "#obsidian/note-feature/update-notes-view.ts";
-import { TFile } from "obsidian";
 import type {
   App,
   MarkdownFileInfo,
@@ -7,6 +6,7 @@ import type {
   Menu,
   Plugin,
 } from "obsidian";
+import { TFile } from "obsidian";
 
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";

@@ -11,8 +11,8 @@ import type {
 import { history } from "@codemirror/commands";
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
-import { Keymap, Scope, TFile } from "obsidian";
 import type { App, Editor, EventRef, MarkdownFileInfo } from "obsidian";
+import { Keymap, Scope, TFile } from "obsidian";
 import { act } from "preact/test-utils";
 import type { DragEvent as ReactDragEvent } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -25,11 +25,11 @@ import {
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { AnnotationsLayout } from "./layout.tsx";
 import type {
   AnnotationsLayoutDeps,
   AnnotationsLayoutHost,
 } from "./layout.tsx";
+import { AnnotationsLayout } from "./layout.tsx";
 
 import { stateEditor } from "#__fixtures__/annot-view/editor.ts";
 import { makeAnnotHost } from "#__fixtures__/annot-view/host.ts";

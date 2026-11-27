@@ -1,6 +1,6 @@
 import { Effect, Layer, ManagedRuntime } from "effect";
-import { TFile } from "obsidian";
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import { expect, it, vi } from "vitest";
 
 import type { Item } from "@zotlit/db";
@@ -11,8 +11,8 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { bindNoteCreation } from "./creation-handle.ts";
 import type { NoteCreationServices } from "./creation-handle.ts";
+import { bindNoteCreation } from "./creation-handle.ts";
 import { NoteFeature } from "./service.ts";
 
 import { unimplementedProfileDialogServices } from "#__fixtures__/profile/dialogs.ts";

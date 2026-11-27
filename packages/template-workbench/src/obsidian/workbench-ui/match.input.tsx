@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
 import type { ComponentProps, ReactNode, RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 

@@ -1,19 +1,19 @@
-import { StateEffect, StateField } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
-import { showTooltip } from "@codemirror/view";
+import { StateEffect, StateField } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import type { Tooltip, TooltipView, ViewUpdate } from "@codemirror/view";
+import { showTooltip } from "@codemirror/view";
 
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import { fieldPopup } from "./field-popup.ts";
 import { appendProse } from "./prose.ts";
-import { signatureAt } from "./signature-hint.ts";
 import type {
   HintSignature,
   SignatureHintOptions,
   SignatureHintResult,
 } from "./signature-hint.ts";
+import { signatureAt } from "./signature-hint.ts";
 
 export const SIGNATURE_HINT_CLASS = themeHook.signatureHint;
 

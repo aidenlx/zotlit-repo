@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import {
   useAnnotStore,

@@ -7,6 +7,7 @@ import type {
   PdfTextPosition,
 } from "@zotlit/db";
 
+import type { Corner, FitMode, TextMeasure } from "./free-text-layout.ts";
 import {
   anchorCorner,
   fitStoredTextBox,
@@ -14,7 +15,6 @@ import {
   turnBy,
   turnedBounds,
 } from "./free-text-layout.ts";
-import type { Corner, FitMode, TextMeasure } from "./free-text-layout.ts";
 import type { Point } from "./hit-test.ts";
 
 import { writePosition } from "#obsidian/annotation-repository/write.ts";

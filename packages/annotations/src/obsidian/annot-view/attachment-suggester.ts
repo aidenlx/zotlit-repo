@@ -1,5 +1,5 @@
-import { FuzzySuggestModal } from "obsidian";
 import type { App } from "obsidian";
+import { FuzzySuggestModal } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 

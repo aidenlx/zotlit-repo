@@ -1,5 +1,5 @@
-import { TFile } from "obsidian";
 import type { MetadataCache } from "obsidian";
+import { TFile } from "obsidian";
 import { describe, expect, it } from "vitest";
 
 import {

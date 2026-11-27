@@ -1,9 +1,9 @@
-import { Notice } from "obsidian";
 import type {
   ObsidianProtocolData,
   ObsidianProtocolHandler,
   Plugin,
 } from "obsidian";
+import { Notice } from "obsidian";
 
 import type {
   CliCommand,

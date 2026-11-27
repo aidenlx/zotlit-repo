@@ -1,3 +1,4 @@
+import type { Fiber } from "effect";
 import {
   Clock,
   Context,
@@ -9,7 +10,6 @@ import {
   Layer,
   Scope,
 } from "effect";
-import type { Fiber } from "effect";
 
 import { hasChineseRun } from "@zotlit/item-lookup";
 import { awaitOwned } from "@zotlit/plugin-kernel/effect-fiber.ts";

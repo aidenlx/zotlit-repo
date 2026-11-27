@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { QueryFileDocument, SAVE_DELAY_MS } from "./query-file-document.ts";
 import type { DocumentHost } from "./query-file-document.ts";
+import { QueryFileDocument, SAVE_DELAY_MS } from "./query-file-document.ts";
 
 const FILE = `views:
   - type: annotations

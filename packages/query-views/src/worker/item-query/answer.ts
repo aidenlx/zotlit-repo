@@ -1,5 +1,5 @@
-import { Cause, Clock, Data, Effect } from "effect";
 import type { Scope } from "effect";
+import { Cause, Clock, Data, Effect } from "effect";
 
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { readLibraries } from "@zotlit/db/item-query";
@@ -45,18 +45,18 @@ import type {
   NamedLibraries,
 } from "@zotlit/zotero-reads/contract/query-codec.ts";
 
+import type {
+  Diagnostic,
+  QueryCliCommand,
+  QueryIdentity,
+  LibraryWire,
+} from "./contract.ts";
 import {
   DEFAULT_CLI_LIMIT,
   diagnostic,
   envelope,
   failure,
   INLINE_MAX_BYTES,
-} from "./contract.ts";
-import type {
-  Diagnostic,
-  QueryCliCommand,
-  QueryIdentity,
-  LibraryWire,
 } from "./contract.ts";
 import { CLI_DATASETS } from "./datasets.ts";
 import type {

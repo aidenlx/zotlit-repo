@@ -17,10 +17,10 @@ import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/ser
 import { layerPluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { featureServices, settingsDefinitionOf } from "./compose.ts";
 import type { ShellProvides } from "./compose.ts";
-import { defineFeature, serviceGroup } from "./feature.ts";
+import { featureServices, settingsDefinitionOf } from "./compose.ts";
 import type { OpenPorts } from "./feature.ts";
+import { defineFeature, serviceGroup } from "./feature.ts";
 import { makeGraphBuilt } from "./graph-built.ts";
 import { platformBase } from "./platform-base.ts";
 

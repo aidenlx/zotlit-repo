@@ -14,12 +14,12 @@ import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-work
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { customize } from "./customize.ts";
 import type {
   CustomizeItem,
   CustomizePorts,
   CustomizeRequest,
 } from "./customize.ts";
+import { customize } from "./customize.ts";
 
 const DEFAULT_DOCUMENT = "templates/zotlit-profile.default.md";
 

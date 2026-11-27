@@ -1,8 +1,8 @@
 import { parser } from "@lezer/markdown";
 import { regex } from "arkregex";
 import { Effect } from "effect";
-import { parseLinktext } from "obsidian";
 import type { TFile } from "obsidian";
+import { parseLinktext } from "obsidian";
 
 import { readLiveText } from "@zotlit/obsidian-kit/effect-live-text.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";

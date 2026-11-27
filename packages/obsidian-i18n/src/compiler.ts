@@ -3,11 +3,6 @@
 
 import mFunctionMatcherPlugin from "@inlang/plugin-m-function-matcher";
 import messageFormatPlugin from "@inlang/plugin-message-format";
-import {
-  loadProjectInMemory,
-  newProject,
-  selectBundleNested,
-} from "@inlang/sdk";
 import type {
   BundleNested,
   Declaration,
@@ -17,19 +12,24 @@ import type {
   Match,
   Pattern,
 } from "@inlang/sdk";
+import {
+  loadProjectInMemory,
+  newProject,
+  selectBundleNested,
+} from "@inlang/sdk";
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 
-import {
-  isLanguagePackFileName,
-  isSupportedLanguagePackFormatter,
-  parseNumericLiteral,
-} from "./core/language-pack.ts";
 import type {
   Declaration as PackDeclaration,
   Expression as PackExpression,
   Match as PackMatch,
   Message as PackMessage,
+} from "./core/language-pack.ts";
+import {
+  isLanguagePackFileName,
+  isSupportedLanguagePackFormatter,
+  parseNumericLiteral,
 } from "./core/language-pack.ts";
 import { validateLanguagePack } from "./core/validation.ts";
 

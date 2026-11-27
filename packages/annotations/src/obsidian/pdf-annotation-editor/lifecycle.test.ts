@@ -10,8 +10,8 @@ import {
   Scope,
   Stream,
 } from "effect";
-import { Scope as ObsidianScope } from "obsidian";
 import type { App, TFile } from "obsidian";
+import { Scope as ObsidianScope } from "obsidian";
 import { beforeEach, afterEach, expect } from "vitest";
 
 import {

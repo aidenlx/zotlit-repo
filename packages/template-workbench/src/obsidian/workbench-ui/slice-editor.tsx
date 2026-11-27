@@ -5,10 +5,11 @@ import type {
 } from "#core/document/index.ts";
 import type { ResolveStart, SuggestionSource } from "#core/language/index.ts";
 import { setDiagnostics } from "@codemirror/lint";
-import { Compartment, EditorSelection, EditorState } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
+import { Compartment, EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView, lineNumbers } from "@codemirror/view";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import type { ReactNode } from "react";
 import {
   createContext,
   useContext,
@@ -17,7 +18,6 @@ import {
   useMemo,
   useRef,
 } from "react";
-import type { ReactNode } from "react";
 
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
@@ -26,8 +26,8 @@ import { useUniqueId } from "@zotlit/ui";
 
 import { completionFields } from "./completion-fields.ts";
 import { useWorkbenchModel } from "./editor.tsx";
-import { HiddenName, useWorkbenchHost } from "./host.tsx";
 import type { WorkbenchInsertTarget } from "./host.tsx";
+import { HiddenName, useWorkbenchHost } from "./host.tsx";
 import { partialSuggestions } from "./partial-suggestions.ts";
 import {
   sourceDiagnostics,

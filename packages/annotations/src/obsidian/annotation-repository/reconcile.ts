@@ -1,7 +1,7 @@
 import type { AnnotationPosition } from "@zotlit/db";
 
-import { wireColor, writablePosition, writePosition } from "./write.ts";
 import type { ConflictedWrite, GeometryEdit } from "./write.ts";
+import { wireColor, writablePosition, writePosition } from "./write.ts";
 
 export function resolvesSilently(
   write: Exclude<ConflictedWrite, "geometry">,

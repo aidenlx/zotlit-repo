@@ -21,6 +21,14 @@ import { ExampleActions } from "./example-state.tsx";
 import { schemaLocale } from "./explorer-sections.ts";
 import type { WorkbenchMatchResult } from "./host.tsx";
 import { workbenchRows, templateWorkbenchButton } from "./look.ts";
+import type {
+  ConditionGroup,
+  ConditionPath,
+  LabelledRow,
+  MatchFilter,
+  MatchVocabulary,
+  RowCondition,
+} from "./match.draft.ts";
 import {
   appendAt,
   asExpression,
@@ -41,26 +49,18 @@ import {
   storesFilter,
   updateGroup,
 } from "./match.draft.ts";
-import type {
-  ConditionGroup,
-  ConditionPath,
-  LabelledRow,
-  MatchFilter,
-  MatchVocabulary,
-  RowCondition,
-} from "./match.draft.ts";
 import { MatchExpressionInput } from "./match.expression.tsx";
-import { filterVocabulary } from "./match.fields.tsx";
 import type { FilterValues } from "./match.fields.tsx";
+import { filterVocabulary } from "./match.fields.tsx";
+import type { MatchLook } from "./match.look.ts";
 import {
   matchPredicate,
   MatchLookContext,
   useMatchLook,
 } from "./match.look.ts";
-import type { MatchLook } from "./match.look.ts";
 import { MatchSelect } from "./match.rows.tsx";
-import { useReorder } from "./reorder.ts";
 import type { Reorder } from "./reorder.ts";
+import { useReorder } from "./reorder.ts";
 import { TabDocsLink } from "./tab-bar.tsx";
 
 import { isDatasetFieldKind } from "#core/filter-fields/fields.ts";

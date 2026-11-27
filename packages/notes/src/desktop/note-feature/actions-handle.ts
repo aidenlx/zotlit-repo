@@ -6,6 +6,7 @@ import type { TFile } from "obsidian";
 import { exitOver, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
+import type { NoteActionPorts, NoteActionServices } from "./actions-view.ts";
 import {
   overwriteNote,
   reimportNote,
@@ -14,7 +15,6 @@ import {
   updateNote,
   updateNotes,
 } from "./actions-view.ts";
-import type { NoteActionPorts, NoteActionServices } from "./actions-view.ts";
 import type { InteractiveCreationPorts } from "./creation-view.ts";
 import type { UpdateScope } from "./operations.ts";
 import type { BatchUpdateOptions } from "./update-batch.ts";

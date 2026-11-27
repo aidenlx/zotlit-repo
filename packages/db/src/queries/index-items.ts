@@ -14,12 +14,12 @@ import {
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { getBaseFieldTable } from "./_base-fields.ts";
 import type { BaseFieldTable } from "./_base-fields.ts";
-import { CHILD_ITEM_TYPES, defineQuery, defineKeyedQuery } from "./_shared.ts";
+import { getBaseFieldTable } from "./_base-fields.ts";
 import type { FindManyOptions, QueryRow } from "./_shared.ts";
-import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
+import { CHILD_ITEM_TYPES, defineQuery, defineKeyedQuery } from "./_shared.ts";
 import type { GroupIDMemo } from "./libraries.ts";
+import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 
 import { deletedItems, items, itemTypes, libraries } from "#drizzle/schema.ts";
 

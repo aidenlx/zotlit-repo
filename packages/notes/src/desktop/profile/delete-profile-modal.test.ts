@@ -1,7 +1,7 @@
 import type { ProfileDeletionPlan } from "#obsidian/profile/service.ts";
+import type { App } from "obsidian";
 // @vitest-environment happy-dom
 import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
-import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";

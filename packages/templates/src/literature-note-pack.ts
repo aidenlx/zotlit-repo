@@ -2,12 +2,12 @@ import { regex } from "arkregex";
 
 import type { TemplateLanguage } from "./constants.ts";
 import { updateLiteratureNoteTemplateManifestKeys } from "./literature-note-template-manifest-edit.ts";
-import { parseLiteratureNoteTemplate } from "./literature-note-template.ts";
 import type {
   LiteratureNoteTemplateDocument,
   LiteratureNoteTemplateManifest,
   LiteratureNoteTemplatePartial,
 } from "./literature-note-template.ts";
+import { parseLiteratureNoteTemplate } from "./literature-note-template.ts";
 import { formatPlainTemplateDocument } from "./plain-template-document.ts";
 
 export type { LiteratureNoteTemplatePartial } from "./literature-note-template.ts";

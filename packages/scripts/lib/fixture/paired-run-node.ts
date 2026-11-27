@@ -1,8 +1,8 @@
 import type { FixtureLayout } from "#fixture";
 import type { PairedZotero } from "#paired-zotero";
 import getPort from "get-port";
-import { spawn } from "node:child_process";
 import type { ChildProcessByStdio } from "node:child_process";
+import { spawn } from "node:child_process";
 import { access } from "node:fs/promises";
 import { join } from "node:path";
 import type { Readable } from "node:stream";

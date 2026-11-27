@@ -13,11 +13,11 @@ import {
   Scope,
   Stream,
 } from "effect";
-import { TFile } from "obsidian";
 import type {
   CachedMetadata,
   MetadataCache as MetadataCacheApi,
 } from "obsidian";
+import { TFile } from "obsidian";
 import { expect } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";

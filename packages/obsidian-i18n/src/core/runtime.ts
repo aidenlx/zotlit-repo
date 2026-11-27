@@ -1,7 +1,7 @@
-import { parseNumericLiteral } from "./language-pack.ts";
 import type { Expression, LanguagePack, Message } from "./language-pack.ts";
-import { noopLogger } from "./logger.ts";
+import { parseNumericLiteral } from "./language-pack.ts";
 import type { StructuredLogger } from "./logger.ts";
+import { noopLogger } from "./logger.ts";
 
 type Variables = Record<string, unknown>;
 

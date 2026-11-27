@@ -4,8 +4,8 @@ import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { render } from "takumi-js";
-import { googleFonts, subsetFonts } from "takumi-js/helpers";
 import type { FetchLike, FontSubset } from "takumi-js/helpers";
+import { googleFonts, subsetFonts } from "takumi-js/helpers";
 import { Renderer } from "takumi-js/node";
 
 import { cjkGlyph, textWidth } from "./cjk.ts";

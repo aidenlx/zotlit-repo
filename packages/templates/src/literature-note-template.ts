@@ -4,13 +4,13 @@ import { stringify as stringifyYaml } from "yaml";
 import { isFilterTree } from "@zotlit/filter-expression";
 import type { FilterTree } from "@zotlit/filter-expression";
 
+import type { FrontmatterField, TemplateLanguage } from "./constants.ts";
 import {
   ANNOTATION_HEADER,
   frontmatterMergeStrategySchema,
   MANAGED_BLOCK_TAG_NAMES,
   RESERVED_FRONTMATTER_KEYS,
 } from "./constants.ts";
-import type { FrontmatterField, TemplateLanguage } from "./constants.ts";
 import {
   DEFAULT_ANNOTATION_ETA,
   DEFAULT_ANNOTATION_LIQUID,

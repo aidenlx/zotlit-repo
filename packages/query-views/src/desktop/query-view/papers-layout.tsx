@@ -1,7 +1,7 @@
 import type { ItemRowGestures } from "#core/query-view/item-rows.ts";
 import type { QueryViewValue } from "#worker/item-query/query-view.ts";
-import { Fragment, useMemo, useSyncExternalStore } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { Fragment, useMemo, useSyncExternalStore } from "react";
 
 import type { TargetOpenGesture } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
 import type { OpenTarget } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
@@ -15,8 +15,8 @@ import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { ItemsWindow } from "./items-window.tsx";
 import type { DrawnEntry, WindowEntry } from "./items-window.tsx";
+import { ItemsWindow } from "./items-window.tsx";
 import type { QueryLayout } from "./layouts.ts";
 import { useQueryTask } from "./model.ts";
 import {
@@ -25,6 +25,7 @@ import {
   groupEntries,
   useRecordGroups,
 } from "./record-rows.tsx";
+import type { ChildState, TableRecord } from "./table-layout.tsx";
 import {
   Expander,
   LOADING_TEXT,
@@ -34,7 +35,6 @@ import {
   id,
   useChildren,
 } from "./table-layout.tsx";
-import type { ChildState, TableRecord } from "./table-layout.tsx";
 import type { LiteratureNotes } from "./table-notes.ts";
 import type { QueryView } from "./view.tsx";
 

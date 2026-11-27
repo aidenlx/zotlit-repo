@@ -3,8 +3,8 @@ import type {
   AnnotationSource,
 } from "#obsidian/annotation-repository/service.ts";
 import type { ExcerptSummary } from "#obsidian/excerpt-image/contract.ts";
-import { Context } from "effect";
 import type { Effect } from "effect";
+import { Context } from "effect";
 
 import type { UnknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 

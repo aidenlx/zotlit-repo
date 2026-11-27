@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import type { ExpressionNode } from "./index.ts";
 import {
   isIdentifierName,
   isMemberName,
   parseExpressionAst,
   parsePartialExpressionAst,
 } from "./index.ts";
-import type { ExpressionNode } from "./index.ts";
 
 function strip(node: ExpressionNode): unknown {
   const { from: _from, to: _to, ...rest } = node;

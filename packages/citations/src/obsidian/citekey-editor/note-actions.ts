@@ -1,5 +1,5 @@
-import { Context } from "effect";
 import type { Effect } from "effect";
+import { Context } from "effect";
 import type { TFile } from "obsidian";
 
 import type { Item } from "@zotlit/db";

@@ -2,8 +2,8 @@ import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Heading } from "fumadocs-ui/components/heading";
 import type { MDXComponents } from "mdx/types";
-import { useMemo } from "react";
 import type { ComponentPropsWithoutRef, ComponentType } from "react";
+import { useMemo } from "react";
 
 import { CompanionNote } from "@/components/companion-note.tsx";
 import { getMDXComponents } from "@/components/mdx.tsx";

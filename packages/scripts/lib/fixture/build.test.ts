@@ -41,6 +41,11 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
 import { isItemKey } from "@zotlit/zotero-types/keys";
 
+import type {
+  BuildOptions,
+  FixtureLayout,
+  PersistedLibraryScope,
+} from "./build.ts";
 import {
   ANNOTATIONS,
   ASSET_DIR,
@@ -80,11 +85,6 @@ import {
   UPGRADER_FRONTMATTER_FIELDS,
   UPGRADER_LEGACY_PARTIAL_NAME,
   UPGRADER_LEGACY_TEMPLATES,
-} from "./build.ts";
-import type {
-  BuildOptions,
-  FixtureLayout,
-  PersistedLibraryScope,
 } from "./build.ts";
 import {
   BETTER_BIBTEX_PREFS,

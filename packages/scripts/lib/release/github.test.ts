@@ -2,8 +2,8 @@ import type { GitRepos } from "#git-repos";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { gitSourceTags } from "./github.ts";
-import { pushSourceTag } from "./obsidian.ts";
 import type { SourceTags } from "./obsidian.ts";
+import { pushSourceTag } from "./obsidian.ts";
 
 import { git, makeGitRepos } from "#git-repos";
 

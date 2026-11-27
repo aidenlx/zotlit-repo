@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { planItemFilter, queryItemFrom, testItemSeed } from "./index.ts";
 import type { ItemFilter, QueryItemSeed } from "./index.ts";
+import { planItemFilter, queryItemFrom, testItemSeed } from "./index.ts";
 
 const SEED: QueryItemSeed = {
   scan: {

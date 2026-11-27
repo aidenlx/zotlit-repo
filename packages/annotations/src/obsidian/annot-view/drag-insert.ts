@@ -17,8 +17,8 @@ export type { AnnotationInsertOutcome } from "./note-actions.ts";
 import type { NoticeMessage } from "@zotlit/obsidian-kit/notice.ts";
 
 import { captureInsertion, watchInsertionWorkspace } from "./async-insert.ts";
-import { startInsert } from "./insert-run.ts";
 import type { InsertFiber, InsertRunner } from "./insert-run.ts";
+import { startInsert } from "./insert-run.ts";
 
 const SOURCE_TAG = "application/x-zotlit-annotation";
 

@@ -1,5 +1,5 @@
-import { Cause, Effect, Exit, Latch, PubSub, Stream } from "effect";
 import type { Scope } from "effect";
+import { Cause, Effect, Exit, Latch, PubSub, Stream } from "effect";
 import { RpcSchema } from "effect/rpc";
 
 import { streamOrQueue } from "@zotlit/zotero-reads/client/settle-on-stop.ts";

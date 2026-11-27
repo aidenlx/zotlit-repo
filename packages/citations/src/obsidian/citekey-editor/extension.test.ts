@@ -60,12 +60,12 @@ import type {
   SnapshotItem,
 } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
+import type { CitekeyEditorHandlers, ResolveCitekey } from "./extension.ts";
 import {
   citekeyAtPos,
   citekeyDecorationsChanged,
   citekeyEditorExtension,
 } from "./extension.ts";
-import type { CitekeyEditorHandlers, ResolveCitekey } from "./extension.ts";
 
 import { lookupObservation } from "#__fixtures__/citation-index/citation-lookup.ts";
 import { occurrences, rendered } from "#__fixtures__/citation-text.ts";

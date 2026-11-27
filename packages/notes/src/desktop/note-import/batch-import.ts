@@ -41,8 +41,8 @@ import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { importRunSummary } from "./batch-import-notices.ts";
-import { NoteImporter } from "./service.ts";
 import type { PreparedExplicitImport, WriteOutcome } from "./service.ts";
+import { NoteImporter } from "./service.ts";
 import type { NoteImportView } from "./view.ts";
 
 import {

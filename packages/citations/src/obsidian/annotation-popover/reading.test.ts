@@ -2,7 +2,6 @@
 import type { DocumentCitations } from "#obsidian/citation-text/present.ts";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Layer, Scope, Stream } from "effect";
-import { Component, MarkdownView } from "obsidian";
 import type {
   MarkdownPostProcessor,
   MarkdownPostProcessorContext,
@@ -10,6 +9,7 @@ import type {
   MarkdownSectionInformation,
   WorkspaceLeaf,
 } from "obsidian";
+import { Component, MarkdownView } from "obsidian";
 import { describe, expect } from "vitest";
 
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
@@ -20,13 +20,13 @@ import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/_
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
+import type { AnnotationLinkReadingDeps } from "./reading.ts";
 import {
   AnnotationLinkReadingCore,
   layerAnnotationLinkReading,
 } from "./reading.ts";
-import type { AnnotationLinkReadingDeps } from "./reading.ts";
-import { AnnotationPopover } from "./service.ts";
 import type { AnnotationHoverRequest } from "./service.ts";
+import { AnnotationPopover } from "./service.ts";
 
 import { presented } from "#__fixtures__/citation-text.ts";
 import { defaults } from "#__fixtures__/settings.ts";

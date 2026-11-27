@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type {
+  MeasurementRecord,
+  QueryMeasurement,
+  TierMeasurement,
+  TwoLibraryMeasurement,
+} from "./query-record.ts";
 import {
   DATASET_QUERY_SPECS,
   evaluateTier,
@@ -8,12 +14,6 @@ import {
   median,
   percentile,
   totalBudgetMs,
-} from "./query-record.ts";
-import type {
-  MeasurementRecord,
-  QueryMeasurement,
-  TierMeasurement,
-  TwoLibraryMeasurement,
 } from "./query-record.ts";
 
 function query(

@@ -1,5 +1,5 @@
-import { Scope } from "obsidian";
 import type { App, Modifier } from "obsidian";
+import { Scope } from "obsidian";
 
 import { inTextEntry } from "./capability-affordance.ts";
 

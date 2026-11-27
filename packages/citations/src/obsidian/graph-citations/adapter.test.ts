@@ -5,12 +5,12 @@ import { describe, expect, it } from "vitest";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { citedWorkNodeId, graphCitationAdditions } from "./adapter.ts";
 import type {
   GraphCitationFilters,
   GraphCitationInput,
   LinkMap,
 } from "./adapter.ts";
+import { citedWorkNodeId, graphCitationAdditions } from "./adapter.ts";
 import { facadeApp } from "./facade.ts";
 
 const DOE = {

@@ -1,7 +1,7 @@
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
 import type { ReaderOpenFailed } from "#obsidian/pdf-reader/service.ts";
-import { Context, Effect, Layer, Schema } from "effect";
 import type { Duration } from "effect";
+import { Context, Effect, Layer, Schema } from "effect";
 import { fileURLToPath } from "node:url";
 import type { PaneType } from "obsidian";
 

@@ -14,20 +14,20 @@ import type {
   NavigationPane,
 } from "#obsidian/citekey-navigation/index.ts";
 import { syntaxTree } from "@codemirror/language";
+import type { EditorState, Extension } from "@codemirror/state";
 import {
   RangeSetBuilder,
   StateEffect,
   StateField,
   Transaction,
 } from "@codemirror/state";
-import type { EditorState, Extension } from "@codemirror/state";
+import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import {
   Decoration,
   EditorView,
   ViewPlugin,
   WidgetType,
 } from "@codemirror/view";
-import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import { editorInfoField, livePreviewState } from "obsidian";
 
 import {
@@ -40,8 +40,8 @@ import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citati
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { searchMatchHighlights, wikilinkDecorations } from "./decorate.ts";
 import type { WikilinkDecoration } from "./decorate.ts";
+import { searchMatchHighlights, wikilinkDecorations } from "./decorate.ts";
 import { scanWikilinks } from "./scan.ts";
 
 import { EditorLookup } from "#obsidian/citation-index/editor-lookup.ts";

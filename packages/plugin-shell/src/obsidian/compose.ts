@@ -21,8 +21,8 @@ import type { SettingTabEnv } from "@zotlit/plugin-services/obsidian/setting-tab
 import type { SettingTab } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import type { PluginSettingsOptions } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { layerShellBase, shellBaseKeys } from "./base.ts";
 import type { ShellBase } from "./base.ts";
+import { layerShellBase, shellBaseKeys } from "./base.ts";
 import type {
   Feature,
   Listed,

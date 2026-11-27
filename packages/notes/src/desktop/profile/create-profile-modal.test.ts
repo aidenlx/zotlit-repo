@@ -1,8 +1,8 @@
 import type { ProfileNoteDraft } from "#desktop/note-feature/service.ts";
 import type { PreparedProfileCreation } from "#obsidian/profile/service.ts";
 import { Effect } from "effect";
-import { TFile } from "obsidian";
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import { expect, it, vi } from "vitest";
 
 // @vitest-environment happy-dom
@@ -17,8 +17,8 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { CreateProfileModal } from "./create-profile-modal.ts";
 import type { ProfileCreationDeps } from "./create-profile-modal.ts";
+import { CreateProfileModal } from "./create-profile-modal.ts";
 
 import { profileReader } from "#__fixtures__/profile/reader.ts";
 import { defaults } from "#__fixtures__/settings.ts";

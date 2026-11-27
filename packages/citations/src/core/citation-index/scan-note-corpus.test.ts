@@ -3,8 +3,8 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 
-import { scanNote } from "./scan-note.ts";
 import type { NoteScanRecord } from "./scan-note.ts";
+import { scanNote } from "./scan-note.ts";
 
 const labelPrecedence =
   "Retain Lezer's nested-label and inline-token precedence; matching Obsidian requires replacing the link/reference parser.";

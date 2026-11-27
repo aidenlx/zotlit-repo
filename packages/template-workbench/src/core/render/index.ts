@@ -40,7 +40,6 @@ import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.
 
 import { renderFailureDiagnosticWithCallSite } from "./call-attribution.ts";
 import type { RenderOptions } from "./request.ts";
-import { failedRender, renderIdentity } from "./result.ts";
 import type {
   SliceSite,
   TemplateRenderResult,
@@ -48,6 +47,7 @@ import type {
   RenderedProperty,
   RenderedRange,
 } from "./result.ts";
+import { failedRender, renderIdentity } from "./result.ts";
 
 export {
   CITATION_EXAMPLE_IDS,

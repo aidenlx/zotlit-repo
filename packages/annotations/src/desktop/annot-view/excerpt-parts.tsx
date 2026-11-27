@@ -8,8 +8,8 @@ import { isPageNumber } from "@zotlit/db";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { excerptImageOwnership } from "./excerpt-image-state.ts";
 import type { ExcerptImageOwnership } from "./excerpt-image-state.ts";
+import { excerptImageOwnership } from "./excerpt-image-state.ts";
 
 import { useSanitizedHtml } from "#obsidian/annot-view/sanitize-html.ts";
 

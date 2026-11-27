@@ -23,17 +23,17 @@ import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { resolveLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import {
-  classifyStream,
-  executeBatchRun,
-  makeStopRequest,
-  runBatchWith,
-} from "./batch-run.ts";
 import type {
   BatchClassifyControls,
   BatchRunControls,
   BatchRunTask,
   RunOutcome,
+} from "./batch-run.ts";
+import {
+  classifyStream,
+  executeBatchRun,
+  makeStopRequest,
+  runBatchWith,
 } from "./batch-run.ts";
 
 import {

@@ -29,8 +29,8 @@ import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pre
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { AnnotationPopover } from "./service.ts";
 import type { AnnotationHoverRequest } from "./service.ts";
+import { AnnotationPopover } from "./service.ts";
 
 import { layerAnnotationPopover } from "#desktop/annotation-popover/layer.tsx";
 import { AnnotationPopoverCore } from "#desktop/annotation-popover/popover.tsx";

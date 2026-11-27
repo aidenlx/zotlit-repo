@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { DragEvent, HTMLAttributes, KeyboardEvent } from "react";
+import { useState } from "react";
 
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";

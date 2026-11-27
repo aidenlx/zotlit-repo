@@ -1,8 +1,8 @@
 import { liquidTagLanguage } from "@codemirror/lang-liquid";
 import { LanguageSupport, syntaxTree } from "@codemirror/language";
 import type { Range } from "@codemirror/state";
-import { Decoration, ViewPlugin } from "@codemirror/view";
 import type { ViewUpdate } from "@codemirror/view";
+import { Decoration, ViewPlugin } from "@codemirror/view";
 import type { Tree } from "@lezer/common";
 import { parseMixed } from "@lezer/common";
 import { regex } from "arkregex";

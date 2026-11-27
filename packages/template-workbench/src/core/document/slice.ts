@@ -1,4 +1,5 @@
 import { defaultKeymap, isolateHistory } from "@codemirror/commands";
+import type { ChangeSpec, Extension, StateEffect } from "@codemirror/state";
 import {
   Annotation,
   EditorSelection,
@@ -7,19 +8,18 @@ import {
   Text,
   Transaction,
 } from "@codemirror/state";
-import type { ChangeSpec, Extension, StateEffect } from "@codemirror/state";
-import { ViewPlugin, keymap } from "@codemirror/view";
 import type { EditorView, PluginValue, ViewUpdate } from "@codemirror/view";
+import { ViewPlugin, keymap } from "@codemirror/view";
 
-import { sliceEdit } from "./controller.ts";
 import type {
   WorkbenchDocumentController,
   WorkbenchSliceId,
   WorkbenchSliceRange,
 } from "./controller.ts";
+import { sliceEdit } from "./controller.ts";
 import { isJson, jsonSliceEdit } from "./json-source.ts";
-import { jsonCodec, sourceCodec } from "./slice-codec.ts";
 import type { SliceCodec } from "./slice-codec.ts";
+import { jsonCodec, sourceCodec } from "./slice-codec.ts";
 
 import {
   addPair,

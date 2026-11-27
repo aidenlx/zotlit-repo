@@ -35,13 +35,13 @@ import type { WebSyncStatus } from "@zotlit/zotero-reads/contract/web-worker-rpc
 import { plan } from "@zotlit/zotero-reads/worker/replica-plan.ts";
 
 import { CONSENTED_ACCOUNT_KEY, PENDING_REMOVAL_KEY } from "./consent.ts";
+import type { WebReadsClient, WebStart } from "./service.ts";
 import {
   layerLibrarySource,
   LIBRARY_SOURCE_KEY,
   LibrarySource,
   WEB_API_KEY_SECRET_KEY,
 } from "./service.ts";
-import type { WebReadsClient, WebStart } from "./service.ts";
 import { formatSyncTime, statusText } from "./status.ts";
 
 import { platformDefaults } from "#__fixtures__/platform-settings.ts";

@@ -1,5 +1,5 @@
-import { Context } from "effect";
 import type { Effect, Stream } from "effect";
+import { Context } from "effect";
 
 import type { DeviceStorageError } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import type {

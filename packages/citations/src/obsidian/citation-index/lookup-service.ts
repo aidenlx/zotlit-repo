@@ -1,5 +1,5 @@
-import { QueryObserver } from "@tanstack/query-core";
 import type { QueryObserverOptions } from "@tanstack/query-core";
+import { QueryObserver } from "@tanstack/query-core";
 import {
   Cause,
   Context,

@@ -8,8 +8,8 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { compareBuilds } from "./build-check.ts";
 import { generateShell } from "./generate.ts";
-import { PUBLISHED_PLUGINS } from "./plugins.ts";
 import type { PublishedPluginName } from "./plugins.ts";
+import { PUBLISHED_PLUGINS } from "./plugins.ts";
 
 import { getWorkspaceRoot } from "#package-roots";
 

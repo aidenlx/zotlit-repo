@@ -2,10 +2,10 @@ import { and, eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Effect } from "effect";
 
-import { readBoundedCandidateSet } from "./candidate-set.ts";
 import type { SeekCandidateLeaf } from "./candidate-set.ts";
-import { defineStatement, idSlots, unindexed } from "./database.ts";
+import { readBoundedCandidateSet } from "./candidate-set.ts";
 import type { IdSlot } from "./database.ts";
+import { defineStatement, idSlots, unindexed } from "./database.ts";
 import { recordUniverse } from "./record-universe.ts";
 import { SCAN_PAGE_SIZE } from "./scan-page.ts";
 

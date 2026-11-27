@@ -1,6 +1,6 @@
+import type { MockInstance } from "vitest";
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { MockInstance } from "vitest";
 
 import { writeClipboardRichText } from "./clipboard.ts";
 

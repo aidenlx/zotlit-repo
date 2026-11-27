@@ -10,10 +10,11 @@ import {
 } from "fumadocs-ui/components/ui/collapsible";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { useHomeLayout } from "fumadocs-ui/layouts/home";
-import { LinkItem } from "fumadocs-ui/layouts/shared";
 import type { LinkItemType } from "fumadocs-ui/layouts/shared";
+import { LinkItem } from "fumadocs-ui/layouts/shared";
 import { useIsScrollTop } from "fumadocs-ui/utils/use-is-scroll-top";
 import { ChevronDown, Languages, Search } from "lucide-react";
+import type { ComponentProps } from "react";
 import {
   createContext,
   Fragment,
@@ -24,7 +25,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/cn.ts";
 import { mergeRefs } from "@/lib/merge-refs.ts";

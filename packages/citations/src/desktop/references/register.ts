@@ -6,8 +6,8 @@ import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import "./style.css";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { REFERENCES_VIEW_TYPE, ReferencesView } from "./view.tsx";
 import type { ReferencesViewDeps } from "./view.tsx";
+import { REFERENCES_VIEW_TYPE, ReferencesView } from "./view.tsx";
 
 type ReferencesPlugin = Pick<
   Plugin,

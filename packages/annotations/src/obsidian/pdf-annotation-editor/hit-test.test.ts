@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  markAnchor,
-  marksAtPoint,
-  pagePointOf,
-  resolveMarkClick,
-} from "./hit-test.ts";
 import type {
   MarkClick,
   MarkClickInput,
   MarkSelectionPoint,
   PageBox,
+} from "./hit-test.ts";
+import {
+  markAnchor,
+  marksAtPoint,
+  pagePointOf,
+  resolveMarkClick,
 } from "./hit-test.ts";
 import type { MarkTarget } from "./render.ts";
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { columnMenuEntries } from "./column-menu.ts";
 import type { ColumnMenuInput } from "./column-menu.ts";
+import { columnMenuEntries } from "./column-menu.ts";
 
 const ALL = {
   properties: true,

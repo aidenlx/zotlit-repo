@@ -1,7 +1,7 @@
 import { recommended } from "@effect/tsgo/oxlint-presets";
 import { join } from "node:path";
-import { defineConfig } from "oxlint";
 import type { OxlintOverride } from "oxlint";
+import { defineConfig } from "oxlint";
 
 import testBaseline from "./oxlint-tests-baseline.json" with { type: "json" };
 

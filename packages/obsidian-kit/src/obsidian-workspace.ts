@@ -1,7 +1,6 @@
 import type { ObsidianEventEmitter } from "#obsidian-event-source.ts";
-import { Context, Effect, Layer, Schema } from "effect";
 import type { Cause, Scope, Stream } from "effect";
-import { MarkdownView, View } from "obsidian";
+import { Context, Effect, Layer, Schema } from "effect";
 import type {
   Editor,
   MarkdownFileInfo,
@@ -16,6 +15,7 @@ import type {
   WorkspaceLeaf,
   WorkspaceRoot,
 } from "obsidian";
+import { MarkdownView, View } from "obsidian";
 
 import { logAndContinue } from "@zotlit/plugin-kernel/effect-log.ts";
 

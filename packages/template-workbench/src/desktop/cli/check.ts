@@ -1,7 +1,7 @@
 import type { RenderDiagnostic, PartialContext } from "#core/render/index.ts";
 import type { ProfileCheck } from "#obsidian/cli/check-profile.ts";
-import { Clock, Effect, FileSystem, Result, Schema } from "effect";
 import type { PlatformError } from "effect";
+import { Clock, Effect, FileSystem, Result, Schema } from "effect";
 import { randomUUID } from "node:crypto";
 import { isAbsolute } from "node:path";
 import type { CliData, CliFlag } from "obsidian";
@@ -45,12 +45,12 @@ import {
   PROFILE_ID_MISMATCH,
 } from "./check-profile-document.ts";
 import { CONTRACT_VERSION, rejectionDiagnostic } from "./envelope.ts";
-import { createInspectHandler, sourceRevision } from "./inspect.ts";
 import type {
   InspectDocument,
   InspectServices,
   SourceVersion,
 } from "./inspect.ts";
+import { createInspectHandler, sourceRevision } from "./inspect.ts";
 
 import {
   choices,

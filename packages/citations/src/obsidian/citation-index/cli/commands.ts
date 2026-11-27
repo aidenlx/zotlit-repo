@@ -9,6 +9,13 @@ import type { CliCommandHandler } from "@zotlit/obsidian-kit/cli-command.ts";
 import { catchRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
+import type {
+  CitationsCommand,
+  CitationsIdentity,
+  Diagnostic,
+  ReferenceEntry,
+  EnvelopeTail,
+} from "./envelope.ts";
 import {
   ambiguousCitekeyDiagnostic,
   citekeyNotFoundDiagnostic,
@@ -22,13 +29,6 @@ import {
   reportAnnotationUses,
   reportGroups,
   reportOccurrences,
-} from "./envelope.ts";
-import type {
-  CitationsCommand,
-  CitationsIdentity,
-  Diagnostic,
-  ReferenceEntry,
-  EnvelopeTail,
 } from "./envelope.ts";
 import { renderCitationsGuide } from "./guide.ts";
 import {

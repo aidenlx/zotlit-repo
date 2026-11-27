@@ -2,8 +2,8 @@ import type { AnnotationRecord } from "#obsidian/annotation-repository/service.t
 import type { ExcerptSummary } from "#obsidian/excerpt-image/contract.ts";
 import type { ExcerptOutcomeScope } from "#obsidian/excerpt-image/outcome-scope.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/service.ts";
-import { Context, Effect, Layer } from "effect";
 import type { FileSystem } from "effect";
+import { Context, Effect, Layer } from "effect";
 import type { TFile } from "obsidian";
 
 import { annotationHasCacheImage, parseAnnotationPosition } from "@zotlit/db";
@@ -27,12 +27,12 @@ import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
 import { createExcerptLink, summarizeExcerpts } from "./helper.ts";
+import type { MaterializedExcerpt, PublicationGate } from "./materialize.ts";
 import {
   makePublicationGate,
   materializeExcerpt,
   retainExcerpt,
 } from "./materialize.ts";
-import type { MaterializedExcerpt, PublicationGate } from "./materialize.ts";
 
 import { referencedExcerptPaths } from "#obsidian/excerpt-image/references.ts";
 import { annotationRecordOf } from "#obsidian/excerpt-image/request.ts";

@@ -4,8 +4,8 @@ import type { VariantProps } from "tailwind-variants";
 
 import { tv } from "@zotlit/plugin-kernel/tw.ts";
 
-import { Icon } from "./icon.tsx";
 import type { IconSize } from "./icon.tsx";
+import { Icon } from "./icon.tsx";
 
 export const iconButton = tv({
   base: "clickable-icon",

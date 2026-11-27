@@ -1,7 +1,6 @@
 import { Text } from "@codemirror/state";
 import { regex } from "arkregex";
 import { Effect } from "effect";
-import { EditorSuggest, Keymap } from "obsidian";
 import type {
   Editor,
   EditorPosition,
@@ -9,6 +8,7 @@ import type {
   EditorSuggestTriggerInfo,
   TFile,
 } from "obsidian";
+import { EditorSuggest, Keymap } from "obsidian";
 
 import {
   isCitationCloser,

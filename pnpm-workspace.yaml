@@ -81,7 +81,7 @@ catalog:
   monkey-around: 3.0.0
   obsidian: 1.14.4
   oxc-parser: ^0.158.0
-  oxfmt: ^0.78.0
+  oxfmt: ^0.80.0
   oxlint: 1.94.0
   preact: 11.0.0-rc.2
   react: ^19.2.0

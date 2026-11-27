@@ -1,5 +1,5 @@
-import { Context, Stream } from "effect";
 import type { Effect, PlatformError } from "effect";
+import { Context, Stream } from "effect";
 
 export type PrefValue = string | number | boolean;
 

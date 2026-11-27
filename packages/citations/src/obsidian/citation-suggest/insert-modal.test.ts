@@ -2,8 +2,8 @@ import type { DocumentCitationSet } from "#obsidian/citation-index/service.ts";
 import { it as effectIt } from "@effect/vitest";
 // @vitest-environment happy-dom
 import { DateTime, Effect } from "effect";
-import { TFile } from "obsidian";
 import type { App, Editor, Modifier } from "obsidian";
+import { TFile } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";

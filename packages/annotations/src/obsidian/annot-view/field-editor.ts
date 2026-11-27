@@ -3,18 +3,18 @@ import type {
   CommentFormat,
 } from "#core/annot-view/comment-format.ts";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
+import type { Extension } from "@codemirror/state";
+import type { Range } from "@codemirror/state";
 import {
   Annotation,
   Compartment,
   EditorState,
   Transaction,
 } from "@codemirror/state";
-import type { Extension } from "@codemirror/state";
-import type { Range } from "@codemirror/state";
 import { Decoration, EditorView, keymap, placeholder } from "@codemirror/view";
 import { Effect } from "effect";
-import { Menu, Scope } from "obsidian";
 import type { App, ExtendedHotkey } from "obsidian";
+import { Menu, Scope } from "obsidian";
 
 import { overlapsSelection } from "@zotlit/obsidian-kit/editor-decoration.ts";
 import {

@@ -1,4 +1,6 @@
 import type { NoticeMessage } from "#notice.ts";
+import type { Duration } from "effect";
+import type { Scope } from "effect";
 import {
   Cause,
   Context,
@@ -9,8 +11,6 @@ import {
   Layer,
   Option,
 } from "effect";
-import type { Duration } from "effect";
-import type { Scope } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isUserStop } from "@zotlit/plugin-kernel/user-cancel.ts";

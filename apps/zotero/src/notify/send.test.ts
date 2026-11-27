@@ -1,5 +1,5 @@
-import { configure, reset } from "@logtape/logtape";
 import type { LogRecord } from "@logtape/logtape";
+import { configure, reset } from "@logtape/logtape";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const dirError = new Error("Zotero data directory unavailable");

@@ -8,8 +8,8 @@ import {
   ROOTS,
 } from "@scripts/__fixtures__/floor-worker.ts";
 import { SQLITE_ENGINE_PIN } from "@scripts/__fixtures__/pack-pins.ts";
-import { Effect } from "effect";
 import type { Scope } from "effect";
+import { Effect } from "effect";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { bytesRange, readPackEntry } from "@zotlit/resource-pack/reader.ts";

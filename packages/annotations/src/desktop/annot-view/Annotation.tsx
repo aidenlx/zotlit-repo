@@ -21,10 +21,10 @@ import type {
   TextField,
   WriteConflict,
 } from "#obsidian/annotation-repository/service.ts";
-import { Keymap } from "obsidian";
 import type { PaneType } from "obsidian";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Keymap } from "obsidian";
 import type { DragEvent, KeyboardEvent, MouseEvent, RefObject } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
 import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
@@ -40,8 +40,8 @@ import {
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { AnnotActionsContext } from "./actions.tsx";
 import type { AnnotActions } from "./actions.tsx";
+import { AnnotActionsContext } from "./actions.tsx";
 import { excerptImageTarget } from "./excerpt-image-state.ts";
 import {
   ExcerptPicture,

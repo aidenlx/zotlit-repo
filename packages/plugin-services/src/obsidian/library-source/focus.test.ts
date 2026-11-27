@@ -2,8 +2,8 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, PubSub, Stream } from "effect";
 import { TestClock } from "effect/testing";
 
-import { windowFocus } from "./focus.ts";
 import type { FocusWindow, WindowChange } from "./focus.ts";
+import { windowFocus } from "./focus.ts";
 
 class FakeWindow extends EventTarget implements FocusWindow {
   focused = false;

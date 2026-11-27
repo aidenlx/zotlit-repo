@@ -19,10 +19,10 @@ import type {
 } from "#worker/item-query/query-view.ts";
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
-import { Component } from "obsidian";
 import type { Scope } from "obsidian";
-import { useLayoutEffect, useMemo } from "react";
+import { Component } from "obsidian";
 import type { ComponentType } from "react";
+import { useLayoutEffect, useMemo } from "react";
 
 import { CardDisplayContext } from "@zotlit/annotations/core/annot-view/card-display.ts";
 import type { CardDisplay } from "@zotlit/annotations/core/annot-view/card-display.ts";
@@ -85,21 +85,21 @@ import { PropertiesMenu } from "./properties-menu.tsx";
 import { groupOptions } from "./properties.ts";
 import { QueryFileDocument } from "./query-file-document.ts";
 import { ResultsMenu } from "./results-menu.tsx";
-import { NO_RESULTS } from "./results.ts";
 import type {
   FormulaIssue,
   QueryViewFailure,
   ResultSnapshot,
 } from "./results.ts";
-import { layoutRows } from "./rows.ts";
+import { NO_RESULTS } from "./results.ts";
 import type { LayoutRows } from "./rows.ts";
+import { layoutRows } from "./rows.ts";
 import { SearchButton, SearchRow, useSearchBar } from "./search-control.tsx";
 import { SortEditor } from "./sort-control.tsx";
-import { TableLayout } from "./table-layout.tsx";
 import type { ChildQuery } from "./table-layout.tsx";
+import { TableLayout } from "./table-layout.tsx";
 import type { LiteratureNotes, VaultHost } from "./table-notes.ts";
-import { resultTable } from "./table.ts";
 import type { ResultTable } from "./table.ts";
+import { resultTable } from "./table.ts";
 import { useVaultPropertyNames, vaultText } from "./vault-cell.tsx";
 import { viewSortOptions } from "./vault-sort.ts";
 import { ViewMenu } from "./view-menu.tsx";

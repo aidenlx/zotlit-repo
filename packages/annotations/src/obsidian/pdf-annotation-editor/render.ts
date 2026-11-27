@@ -9,17 +9,18 @@ import type {
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import type { PageViewport } from "@zotlit/reader-api";
 
-import {
-  freeTextLayout,
-  freeTextLines,
-  LINE_HEIGHT,
-} from "./free-text-layout.ts";
 import type {
   PagePoint,
   PageRect,
   TextMeasure,
   Turn,
 } from "./free-text-layout.ts";
+import {
+  freeTextLayout,
+  freeTextLines,
+  LINE_HEIGHT,
+} from "./free-text-layout.ts";
+import type { Grip, PdfPoint, TextRotation } from "./geometry-edit.ts";
 import {
   capturesImage,
   gripCursor,
@@ -29,7 +30,6 @@ import {
   RANGE_HANDLE_PADDING,
   rangeHandles,
 } from "./geometry-edit.ts";
-import type { Grip, PdfPoint, TextRotation } from "./geometry-edit.ts";
 import type { Point } from "./hit-test.ts";
 import { inkReach } from "./ink-path.ts";
 import type { LiveStroke, PendingStroke } from "./reader-surface-state.ts";

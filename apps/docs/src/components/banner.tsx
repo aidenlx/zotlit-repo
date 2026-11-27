@@ -1,7 +1,7 @@
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { X } from "lucide-react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { HTMLAttributes } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";

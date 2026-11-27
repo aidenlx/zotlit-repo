@@ -1,7 +1,7 @@
 import { dirname, resolve, sep } from "node:path";
 
-import { isEffectCode, isMemberOf } from "./oxlint-ast.ts";
 import type { AstNode, ModuleProgram, Rule } from "./oxlint-ast.ts";
+import { isEffectCode, isMemberOf } from "./oxlint-ast.ts";
 
 const EFFECT_GENERATOR_CALLEES = new Set(["gen", "fn", "fnUntraced"]);
 

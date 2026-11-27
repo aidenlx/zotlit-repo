@@ -2,8 +2,8 @@ import { logger as appLogger } from "@/lib/logger.ts";
 
 import { registerActiveReaderNotify } from "./active-reader.ts";
 import { registerAnnotSelectNotify } from "./annot-select.ts";
-import { registerFreshness } from "./freshness.ts";
 import type { WalCheckpoint } from "./freshness.ts";
+import { registerFreshness } from "./freshness.ts";
 import { createSender } from "./send.ts";
 
 const logger = appLogger.getChild("notify");

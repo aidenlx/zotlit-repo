@@ -9,8 +9,8 @@ import type {
   HoverPreferences,
 } from "#obsidian/citekey-navigation/index.ts";
 import { Effect, Layer } from "effect";
-import { MarkdownRenderChild, setTooltip } from "obsidian";
 import type { MarkdownPostProcessorContext } from "obsidian";
+import { MarkdownRenderChild, setTooltip } from "obsidian";
 
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import {
@@ -40,8 +40,8 @@ import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/servic
 import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { replaceCitations, sectionCitations } from "./render.ts";
 import type { SectionCitation } from "./render.ts";
+import { replaceCitations, sectionCitations } from "./render.ts";
 
 import { citationSettings } from "#core/citation-index/settings.ts";
 import { CitationLookup } from "#obsidian/citation-index/lookup-service.ts";

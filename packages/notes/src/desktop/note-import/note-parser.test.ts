@@ -32,8 +32,8 @@ import defaultCitation from "@zotlit/templates/defaults/citation.liquid?raw";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { noteReferences, parseNote } from "./note-parser.ts";
 import type { ParseNoteDeps } from "./note-parser.ts";
+import { noteReferences, parseNote } from "./note-parser.ts";
 
 import { renderAnnotationSources } from "#desktop/template/annotation-render.ts";
 

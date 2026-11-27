@@ -7,11 +7,11 @@ import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { dateTimeClock } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
+import type { CapabilityNotice } from "./capability-notices.ts";
 import {
   allowEditingNotice,
   CapabilityNoticeLedger,
 } from "./capability-notices.ts";
-import type { CapabilityNotice } from "./capability-notices.ts";
 import { AnnotationRepository } from "./service.ts";
 
 const NOTICE_DURATION = Duration.seconds(10);

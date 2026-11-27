@@ -2,8 +2,8 @@ import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 import { env } from "cloudflare:workers";
 import { isMarkdownPreferred } from "fumadocs-core/negotiation";
 
-import { localizedPath } from "./lib/i18n.ts";
 import type { SiteLocale } from "./lib/i18n.ts";
+import { localizedPath } from "./lib/i18n.ts";
 import { getPageLocaleState } from "./lib/locale-state.ts";
 import { negotiatedContentRoute } from "./lib/markdown-routes.ts";
 import { baseURL, markdownEditionHeaders } from "./lib/shared.ts";

@@ -1,13 +1,13 @@
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { Component } from "obsidian";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 
-import { WelcomeActionsContext } from "./actions.ts";
 import type { WelcomeActions, WelcomeBannerHost } from "./actions.ts";
+import { WelcomeActionsContext } from "./actions.ts";
 import {
   dismissWelcomeCommand,
   keepWelcomeCommand,
@@ -20,8 +20,8 @@ import {
   setConverted,
   WelcomeModelProvider,
 } from "./model.ts";
-import { holdSetupCommands } from "./setup-actions.ts";
 import type { SetupActions } from "./setup-actions.ts";
+import { holdSetupCommands } from "./setup-actions.ts";
 import { Welcome } from "./Welcome.tsx";
 
 export interface WelcomeBannerDeps {

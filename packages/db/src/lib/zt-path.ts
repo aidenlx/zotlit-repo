@@ -1,9 +1,9 @@
 import type { OperatingSystem } from "@zotlit/shared/platform";
 
-import { annotationHasCacheImage } from "./zt-annot.ts";
 import type { AnnotationType, ResolvedAnnotationTypeName } from "./zt-annot.ts";
-import { parseAttachmentPath } from "./zt-attach.ts";
+import { annotationHasCacheImage } from "./zt-annot.ts";
 import type { Attachment } from "./zt-attach.ts";
+import { parseAttachmentPath } from "./zt-attach.ts";
 
 export { parseAttachmentPath, type AttachmentPath } from "./zt-attach.ts";
 

@@ -1,5 +1,5 @@
-import { PRODUCTS, releaseTag } from "./lines.ts";
 import type { Product } from "./lines.ts";
+import { PRODUCTS, releaseTag } from "./lines.ts";
 
 export interface ProductPlan {
   product: Product;

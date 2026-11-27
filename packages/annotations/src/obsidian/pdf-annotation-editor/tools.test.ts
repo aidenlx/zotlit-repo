@@ -1,6 +1,7 @@
 import * as v from "valibot";
 import { expect, expectTypeOf, it } from "vitest";
 
+import type { ClickTool, SelectionTool } from "./tools.ts";
 import {
   inkWidthSchema,
   isClickTool,
@@ -8,7 +9,6 @@ import {
   selectionToolOf,
   textFontSizeSchema,
 } from "./tools.ts";
-import type { ClickTool, SelectionTool } from "./tools.ts";
 
 it("starts ink on Zotero's fourth swatch and every other tool on its first", () => {
   const colors = resolveToolColors();

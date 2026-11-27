@@ -8,8 +8,8 @@ import * as v from "valibot";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { baseURL, zotlitBetaUrl } from "./shared.ts";
 import type { DocsLine } from "./shared.ts";
+import { baseURL, zotlitBetaUrl } from "./shared.ts";
 
 const AGENT_SKILLS_SCHEMA =
   "https://schemas.agentskills.io/discovery/0.2.0/schema.json";

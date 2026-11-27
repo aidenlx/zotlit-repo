@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { entrySlice, WorkbenchDocumentController } from "./controller.ts";
-import { followEntries } from "./manifest-patch.ts";
 import type { ManagedEntryAction } from "./manifest-patch.ts";
+import { followEntries } from "./manifest-patch.ts";
 
 const HAND_WRITTEN = `---
 # my own profile, do not reformat

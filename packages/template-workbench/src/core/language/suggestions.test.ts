@@ -5,13 +5,13 @@ import { describe, expect } from "vitest";
 import { restoreTemplateData } from "@zotlit/notes/core/template-preview/restore-template-data.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
+import type { SuggestionConfig } from "./suggestions.ts";
 import {
   completionEdit,
   hoverHint,
   rootAt,
   suggestions,
 } from "./suggestions.ts";
-import type { SuggestionConfig } from "./suggestions.ts";
 
 const note: SuggestionConfig = { root: "note", partials: ["cite", "content"] };
 const eta: SuggestionConfig = { ...note, language: "eta" };

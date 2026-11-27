@@ -1,19 +1,19 @@
 import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
-import { Component, Scope } from "obsidian";
 import type { IconName } from "obsidian";
+import { Component, Scope } from "obsidian";
+import type {
+  CSSProperties,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+} from "react";
 import {
   Fragment,
   useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
-} from "react";
-import type {
-  CSSProperties,
-  MouseEvent as ReactMouseEvent,
-  ReactNode,
 } from "react";
 
 import { AnnotList } from "@zotlit/annotations/desktop/annot-view/AnnotView.tsx";
@@ -47,6 +47,7 @@ import { useUniqueId } from "@zotlit/ui";
 
 import type { CardItem, Values } from "./card-data.ts";
 import type { CardField } from "./card-fields.ts";
+import type { CardSession } from "./card-model.ts";
 import {
   makeCardModel,
   patchCard,
@@ -54,9 +55,8 @@ import {
   CardModelProvider,
   useCardState,
 } from "./card-model.ts";
-import type { CardSession } from "./card-model.ts";
-import { READING_STATE_FACETS } from "./document.ts";
 import type { ReadingCardDisclosures } from "./document.ts";
+import { READING_STATE_FACETS } from "./document.ts";
 import type { ItemActions } from "./item-actions.ts";
 import { FACET_LABELS } from "./library-tree.tsx";
 import type { MenuItem } from "./row-menu.ts";

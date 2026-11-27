@@ -1,7 +1,7 @@
 import type { FieldPopupKeyHost } from "#core/language/index.ts";
 import type { Extension } from "@codemirror/state";
-import { Scope } from "obsidian";
 import type { App } from "obsidian";
+import { Scope } from "obsidian";
 
 import { composing } from "@zotlit/ui";
 

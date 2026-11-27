@@ -1,7 +1,7 @@
 import type { ButtonComponent } from "obsidian";
 
-import { editingCapabilityCopy } from "./capability-copy.ts";
 import type { CapabilityCopy, CopyInstant } from "./capability-copy.ts";
+import { editingCapabilityCopy } from "./capability-copy.ts";
 import type { EditingCapability } from "./capability.ts";
 
 export interface ActionState {

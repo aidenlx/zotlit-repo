@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type { LanguageNameLookup, ItemLanguage } from "./zt-lang.ts";
 import {
   createLanguageLookup,
   formatItemLanguage,
   parseItemLanguage,
 } from "./zt-lang.ts";
-import type { LanguageNameLookup, ItemLanguage } from "./zt-lang.ts";
 
 const lookup: LanguageNameLookup = (input) => {
   switch (input.toLowerCase()) {

@@ -1,5 +1,5 @@
-import { Menu } from "obsidian";
 import type { IconName } from "obsidian";
+import { Menu } from "obsidian";
 
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 

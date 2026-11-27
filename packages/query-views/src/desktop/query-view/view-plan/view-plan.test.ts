@@ -10,8 +10,8 @@ import {
 } from "@zotlit/template-workbench/core/filter-fields/index.ts";
 import type { FilterField } from "@zotlit/template-workbench/core/filter-fields/index.ts";
 
-import { ViewPlanner } from "./view-plan.ts";
 import type { ViewPlanSources } from "./view-plan.ts";
+import { ViewPlanner } from "./view-plan.ts";
 
 import {
   newQueryFileText,

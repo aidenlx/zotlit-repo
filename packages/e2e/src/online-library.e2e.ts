@@ -29,6 +29,7 @@ import {
   obRunUntil,
   readUntil,
 } from "./obsidian-cli.ts";
+import type { LibrarySourceRows, OnlineLibraryApi } from "./online-library.ts";
 import {
   closeOtherWindow,
   DATED_ITEM,
@@ -60,7 +61,6 @@ import {
   startOnlineLibraryApi,
   WEB_API_URL_KEY,
 } from "./online-library.ts";
-import type { LibrarySourceRows, OnlineLibraryApi } from "./online-library.ts";
 import {
   keepRunPack,
   pressSettingRowAction,

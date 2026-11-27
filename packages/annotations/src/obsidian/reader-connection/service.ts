@@ -1,3 +1,4 @@
+import type { Stream } from "effect";
 import {
   Context,
   Effect,
@@ -7,7 +8,6 @@ import {
   Scope,
   SubscriptionRef,
 } from "effect";
-import type { Stream } from "effect";
 
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type {

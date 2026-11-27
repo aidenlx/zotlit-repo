@@ -1,5 +1,5 @@
-import { Modal, TextComponent } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
+import { Modal, TextComponent } from "obsidian";
 
 import {
   normalizePartialName,

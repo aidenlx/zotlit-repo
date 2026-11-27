@@ -17,8 +17,8 @@ import type {
 import type { LanguagePackStartup } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { pluginGraph } from "./compose.ts";
 import type { HostDeclaration } from "./compose.ts";
+import { pluginGraph } from "./compose.ts";
 import type {
   Feature,
   FeatureContext,

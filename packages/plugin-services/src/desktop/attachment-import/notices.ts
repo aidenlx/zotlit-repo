@@ -6,8 +6,8 @@ import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { AttachmentImport } from "./service.ts";
 import type { AttachmentSkipSummary } from "./service.ts";
+import { AttachmentImport } from "./service.ts";
 
 const ATTACHMENT_SKIP_NOTICE_DURATION_MS = 30_000;
 

@@ -3,13 +3,13 @@ import { expect, it } from "vitest";
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
 
 import { editingCapabilityCopy } from "./capability-copy.ts";
+import type { AnnotationDraft } from "./write.ts";
 import {
   createRequest,
   geometryPatch,
   tagsPatch,
   writeFailureMessage,
 } from "./write.ts";
-import type { AnnotationDraft } from "./write.ts";
 
 const TARGET = { library: "users/0", key: "FDRFQ7C2", version: 12 };
 

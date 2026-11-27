@@ -3,12 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
+import type { VendoredSource } from "./vendor-upstream.ts";
 import {
   daySuffixes,
   installVendoredTree,
   readPropertiesValue,
 } from "./vendor-upstream.ts";
-import type { VendoredSource } from "./vendor-upstream.ts";
 
 const KEY = "date.daySuffixes";
 const work: string[] = [];

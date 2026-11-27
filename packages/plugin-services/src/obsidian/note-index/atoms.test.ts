@@ -10,8 +10,8 @@ import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { scopedViewRegistry } from "@zotlit/obsidian-kit/__fixtures__/view-atoms.ts";
 
-import { activeNoteAtom } from "./atoms.ts";
 import type { ActiveNote } from "./atoms.ts";
+import { activeNoteAtom } from "./atoms.ts";
 
 import { layerUnreadViewServices } from "#__fixtures__/view-atoms.ts";
 

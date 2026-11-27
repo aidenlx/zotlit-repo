@@ -11,10 +11,10 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { WireTag } from "@zotlit/plugin-services/core/zotero-local-api/wire.ts";
 import type { LocalApiFailure } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
-import { editingCapabilityCopy } from "./capability-copy.ts";
 import type { CopyInstant } from "./capability-copy.ts";
-import { capabilityOfFailure } from "./capability.ts";
+import { editingCapabilityCopy } from "./capability-copy.ts";
 import type { EditingCapability } from "./capability.ts";
+import { capabilityOfFailure } from "./capability.ts";
 
 import { lockReasonText } from "#core/annotation-repository/lock-copy.ts";
 

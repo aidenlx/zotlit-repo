@@ -5,8 +5,8 @@ import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { renderIconButton, updateIconButton } from "./icon-button.ts";
-import { MARK_TOOLS } from "./tools.ts";
 import type { MarkTool } from "./tools.ts";
+import { MARK_TOOLS } from "./tools.ts";
 import "./style.css";
 
 import { editingBlockedReason } from "#obsidian/annot-view/card-controls.ts";

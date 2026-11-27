@@ -11,11 +11,11 @@ import { Project, ts } from "ts-morph";
 import { FIELD_ALIASES } from "@zotlit/zotero-types";
 import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
 
+import type { ContractRoot } from "../src/contract/roots.ts";
 import {
   CONTRACT_VERSION,
   templateSlotsForRoot,
 } from "../src/contract/roots.ts";
-import type { ContractRoot } from "../src/contract/roots.ts";
 import { ZT_FIELD_ALIASES } from "../src/lib/context/zt-field-aliases.ts";
 import { CHILD_ITEM_TYPES } from "../src/lib/item-types.ts";
 import {

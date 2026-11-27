@@ -1,6 +1,6 @@
+import type { Extension } from "@codemirror/state";
 // @vitest-environment happy-dom
 import { Compartment, EditorSelection, EditorState } from "@codemirror/state";
-import type { Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, showTooltip } from "@codemirror/view";
 import { expect, it } from "vitest";
 

@@ -3,8 +3,8 @@ import { expect, it } from "vitest";
 import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { contextHint } from "./context-hint.ts";
 import type { ContextSource } from "./context-hint.ts";
+import { contextHint } from "./context-hint.ts";
 
 function unbound(at: string, code = "unbound-context"): ReaderDiagnosticSource {
   return {

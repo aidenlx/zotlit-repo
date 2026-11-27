@@ -1,8 +1,8 @@
 import type { HoverParent } from "obsidian";
 import type { ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { SingletonHoverPopover } from "@zotlit/obsidian-kit/singleton-hover-popover.ts";
 

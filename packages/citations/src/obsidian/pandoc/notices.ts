@@ -1,5 +1,5 @@
-import { Effect, Layer, Stream } from "effect";
 import type { Scope } from "effect";
+import { Effect, Layer, Stream } from "effect";
 
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
@@ -8,8 +8,8 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { BibliographyRender } from "./render-cache.ts";
 import type { BibliographyRenderState } from "./render-cache.ts";
+import { BibliographyRender } from "./render-cache.ts";
 
 interface CitationStyleNoticeCopy {
   title: string;

@@ -18,8 +18,8 @@ import {
   citekeyDecorationsChanged,
   citekeyEditorExtension,
 } from "./extension.ts";
-import { CitekeyEditor, citekeyTreatment } from "./service.ts";
 import type { CitekeyTreatment } from "./service.ts";
+import { CitekeyEditor, citekeyTreatment } from "./service.ts";
 
 import { citationSettings } from "#core/citation-index/settings.ts";
 import { AnnotationPopover } from "#obsidian/annotation-popover/service.ts";

@@ -1,7 +1,7 @@
 import type { WebSyncProblem } from "#contract/web-worker-rpc.ts";
 
-import { describe, transition } from "./web-api-machine.ts";
 import type { SourceEvent, SourceState } from "./web-api-machine.ts";
+import { describe, transition } from "./web-api-machine.ts";
 
 const PROBLEM: WebSyncProblem = { _tag: "network", message: "offline" };
 

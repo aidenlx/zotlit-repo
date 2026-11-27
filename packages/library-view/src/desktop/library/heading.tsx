@@ -1,8 +1,8 @@
 import type { IconName } from "obsidian";
-import { Fragment, useSyncExternalStore } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
-import { createRoot } from "react-dom/client";
+import { Fragment, useSyncExternalStore } from "react";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
@@ -16,8 +16,8 @@ import type { QueryView } from "@zotlit/query-views/desktop/query-view/view.tsx"
 import { useUniqueId } from "@zotlit/ui";
 
 import type { LibraryNode, ReadingStateFacet } from "./document.ts";
-import { FACET_LABELS, nodeIcon, nodeLabel } from "./library-tree.tsx";
 import type { LibraryTree } from "./library-tree.tsx";
+import { FACET_LABELS, nodeIcon, nodeLabel } from "./library-tree.tsx";
 import { TreeModelProvider, useTreeState } from "./tree-model.ts";
 
 import { TextAction } from "#obsidian/library/text-action.tsx";

@@ -5,8 +5,8 @@ import type {
 } from "#core/local-server/service.ts";
 import type { NoteStatusSource } from "#obsidian/local-server/live-update-app.ts";
 import type { Settings } from "#obsidian/settings/service.ts";
-import { serve } from "@hono/node-server";
 import type { ServerType } from "@hono/node-server";
+import { serve } from "@hono/node-server";
 import {
   Cause,
   Effect,

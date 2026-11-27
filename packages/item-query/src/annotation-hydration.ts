@@ -9,12 +9,12 @@ import type {
 
 import type { QueryAnnotation } from "./annotation-fields.ts";
 import type { QueryAttachment } from "./attachment-fields.ts";
-import { ATTACHMENT_LOADING } from "./attachment-hydration.ts";
 import type { AttachmentNeeds } from "./attachment-hydration.ts";
+import { ATTACHMENT_LOADING } from "./attachment-hydration.ts";
 import type { FieldNeeds, QueryItem } from "./fields.ts";
 import { ITEM_LOADING } from "./hydration.ts";
-import { parentRecord } from "./record-loader.ts";
 import type { LoadingDescriptor } from "./record-loader.ts";
+import { parentRecord } from "./record-loader.ts";
 
 export interface AnnotationNeeds {
   readonly details?: boolean;

@@ -5,8 +5,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
-import { citedWorkNodeId, NO_ADDITIONS } from "./adapter.ts";
 import type { GraphCitationAdditions } from "./adapter.ts";
+import { citedWorkNodeId, NO_ADDITIONS } from "./adapter.ts";
 import type { GraphLeafMembers } from "./install.ts";
 import {
   GraphNodeColors,

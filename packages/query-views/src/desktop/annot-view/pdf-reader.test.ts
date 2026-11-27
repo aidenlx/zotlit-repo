@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
-import { TFile } from "obsidian";
 import type { App, Workspace, WorkspaceLeaf } from "obsidian";
+import { TFile } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
 import type { ObsidianOpenableAttachment } from "@zotlit/annotations/core/attachment-open/resolve.ts";

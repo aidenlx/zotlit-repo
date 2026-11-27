@@ -9,8 +9,8 @@ import type { ProfilePresentationFailure } from "#obsidian/pandoc/document-prese
 import type { HoverParent } from "obsidian";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";

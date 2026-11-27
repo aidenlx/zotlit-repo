@@ -1,14 +1,14 @@
-import { Effect } from "effect";
 import type { Context } from "effect";
+import { Effect } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import { reimportNoteByKey, runBatchImport } from "./batch-import.ts";
 import type {
   BatchImport,
   BatchImportPorts,
   BatchImportServices,
 } from "./batch-import.ts";
+import { reimportNoteByKey, runBatchImport } from "./batch-import.ts";
 
 export function bindBatchImport(
   bridge: Pick<EffectBridge, "runPromise" | "runSync" | "runPromiseExit">,

@@ -1,4 +1,3 @@
-import { evalToken, filters, Liquid, Tag, tags, toValue } from "liquidjs";
 import type {
   Context,
   Emitter,
@@ -9,6 +8,7 @@ import type {
   TopLevelToken,
   ValueToken,
 } from "liquidjs";
+import { evalToken, filters, Liquid, Tag, tags, toValue } from "liquidjs";
 
 import { formatBlockquote } from "./blockquote.ts";
 import { coerceOutput } from "./coerce.ts";

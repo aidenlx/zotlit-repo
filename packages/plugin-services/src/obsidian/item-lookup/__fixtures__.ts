@@ -1,6 +1,6 @@
 import type { LibraryScopeState } from "#obsidian/library-scope/service.ts";
-import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 import type { Scope } from "effect";
+import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
@@ -14,8 +14,8 @@ import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { bindItemLookup } from "./handle.ts";
 import type { ItemLookupHandle } from "./handle.ts";
+import { bindItemLookup } from "./handle.ts";
 import { ItemLookup, layerItemLookup } from "./service.ts";
 
 import { ChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";

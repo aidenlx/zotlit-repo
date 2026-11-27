@@ -2,6 +2,7 @@
 import { Keymap, Menu } from "obsidian";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { CitationHoverRequest } from "./citation.ts";
 import {
   attachCitationHover,
   attachCitationNavigation,
@@ -9,9 +10,8 @@ import {
   clickWikilinkCitation,
   markCitationClick,
 } from "./citation.ts";
-import type { CitationHoverRequest } from "./citation.ts";
-import { CITEKEY_HOVER_SOURCE, hoverPreferences } from "./hover.ts";
 import type { HoverPreferences } from "./hover.ts";
+import { CITEKEY_HOVER_SOURCE, hoverPreferences } from "./hover.ts";
 import type { CitedWork, NavigationPane } from "./intent.ts";
 import type { GestureSurface } from "./shell.ts";
 

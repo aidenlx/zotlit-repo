@@ -19,8 +19,8 @@ import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-categor
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { CitekeySnapshot } from "./citekey-snapshot.ts";
-import { toDbUnavailable } from "./connection.ts";
 import type { Connection } from "./connection.ts";
+import { toDbUnavailable } from "./connection.ts";
 
 import { resolveLibraryScope } from "#contract/library-scope.ts";
 

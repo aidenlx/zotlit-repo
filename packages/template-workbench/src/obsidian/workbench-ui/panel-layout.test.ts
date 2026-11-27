@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { PanelMove, PanelStep, WorkbenchPanels } from "./panel-layout.ts";
 import {
   canResizePanel,
   columnLimit,
@@ -15,7 +16,6 @@ import {
   previewBelowHeight,
   resizePanel,
 } from "./panel-layout.ts";
-import type { PanelMove, PanelStep, WorkbenchPanels } from "./panel-layout.ts";
 import { panelSizeMenus } from "./panel-menu.ts";
 
 const shown = (preview: boolean): WorkbenchPanels => ({

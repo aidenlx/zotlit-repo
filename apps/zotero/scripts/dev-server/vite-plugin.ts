@@ -1,17 +1,17 @@
 import { readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { inspect } from "node:util";
-import { loadEnv } from "vite";
 import type { Plugin } from "vite";
+import { loadEnv } from "vite";
 
 import { installTemporaryAddon, reloadAddon } from "./remote-firefox.ts";
+import type { ZoteroDevSession } from "./runner.ts";
 import {
   resetCompanionReady,
   resolveDevPath,
   spawnZotero,
   waitForCompanionReady,
 } from "./runner.ts";
-import type { ZoteroDevSession } from "./runner.ts";
 
 const PREFIX = "[zotero-dev]";
 const ENV_EXAMPLE_PATH = "apps/zotero/.env.example";

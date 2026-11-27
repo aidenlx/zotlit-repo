@@ -1,6 +1,6 @@
 import type { ProfileOperationError } from "#obsidian/profile/service.ts";
-import { Context } from "effect";
 import type { Cause, Effect } from "effect";
+import { Context } from "effect";
 import type { TFile, WorkspaceLeaf } from "obsidian";
 
 import type { TemplateFailure } from "./service.ts";

@@ -1,8 +1,8 @@
 import { Effect, Layer } from "effect";
 
 import { makeGate } from "./make-gate.ts";
-import { SegmenterBinaryReader } from "./segmenter-switch.ts";
 import type { SegmenterBinary } from "./segmenter-switch.ts";
+import { SegmenterBinaryReader } from "./segmenter-switch.ts";
 
 export interface MemorySegmenterBinaryReader {
   readonly layer: Layer.Layer<SegmenterBinaryReader>;

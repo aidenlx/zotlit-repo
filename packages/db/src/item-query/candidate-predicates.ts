@@ -1,6 +1,6 @@
 import type { ZoteroDatabase } from "#client/database.ts";
-import { and, eq, sql } from "drizzle-orm";
 import type { SQLWrapper } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { unindexed } from "./database.ts";
 

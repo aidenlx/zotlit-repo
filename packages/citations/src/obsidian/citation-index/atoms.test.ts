@@ -11,8 +11,8 @@ import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-work
 import { scopedViewRegistry } from "@zotlit/obsidian-kit/__fixtures__/view-atoms.ts";
 
 import { activeCitedByAtom, citedByAtom } from "./atoms.ts";
-import { CitationIndex } from "./service.ts";
 import type { CitedBySnapshot } from "./service.ts";
+import { CitationIndex } from "./service.ts";
 
 import { layerUnreadViewServices } from "#__fixtures__/view-atoms.ts";
 

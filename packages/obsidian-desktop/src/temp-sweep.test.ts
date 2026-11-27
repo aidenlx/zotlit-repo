@@ -1,5 +1,6 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
+import type { FileSystem } from "effect";
 import {
   Cause,
   Duration,
@@ -10,7 +11,6 @@ import {
   PlatformError,
   References,
 } from "effect";
-import type { FileSystem } from "effect";
 import { TestClock } from "effect/testing";
 import {
   chmod,
@@ -27,8 +27,8 @@ import { afterEach, beforeEach, describe, expect } from "vitest";
 
 import { LogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 
-import { isOlderThan, sweepTempDirectory } from "./temp-sweep.ts";
 import type { TempSweepOptions } from "./temp-sweep.ts";
+import { isOlderThan, sweepTempDirectory } from "./temp-sweep.ts";
 
 let directory: string;
 

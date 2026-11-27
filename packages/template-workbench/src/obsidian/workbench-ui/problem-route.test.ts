@@ -1,8 +1,8 @@
 import type { RenderDiagnostic } from "#core/render/result.ts";
 import { describe, expect, it } from "vitest";
 
-import { INITIAL_VIEW } from "./model.ts";
 import type { WorkbenchViewState } from "./model.ts";
+import { INITIAL_VIEW } from "./model.ts";
 import { routeDiagnosis, routeProblem } from "./problem-route.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
 

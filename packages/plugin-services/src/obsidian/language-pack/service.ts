@@ -1,3 +1,4 @@
+import type { Exit } from "effect";
 import {
   Context,
   Effect,
@@ -12,7 +13,6 @@ import {
   Stream,
   SubscriptionRef,
 } from "effect";
-import type { Exit } from "effect";
 import { HttpClient, HttpClientError } from "effect/http";
 
 import {

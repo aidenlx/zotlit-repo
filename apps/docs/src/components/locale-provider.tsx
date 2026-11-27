@@ -4,12 +4,12 @@ import {
   useRouter,
   useRouterState,
 } from "@tanstack/react-router";
-import { FrameworkProvider } from "fumadocs-core/framework";
 import type { Framework } from "fumadocs-core/framework";
+import { FrameworkProvider } from "fumadocs-core/framework";
 import { i18nProvider, uiTranslations } from "fumadocs-ui/i18n";
 import { RootProvider } from "fumadocs-ui/provider/base";
-import { useMemo, useRef } from "react";
 import type { ReactNode } from "react";
+import { useMemo, useRef } from "react";
 
 import { DocsImage } from "@/components/docs-image.tsx";
 import { fumadocsTranslations } from "@/lib/fumadocs-translations.ts";

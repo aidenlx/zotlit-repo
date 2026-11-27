@@ -3,8 +3,8 @@ import { Cause, Effect, Exit, Result } from "effect";
 
 import type { CompiledFrontmatterField } from "@zotlit/templates/frontmatter";
 
-import { Template } from "./service.ts";
 import type { TemplateFailure, TemplateOperations } from "./service.ts";
+import { Template } from "./service.ts";
 
 import { plainTemplateError } from "#core/template/errors.ts";
 

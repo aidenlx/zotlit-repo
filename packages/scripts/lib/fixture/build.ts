@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
-import { DatabaseSync } from "node:sqlite";
 import type { SQLInputValue } from "node:sqlite";
+import { DatabaseSync } from "node:sqlite";
 import { pathToFileURL } from "node:url";
 
 import { formatAnnotationSubpath, USER_LIBRARY_ID } from "@zotlit/db";
@@ -15,8 +15,8 @@ import {
 } from "@zotlit/templates/facade";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { holdsZotLit } from "./layout.ts";
 import type { FixtureLayout } from "./layout.ts";
+import { holdsZotLit } from "./layout.ts";
 import {
   BETTER_BIBTEX_PREFS,
   OBSIDIAN_PROTOCOL_PREFS,
@@ -27,6 +27,22 @@ import {
   writePristineDatabase,
   writePristineStyles,
 } from "./pristine.ts";
+import type {
+  FixtureAnnotation,
+  FixtureAsset,
+  FixtureAttachment,
+  FixtureCreator,
+  FixtureItem,
+  FixtureItemField,
+  FixtureLegacyTemplate,
+  FixtureLegacyTemplateOrigin,
+  FixtureNote,
+  FixtureTemplateEdit,
+  FixtureVaultCase,
+  FixtureVaultValue,
+  FixtureZoteroData,
+  PersistedLibraryScope,
+} from "./spec.ts";
 import {
   ASSET_DIR,
   assertSeededCitationKeys,
@@ -69,22 +85,6 @@ import {
   UPGRADER_SETTINGS_VERSION,
   vaultCaseZoteroData,
   VAULT_PROPERTY_TYPES,
-} from "./spec.ts";
-import type {
-  FixtureAnnotation,
-  FixtureAsset,
-  FixtureAttachment,
-  FixtureCreator,
-  FixtureItem,
-  FixtureItemField,
-  FixtureLegacyTemplate,
-  FixtureLegacyTemplateOrigin,
-  FixtureNote,
-  FixtureTemplateEdit,
-  FixtureVaultCase,
-  FixtureVaultValue,
-  FixtureZoteroData,
-  PersistedLibraryScope,
 } from "./spec.ts";
 
 export {

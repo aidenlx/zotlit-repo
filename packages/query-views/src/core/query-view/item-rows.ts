@@ -1,5 +1,5 @@
-import { useSyncExternalStore } from "react";
 import type { DragEvent, FocusEvent, HTMLAttributes, MouseEvent } from "react";
+import { useSyncExternalStore } from "react";
 
 type ItemSelection = { readonly key: string | null };
 

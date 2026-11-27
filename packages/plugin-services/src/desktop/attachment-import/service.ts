@@ -1,4 +1,5 @@
 import type {} from "#core/attachment-import/settings.ts";
+import type { PlatformError } from "effect";
 import {
   Context,
   Duration,
@@ -13,7 +14,6 @@ import {
   Stream,
   SubscriptionRef,
 } from "effect";
-import type { PlatformError } from "effect";
 import {
   dirname as sourceDirname,
   isAbsolute,
@@ -52,23 +52,23 @@ import type {
 } from "@zotlit/plugin-kernel/vault-errors.ts";
 import { normalizeFilename } from "@zotlit/templates";
 
-import { copyAttachments } from "./copy-attachments.ts";
 import type {
   AttachmentCopyItem,
   AttachmentCopyResult,
 } from "./copy-attachments.ts";
+import { copyAttachments } from "./copy-attachments.ts";
+import type {
+  AttachmentSource,
+  BlockedSource,
+  CanonicalRoots,
+  SourceOrigin,
+} from "./source.ts";
 import {
   buildCanonicalRoots,
   canonicalize,
   confirmSource,
   decideSource,
   NO_ROOTS,
-} from "./source.ts";
-import type {
-  AttachmentSource,
-  BlockedSource,
-  CanonicalRoots,
-  SourceOrigin,
 } from "./source.ts";
 
 import { resolvedChanged, ZoteroPref } from "#core/zotero-pref/service.ts";

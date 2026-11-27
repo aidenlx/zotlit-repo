@@ -3,19 +3,19 @@ import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { WorkbenchModel } from "./model.ts";
-import {
-  canResizePanel,
-  PANEL_HANDLES,
-  PANEL_SIDES,
-  panelHandles,
-  resizePanel,
-} from "./panel-layout.ts";
 import type {
   HandleSizing,
   PanelBounds,
   PanelHandle,
   PanelResize,
   WorkbenchPanels,
+} from "./panel-layout.ts";
+import {
+  canResizePanel,
+  PANEL_HANDLES,
+  PANEL_SIDES,
+  panelHandles,
+  resizePanel,
 } from "./panel-layout.ts";
 
 export interface PanelSizeItem {

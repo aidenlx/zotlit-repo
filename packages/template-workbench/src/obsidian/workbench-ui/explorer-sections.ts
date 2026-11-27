@@ -6,8 +6,8 @@ import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 import type { FieldLabelLocale } from "@zotlit/zotero-types/field-labels";
 
 import { COMMON_FIELDS } from "./completion-fields.ts";
-import { commonRows, fieldValueText } from "./explorer-fields.ts";
 import type { FieldRow } from "./explorer-fields.ts";
+import { commonRows, fieldValueText } from "./explorer-fields.ts";
 import type { TemplateRoot } from "./model.ts";
 
 import { buildDisplayTree, listPropertiesOf } from "#core/data-tree/index.ts";

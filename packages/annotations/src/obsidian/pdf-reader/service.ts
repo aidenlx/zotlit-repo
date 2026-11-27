@@ -1,6 +1,6 @@
 import { Context, Effect, Layer, Schema, Scope } from "effect";
-import { WorkspaceLeaf } from "obsidian";
 import type { PaneType, TFile } from "obsidian";
+import { WorkspaceLeaf } from "obsidian";
 
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
@@ -11,12 +11,12 @@ import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 
+import type { ViewStateHost } from "./viewer.ts";
 import {
   OBSIDIAN_PDF_VIEW_TYPE,
   registerViewerRouting,
   viewerOf,
 } from "./viewer.ts";
-import type { ViewStateHost } from "./viewer.ts";
 
 import { fallbackNotice } from "#obsidian/reader-connection/notice.ts";
 import {

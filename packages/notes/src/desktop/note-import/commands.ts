@@ -1,5 +1,5 @@
-import { Effect, Layer } from "effect";
 import type { Context } from "effect";
+import { Effect, Layer } from "effect";
 import type { App } from "obsidian";
 
 import { withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
@@ -14,8 +14,8 @@ import {
   childImportToast,
   importNotices,
 } from "./batch-import-notices.ts";
-import { runBatchImportAll, runChildImportByKey } from "./batch-import.ts";
 import type { BatchImportPorts, BatchImportServices } from "./batch-import.ts";
+import { runBatchImportAll, runChildImportByKey } from "./batch-import.ts";
 import type { NoteImportView } from "./view.ts";
 
 import { withLiteratureNote } from "#desktop/note-feature/actions.ts";

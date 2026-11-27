@@ -16,10 +16,10 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZOTERO_LOCALES } from "@zotlit/zotero-compat";
 
-import { LibrarySource } from "./service.ts";
 import type { LibrarySourceKind, LibrarySourceView } from "./service.ts";
-import { formatSyncTime, isProblem, statusText } from "./status.ts";
+import { LibrarySource } from "./service.ts";
 import type { OnlineLibraryStatus } from "./status.ts";
+import { formatSyncTime, isProblem, statusText } from "./status.ts";
 
 import { AUTOMATIC_ZOTERO_LANGUAGE } from "#core/database/settings.ts";
 import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";

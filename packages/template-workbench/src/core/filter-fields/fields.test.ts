@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { FilterField, FilterFieldKind } from "./fields.ts";
 import {
   filterFields,
   formatFilterRow,
@@ -7,7 +8,6 @@ import {
   parseFilterRow,
   withOperator,
 } from "./fields.ts";
-import type { FilterField, FilterFieldKind } from "./fields.ts";
 
 const ANNOTATION_KINDS: FilterFieldKind[] = [
   "color",

@@ -1,7 +1,7 @@
 import type { BatchFailure } from "#obsidian/batch/batch-run.ts";
 import { Effect } from "effect";
-import { ButtonComponent, Modal, setIcon } from "obsidian";
 import type { App } from "obsidian";
+import { ButtonComponent, Modal, setIcon } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";

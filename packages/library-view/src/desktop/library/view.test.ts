@@ -90,12 +90,12 @@ import type {
 import { selectorKey } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { nodeKey } from "./document.ts";
 import type { LibraryNode } from "./document.ts";
+import { nodeKey } from "./document.ts";
 import { itemActions } from "./item-actions.ts";
 import { openLibraryView, registerLibraryView } from "./register.ts";
-import { LibraryView } from "./view.ts";
 import type { LibraryViewDeps } from "./view.ts";
+import { LibraryView } from "./view.ts";
 import { openWelcomeView } from "./welcome-register.ts";
 
 import { holdNow, useAt, makeLibraryHost } from "#__fixtures__/library.ts";

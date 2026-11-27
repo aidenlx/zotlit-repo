@@ -11,8 +11,8 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { faultCode, runEffect } from "./__fixtures__/test-helpers.ts";
 import { describeAnnotationQuery } from "./describe-annotation-query.ts";
-import { ANNOTATIONS, collectQuery } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
+import { ANNOTATIONS, collectQuery } from "./index.ts";
 
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 

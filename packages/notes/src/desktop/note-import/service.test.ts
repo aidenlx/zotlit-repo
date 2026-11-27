@@ -4,8 +4,8 @@ import type { ResolvedLiteratureNoteProfileBindings } from "#obsidian/profile/bi
 import type { TemplateOperations } from "#obsidian/template/service.ts";
 import { it } from "@effect/vitest";
 import { Effect, Fiber } from "effect";
-import { stringifyYaml } from "obsidian";
 import type { TFile } from "obsidian";
+import { stringifyYaml } from "obsidian";
 import { afterAll, beforeEach, describe, expect, vi } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";

@@ -6,8 +6,8 @@ import type {
 import { selectorKey } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { nodeKey } from "./document.ts";
 import type { LibraryNode } from "./document.ts";
+import { nodeKey } from "./document.ts";
 
 export interface TreeCollection {
   readonly path: readonly string[];

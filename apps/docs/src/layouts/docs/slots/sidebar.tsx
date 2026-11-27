@@ -4,8 +4,8 @@ import Link from "fumadocs-core/link";
 import type * as PageTree from "fumadocs-core/page-tree";
 import * as Base from "fumadocs-ui/components/sidebar/base";
 import { createLinkItemRenderer } from "fumadocs-ui/components/sidebar/link-item";
-import { createPageTreeRenderer } from "fumadocs-ui/components/sidebar/page-tree";
 import type { SidebarPageTreeComponents } from "fumadocs-ui/components/sidebar/page-tree";
+import { createPageTreeRenderer } from "fumadocs-ui/components/sidebar/page-tree";
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import {
   Popover,
@@ -14,9 +14,9 @@ import {
 } from "fumadocs-ui/components/ui/popover";
 import { useTreePath } from "fumadocs-ui/contexts/tree";
 import { useDocsLayout } from "fumadocs-ui/layouts/docs";
+import type { LayoutTab } from "fumadocs-ui/layouts/shared";
 import { LinkItem } from "fumadocs-ui/layouts/shared";
 import { isLayoutTabActive } from "fumadocs-ui/layouts/shared";
-import type { LayoutTab } from "fumadocs-ui/layouts/shared";
 import { SearchTrigger } from "fumadocs-ui/layouts/shared/slots/search-trigger";
 import {
   Check,
@@ -25,8 +25,8 @@ import {
   Languages,
   SidebarIcon,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
 import type { ComponentProps, ReactNode } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn.ts";
 import { mergeRefs } from "@/lib/merge-refs.ts";

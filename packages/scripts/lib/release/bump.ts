@@ -1,7 +1,7 @@
 import { inc, prerelease, valid } from "semver";
 
-import { releaseLine } from "./lines.ts";
 import type { ReleaseLine } from "./lines.ts";
+import { releaseLine } from "./lines.ts";
 
 export type BumpKind =
   | "patch"

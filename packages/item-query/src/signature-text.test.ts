@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
 
 import { GLOBAL_FUNCTIONS, IF_FUNCTION } from "./filter-functions.ts";
-import { parameterTexts, resultText, signatureText } from "./signature-text.ts";
 import type { SignatureShape } from "./signature-text.ts";
+import { parameterTexts, resultText, signatureText } from "./signature-text.ts";
 
 it("writes each parameter with its types, its texts, null and its optional or rest mark", () => {
   expect(signatureText("max", GLOBAL_FUNCTIONS.get("max")!)).toBe(

@@ -12,8 +12,9 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { fitFreeTextBox } from "./free-text-layout.ts";
 import { HANDLE_RADIUS } from "./geometry-edit.ts";
-import { markAnchor, marksAtPoint, pagePointOf } from "./hit-test.ts";
 import type { PageBox } from "./hit-test.ts";
+import { markAnchor, marksAtPoint, pagePointOf } from "./hit-test.ts";
+import type { MeasuredFont, OverlayPageView } from "./render.ts";
 import {
   groupAnnotationsByPage,
   markTargets,
@@ -24,7 +25,6 @@ import {
   unitsPerPixel,
   withPosition,
 } from "./render.ts";
-import type { MeasuredFont, OverlayPageView } from "./render.ts";
 
 import { annotation, viewport } from "#__fixtures__/pdf-annotation-editor.ts";
 

@@ -7,16 +7,16 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { WorkbenchInsertTarget } from "./host.tsx";
 import type { WorkbenchModel, WorkbenchViewState } from "./model.ts";
-import { routeDiagnosis, routeProblem } from "./problem-route.ts";
 import type { ProblemTarget, RoutedDocument } from "./problem-route.ts";
+import { routeDiagnosis, routeProblem } from "./problem-route.ts";
 import type { WorkbenchProblemsState } from "./problems-footer.tsx";
+import type { WorkbenchDiagnosis } from "./problems.ts";
 import {
   diagnosisExplanation,
   diagnosisForOccurrence,
   diagnosisLocated,
   renderDiagnosis,
 } from "./problems.ts";
-import type { WorkbenchDiagnosis } from "./problems.ts";
 
 export interface RepairCommands {
   readonly goToProblem: (problem: ProblemTarget) => void;

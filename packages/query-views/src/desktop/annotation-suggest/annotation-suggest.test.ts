@@ -1,13 +1,13 @@
 import { it } from "@effect/vitest";
 // @vitest-environment happy-dom
 import { Effect, FiberSet, Scope } from "effect";
-import { TFile } from "obsidian";
 import type {
   App,
   Editor,
   EditorSuggestContext,
   MarkdownFileInfo,
 } from "obsidian";
+import { TFile } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";
@@ -22,8 +22,8 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import type { AnnotationHit } from "./annotation-search.ts";
-import { AnnotationEditorSuggest } from "./annotation-suggest.ts";
 import type { AnnotationSuggestDeps } from "./annotation-suggest.ts";
+import { AnnotationEditorSuggest } from "./annotation-suggest.ts";
 
 import {
   annotationTriggerError,

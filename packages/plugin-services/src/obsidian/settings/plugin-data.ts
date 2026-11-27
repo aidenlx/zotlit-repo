@@ -1,5 +1,5 @@
-import { Context, Effect, Layer } from "effect";
 import type { Cause } from "effect";
+import { Context, Effect, Layer } from "effect";
 import type { Plugin } from "obsidian";
 
 export class PluginData extends Context.Service<

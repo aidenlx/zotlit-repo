@@ -7,8 +7,8 @@ import type {
   RenderDiagnostic,
 } from "#core/render/index.ts";
 import { Cause, DateTime, Effect, Exit } from "effect";
-import { stringifyYaml } from "obsidian";
 import type { App } from "obsidian";
+import { stringifyYaml } from "obsidian";
 
 import { BibliographyRender } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
 import { DEFAULT_CITATION_VARIANT, withAnnotationCitation } from "@zotlit/db";

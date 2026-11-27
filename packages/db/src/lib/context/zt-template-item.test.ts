@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { itemToTemplateBaseData, resolveItemCore } from "./zt-template-item.ts";
 import type { TemplateCreator } from "./zt-template-item.ts";
+import { itemToTemplateBaseData, resolveItemCore } from "./zt-template-item.ts";
 
 import { USER_LIBRARY_ID } from "#lib/constants.ts";
 import { itemBaseFields, resolveVenue } from "#lib/zt-venue.ts";

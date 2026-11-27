@@ -9,8 +9,8 @@ import type {
   SettingTabEnv,
 } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 
-import { ShellSettingTab } from "./tab.ts";
 import type { SettingTabOrder } from "./tab.ts";
+import { ShellSettingTab } from "./tab.ts";
 
 const REBUILD_SETTLE = Duration.millis(50);
 

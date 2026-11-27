@@ -1,13 +1,13 @@
 import type { WorkbenchSliceRange } from "#core/document/index.ts";
-import { StateField } from "@codemirror/state";
 import type {
   EditorState,
   Extension,
   Range,
   StateEffectType,
 } from "@codemirror/state";
-import { Decoration, EditorView, WidgetType } from "@codemirror/view";
+import { StateField } from "@codemirror/state";
 import type { DecorationSet } from "@codemirror/view";
+import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 
 export class BoxWidget extends WidgetType {
   readonly box: HTMLElement;

@@ -1,5 +1,5 @@
-import { ButtonComponent } from "obsidian";
 import type { Modal } from "obsidian";
+import { ButtonComponent } from "obsidian";
 
 const WIDE_DIALOG_CLASSES = [
   "zt:[--dialog-width:var(--modal-width)]",

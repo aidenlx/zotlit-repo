@@ -7,8 +7,8 @@ import type {
 } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
 import type { ResolvedLiteratureNoteProfileBindings } from "./bindings.ts";
-import { profileControlKey } from "./setting-controls.ts";
 import type { ProfileControlKey } from "./setting-controls.ts";
+import { profileControlKey } from "./setting-controls.ts";
 import { profileSettings } from "./settings.ts";
 
 declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {

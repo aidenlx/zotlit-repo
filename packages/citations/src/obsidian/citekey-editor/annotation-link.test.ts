@@ -109,11 +109,11 @@ import { editorInfoField, editorLivePreviewField } from "obsidian";
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
+import type { AnnotationLinkHoverHandlers } from "./annotation-link.ts";
 import {
   annotationLinkAtPos,
   annotationLinkHoverExtension,
 } from "./annotation-link.ts";
-import type { AnnotationLinkHoverHandlers } from "./annotation-link.ts";
 
 import { presented } from "#__fixtures__/citation-text.ts";
 

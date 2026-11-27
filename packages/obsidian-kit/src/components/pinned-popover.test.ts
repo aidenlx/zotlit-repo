@@ -4,8 +4,8 @@ import { act } from "preact/test-utils";
 import { createElement as h, createRef } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { PinnedPopover } from "./pinned-popover.tsx";
 import type { PageKey, PinnedPopoverHandle } from "./pinned-popover.tsx";
+import { PinnedPopover } from "./pinned-popover.tsx";
 
 import { editorApp } from "#__fixtures__/editor-app.ts";
 import { pressTop } from "#__fixtures__/keymap.ts";

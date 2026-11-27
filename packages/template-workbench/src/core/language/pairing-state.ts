@@ -1,6 +1,6 @@
 import { invertedEffects } from "@codemirror/commands";
-import { MapMode, StateEffect, StateField } from "@codemirror/state";
 import type { ChangeDesc, EditorState, Text } from "@codemirror/state";
+import { MapMode, StateEffect, StateField } from "@codemirror/state";
 
 export interface GeneratedPair {
   from: number;

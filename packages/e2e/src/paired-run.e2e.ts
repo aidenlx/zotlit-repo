@@ -49,6 +49,7 @@ import type {
   PairedEditorContent,
 } from "./page-paired-types.ts";
 import type {} from "./paired-setup.ts";
+import type { ZoteroRdp } from "./paired-zotero.ts";
 import {
   authorizationCount,
   authorize,
@@ -70,7 +71,6 @@ import {
   waitForAuthorizationDialog,
   zoteroFetch,
 } from "./paired-zotero.ts";
-import type { ZoteroRdp } from "./paired-zotero.ts";
 import { verifyPdfReadSource } from "./pdf-read-source.ts";
 import {
   armToolOnFirstPage,

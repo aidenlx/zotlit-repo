@@ -8,8 +8,8 @@ import {
   stat,
   writeFile,
 } from "node:fs/promises";
-import { createServer } from "node:net";
 import type { AddressInfo } from "node:net";
+import { createServer } from "node:net";
 import { userInfo } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";

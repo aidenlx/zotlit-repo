@@ -2,8 +2,8 @@ import type { SuggestionConfig } from "#core/language/index.ts";
 // @vitest-environment happy-dom
 import { forceParsing } from "@codemirror/language";
 import { EditorState } from "@codemirror/state";
-import { EditorView } from "@codemirror/view";
 import type { Rect } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import type { HoverParent } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";

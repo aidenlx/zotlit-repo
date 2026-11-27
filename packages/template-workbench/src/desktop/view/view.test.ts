@@ -7,8 +7,8 @@ import { Cause, Effect, Exit, Fiber } from "effect";
 import { Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { TestClock } from "effect/testing";
-import { SuggestModal, TFile } from "obsidian";
 import type { App, ViewState, WorkspaceLeaf } from "obsidian";
+import { SuggestModal, TFile } from "obsidian";
 import { act } from "preact/test-utils";
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";

@@ -6,8 +6,8 @@ import type {
   DatabaseReadability,
 } from "#obsidian/citation-index/service.ts";
 
-import { DIAGNOSTIC_HINTS } from "./envelope.ts";
 import type { ReferenceEntry } from "./envelope.ts";
+import { DIAGNOSTIC_HINTS } from "./envelope.ts";
 import type {
   AnnotationUsesParam,
   CitedByParam,

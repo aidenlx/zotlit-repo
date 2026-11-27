@@ -9,10 +9,10 @@ import type {
   ReaderTarget,
 } from "@zotlit/plugin-services/core/local-server/service.ts";
 
-import { ReaderSessionHost } from "./session.ts";
 import type { ReaderSessionTarget } from "./session.ts";
-import { ZoteroReaderSession } from "./zotero.ts";
+import { ReaderSessionHost } from "./session.ts";
 import type { ZoteroReaderSessionDeps } from "./zotero.ts";
+import { ZoteroReaderSession } from "./zotero.ts";
 
 const PAPER: ReaderSessionTarget = {
   attachmentKey: "ATCH2345",

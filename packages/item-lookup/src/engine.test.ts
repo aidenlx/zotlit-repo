@@ -1,5 +1,5 @@
-import { Effect, Exit, Fiber, Stream } from "effect";
 import type { Layer } from "effect";
+import { Effect, Exit, Fiber, Stream } from "effect";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -12,11 +12,11 @@ import type { IndexedItem } from "@zotlit/db";
 import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 
-import { buildEngineIndex, cleanQuery, searchEngineIndex } from "./engine.ts";
 import type { ItemHit } from "./engine.ts";
+import { buildEngineIndex, cleanQuery, searchEngineIndex } from "./engine.ts";
 import { makeCreator as creator, makeIndexedItem as item } from "./fixtures.ts";
-import { layerSegmenterJieba, layerSegmenterNone } from "./segmenter.ts";
 import type { Segmenter, SegmenterUnavailable } from "./segmenter.ts";
+import { layerSegmenterJieba, layerSegmenterNone } from "./segmenter.ts";
 
 describe("item search engine", () => {
   it("ranks empty searches by Last Activity and request Uses before the limit", async () => {

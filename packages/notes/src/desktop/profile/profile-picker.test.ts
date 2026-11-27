@@ -1,7 +1,7 @@
 import type { ProfilePreview } from "#desktop/note-feature/index.ts";
+import type { App } from "obsidian";
 // @vitest-environment happy-dom
 import { SuggestModal } from "obsidian";
-import type { App } from "obsidian";
 import { expect, it, onTestFinished, vi } from "vitest";
 
 import {
@@ -13,11 +13,11 @@ import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { openLiteratureNoteProfile } from "./profile-picker.ts";
 import type {
   LiteratureNoteProfileChoice,
   ProfilePick,
 } from "./profile-picker.ts";
+import { openLiteratureNoteProfile } from "./profile-picker.ts";
 
 const books = { id: "Bk3Qn7XvT2Lp" as ProfileId };
 const defaultAndBooks: ProfilePreview[] = [

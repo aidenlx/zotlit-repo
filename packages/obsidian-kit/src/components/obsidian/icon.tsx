@@ -1,8 +1,8 @@
 import { Effect } from "effect";
-import { getIcon } from "obsidian";
 import type { IconName } from "obsidian";
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { getIcon } from "obsidian";
 import type { CSSProperties, ReactNode, SVGAttributes } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 
 import {
   logServices,

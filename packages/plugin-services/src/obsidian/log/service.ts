@@ -1,6 +1,6 @@
 import type { Settings } from "#obsidian/settings/service.ts";
-import { Context, Effect, Exit, Layer, Scope, Stream } from "effect";
 import type { Logger } from "effect";
+import { Context, Effect, Exit, Layer, Scope, Stream } from "effect";
 import type { DataAdapter } from "obsidian";
 
 import {

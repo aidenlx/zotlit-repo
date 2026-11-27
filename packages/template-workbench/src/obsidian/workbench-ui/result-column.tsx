@@ -2,14 +2,14 @@ import type {
   RenderDiagnostic,
   TemplateRenderResult,
 } from "#core/render/result.ts";
-import { Suspense } from "react";
 import type { ReactNode, Ref } from "react";
+import { Suspense } from "react";
 
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { useContainerName, useWorkbenchHost } from "./host.tsx";
 import type { WorkbenchMarkdownProps } from "./host.tsx";
+import { useContainerName, useWorkbenchHost } from "./host.tsx";
 import { previewNotice, templateWorkbenchButton } from "./look.ts";
 import { pendingView } from "./pending-view.ts";
 import { diagnosticText } from "./problems.ts";

@@ -1,6 +1,6 @@
 import type { Feature, SettingRows } from "#obsidian/feature.ts";
-import { PluginSettingTab } from "obsidian";
 import type { Plugin, SettingDefinitionItem, SettingGroupItem } from "obsidian";
+import { PluginSettingTab } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {

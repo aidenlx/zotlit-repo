@@ -3,8 +3,8 @@ import type {
   EmbedContext,
   EmbedCreator,
 } from "#obsidian/query-view/obsidian-private/embed-registry.ts";
-import { Component, Keymap } from "obsidian";
 import type { App, EventRef, TFile } from "obsidian";
+import { Component, Keymap } from "obsidian";
 
 import {
   processLiveText,

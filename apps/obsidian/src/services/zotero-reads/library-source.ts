@@ -1,5 +1,5 @@
-import { Effect } from "effect";
 import type { Stream } from "effect";
+import { Effect } from "effect";
 import { requestUrl } from "obsidian";
 
 import { requireElectronRemote } from "@zotlit/obsidian-desktop/require.ts";

@@ -39,10 +39,10 @@ import { makeConsent } from "./consent.ts";
 import { effectiveZoteroLanguage } from "./language.ts";
 import { makeReadsFacade, unavailable } from "./reads-facade.ts";
 import { runSyncSchedule } from "./schedule.ts";
-import { formatSyncTime, statusText, viewOf } from "./status.ts";
 import type { LibrarySourceView, OnlineLibraryStatus } from "./status.ts";
-import { LibrarySource } from "./tag.ts";
+import { formatSyncTime, statusText, viewOf } from "./status.ts";
 import type { LibrarySourceKind, ZoteroLanguage } from "./tag.ts";
+import { LibrarySource } from "./tag.ts";
 
 import { segmenterBinaryOf } from "#obsidian/chinese-segmenter/service.ts";
 import { ResourcePackPlatform } from "#obsidian/managed-binary/pack-platform.ts";

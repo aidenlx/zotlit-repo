@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { Keymap, MarkdownRenderChild, MarkdownRenderer } from "obsidian";
 import type { App, Component } from "obsidian";
+import { Keymap, MarkdownRenderChild, MarkdownRenderer } from "obsidian";
 
 import {
   logServices,

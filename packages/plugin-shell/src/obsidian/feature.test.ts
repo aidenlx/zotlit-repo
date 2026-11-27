@@ -4,13 +4,13 @@ import { describe, expect, it } from "vitest";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
+import type { FeatureContext } from "./feature.ts";
 import {
   defineFeature,
   extendFeature,
   registration,
   serviceGroup,
 } from "./feature.ts";
-import type { FeatureContext } from "./feature.ts";
 
 class First extends Context.Service<First, { readonly n: number }>()(
   "zotlit/test/First",

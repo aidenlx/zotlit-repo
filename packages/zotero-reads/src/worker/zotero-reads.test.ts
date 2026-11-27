@@ -33,9 +33,9 @@ import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase, readLibraries } from "@zotlit/db/item-query";
 
+import type { ConnectionOpener } from "./connection.ts";
 import { layerRcRef } from "./connection.ts";
 import { Connection } from "./connection.ts";
-import type { ConnectionOpener } from "./connection.ts";
 import type { HandlersOptions, QueryJobRunner } from "./handlers.ts";
 import { makeInProcessClient } from "./in-process.ts";
 import { layerUnpinnedConnectionItemSource } from "./item-source.ts";

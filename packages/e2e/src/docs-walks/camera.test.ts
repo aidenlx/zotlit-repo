@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { closingPad, openingPad, planCamera, viewAt } from "./camera.ts";
 import type {
   CameraEvent,
   CameraPlanOptions,
   CameraTrack,
   Rect,
 } from "./camera.ts";
+import { closingPad, openingPad, planCamera, viewAt } from "./camera.ts";
 
 const viewport = { width: 1440, height: 860 };
 const full: Rect = { x: 0, y: 0, w: 1440, h: 860 };

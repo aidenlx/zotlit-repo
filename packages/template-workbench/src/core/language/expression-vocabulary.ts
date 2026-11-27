@@ -1,8 +1,8 @@
 import { FORMULA_SEGMENT } from "@zotlit/item-query";
 import type { ContextRecord, QueryDataset } from "@zotlit/item-query";
 
-import { datasetCustomFields, VAULT_SEGMENT } from "./expression-options.ts";
 import type { ExpressionVocabulary } from "./expression-options.ts";
+import { datasetCustomFields, VAULT_SEGMENT } from "./expression-options.ts";
 import { datasetReceiver } from "./expression-receiver.ts";
 import { datasetExpressionFields } from "./filter-expression-completion.ts";
 

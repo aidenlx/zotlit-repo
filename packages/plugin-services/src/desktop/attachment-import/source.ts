@@ -1,5 +1,5 @@
-import { Effect, FileSystem } from "effect";
 import type { PlatformError, Scope } from "effect";
+import { Effect, FileSystem } from "effect";
 import { realpath } from "node:fs/promises";
 import { isAbsolute, join, relative, sep } from "node:path";
 

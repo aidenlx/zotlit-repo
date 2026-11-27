@@ -1,6 +1,6 @@
 import type { ExcerptImageContext } from "#core/template/inert-resolvers.ts";
-import { normalizePath } from "obsidian";
 import type { FileManager, TFile, Vault } from "obsidian";
+import { normalizePath } from "obsidian";
 import TurndownService from "turndown";
 
 import type { NoteResolvers } from "@zotlit/db";

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type { PartialChoiceStore } from "./partial-choice-memory.ts";
 import {
   DEFAULT_PARTIAL_CHOICE,
   readPartialChoice,
   writePartialChoice,
 } from "./partial-choice-memory.ts";
-import type { PartialChoiceStore } from "./partial-choice-memory.ts";
 
 function device(): PartialChoiceStore & { held: Map<string, unknown> } {
   const held = new Map<string, unknown>();

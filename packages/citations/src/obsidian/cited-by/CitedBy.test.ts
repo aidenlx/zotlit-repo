@@ -5,7 +5,6 @@ import type {
   CitedBySnapshot,
 } from "#obsidian/citation-index/service.ts";
 import { Effect } from "effect";
-import { Keymap, MarkdownView } from "obsidian";
 import type {
   LinkCache,
   ListItemCache,
@@ -16,10 +15,11 @@ import type {
   TFile,
   WorkspaceLeaf,
 } from "obsidian";
+import { Keymap, MarkdownView } from "obsidian";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // @vitest-environment happy-dom
@@ -32,6 +32,7 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { previewAtom } from "./atoms.ts";
 import { CitedBy } from "./CitedBy.tsx";
+import type { CitedByLayout } from "./model.ts";
 import {
   CitedByModelContext,
   collapseAll,
@@ -41,7 +42,6 @@ import {
   holdCitedByModel,
   makeCitedByModel,
 } from "./model.ts";
-import type { CitedByLayout } from "./model.ts";
 import { COMPACT_CAP } from "./store.ts";
 
 import {

@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, matchesGlob, resolve, sep } from "node:path";
-import { parseSync } from "oxc-parser";
 import type { Expression } from "oxc-parser";
+import { parseSync } from "oxc-parser";
 import type { RuleTester } from "oxlint/plugins-dev";
 
 type Rule = Parameters<RuleTester["run"]>[1];

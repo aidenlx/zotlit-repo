@@ -1,6 +1,6 @@
 import { regex } from "arkregex";
-import { Tokenizer, TypeGuards } from "liquidjs";
 import type { Token } from "liquidjs";
+import { Tokenizer, TypeGuards } from "liquidjs";
 
 import type {
   ContractExample,
@@ -23,8 +23,8 @@ import type {
   SectionValue,
   TableModel,
 } from "./model.ts";
-import { SECTIONS } from "./sections.ts";
 import type { SectionSpec } from "./sections.ts";
+import { SECTIONS } from "./sections.ts";
 
 import { inlineCodeSpans } from "#mdx-text";
 

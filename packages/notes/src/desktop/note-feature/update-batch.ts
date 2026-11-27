@@ -61,13 +61,13 @@ import {
   describeSelectionSource,
 } from "./selection-copy.ts";
 import { collectExcerptReports, NoteFeature } from "./service.ts";
+import type { BatchUpdateNotices } from "./update-single.ts";
 import {
   createNoteNotice,
   duplicateLiteratureNoteWarning,
   noteOperationDiagnosticNotice,
   updateWithNotice,
 } from "./update-single.ts";
-import type { BatchUpdateNotices } from "./update-single.ts";
 
 import { isInertTemplateError } from "#core/template/errors.ts";
 import {

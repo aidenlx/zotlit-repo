@@ -21,13 +21,13 @@ import type { InteractiveCreationPorts } from "./creation-view.ts";
 import type { NoteOperationDiagnostic, UpdateScope } from "./operations.ts";
 import { NoteFeature } from "./service.ts";
 import { switchNoteProfileInteractively } from "./switch-view.ts";
-import { runBatchUpdateAll } from "./update-batch.ts";
 import type {
   BatchUpdateOptions,
   BatchUpdatePorts,
   BatchUpdateResult,
   BatchUpdateServices,
 } from "./update-batch.ts";
+import { runBatchUpdateAll } from "./update-batch.ts";
 import {
   noteOperationDiagnosticContent,
   updateNoteToast,

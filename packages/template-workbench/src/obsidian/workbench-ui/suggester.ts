@@ -1,12 +1,12 @@
 import type { WorkbenchRunner } from "#core/language/host-effects.ts";
 import { Effect, Fiber } from "effect";
+import type { App, IconName } from "obsidian";
 import {
   prepareSimpleSearch,
   renderMatches,
   setIcon,
   SuggestModal,
 } from "obsidian";
-import type { App, IconName } from "obsidian";
 
 import { awaitModal, openModalIn } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { answerOf } from "@zotlit/obsidian-kit/view-runner.ts";

@@ -9,10 +9,10 @@ import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/n
 import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@zotlit/plugin-kernel/constants.ts";
 import { nodeFileSystemCall } from "@zotlit/plugin-kernel/errno.ts";
 
-import { planReadParents } from "./read-parent.ts";
 import type { ReadParentPlan } from "./read-parent.ts";
-import { prepareRead } from "./read-source.ts";
+import { planReadParents } from "./read-parent.ts";
 import type { PreparedRead } from "./read-source.ts";
+import { prepareRead } from "./read-source.ts";
 
 vi.mock("./read-parent.ts", () => ({ planReadParents: vi.fn() }));
 const mkdirFault = vi.hoisted(() => ({ path: "" }));

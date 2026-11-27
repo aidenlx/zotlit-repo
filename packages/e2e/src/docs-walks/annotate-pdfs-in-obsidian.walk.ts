@@ -18,6 +18,7 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import type { Rect } from "./camera.ts";
 import { clipSettings } from "./clip-settings.ts";
+import type { DocsWalk } from "./docs-walk.ts";
 import {
   captureRequested,
   closeWelcome,
@@ -27,7 +28,6 @@ import {
   recordRequested,
   watchNotices,
 } from "./docs-walk.ts";
-import type { DocsWalk } from "./docs-walk.ts";
 import {
   bringToFront,
   DesktopShotSpoiled,

@@ -17,8 +17,8 @@ import {
   Stream,
   SubscriptionRef,
 } from "effect";
-import { TFile } from "obsidian";
 import type { TAbstractFile } from "obsidian";
+import { TFile } from "obsidian";
 
 import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
@@ -46,8 +46,8 @@ import type {
 } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { CitationLookup } from "./lookup-service.ts";
 import type { CitationLookupStatus } from "./lookup-service.ts";
+import { CitationLookup } from "./lookup-service.ts";
 
 import { CitationParse } from "#obsidian/citation-parse/service.ts";
 export type { CitationLookupObservation } from "./lookup-service.ts";
@@ -62,16 +62,16 @@ import type {
 import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { describeJoinedCandidates } from "./ambiguity.ts";
-import { citationOutcome } from "./outcome.ts";
 import type { CitationOutcome } from "./outcome.ts";
-import { annotationCitations, readParsedNote } from "./parsed-note.ts";
+import { citationOutcome } from "./outcome.ts";
 import type { ParsedNote } from "./parsed-note.ts";
-import { groupCitations } from "./query.ts";
+import { annotationCitations, readParsedNote } from "./parsed-note.ts";
 import type { Citation, ResolvedNote } from "./query.ts";
-import { occurrencesEqual } from "./scan.ts";
+import { groupCitations } from "./query.ts";
 import type { CitationOccurrence, CitationSyntax } from "./scan.ts";
-import { readReferenceSources } from "./sources.ts";
+import { occurrencesEqual } from "./scan.ts";
 import type { ReferenceSourceJoin } from "./sources.ts";
+import { readReferenceSources } from "./sources.ts";
 
 import {
   openCitekeyStore,

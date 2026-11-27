@@ -1,8 +1,8 @@
 import { Temporal as TemporalPolyfill } from "temporal-polyfill/implementation";
 import { describe, expect, it, vi } from "vitest";
 
-import { fillMissing } from "./fills.ts";
 import type { FillPieces, FillScope } from "./fills.ts";
+import { fillMissing } from "./fills.ts";
 
 function bareScope(): FillScope {
   return {

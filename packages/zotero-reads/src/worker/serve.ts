@@ -1,6 +1,6 @@
 import type { FileReadsConfig } from "#contract/rpc.ts";
-import { Effect, Layer, Logger, Ref } from "effect";
 import type { FileSystem } from "effect";
+import { Effect, Layer, Logger, Ref } from "effect";
 import { RpcServer, RpcWorker } from "effect/rpc";
 
 import {
@@ -9,10 +9,10 @@ import {
 } from "@zotlit/plugin-kernel/worker/effect-log-port.ts";
 
 import type { Connection } from "./connection.ts";
-import { handlersLayer } from "./handlers.ts";
 import type { HandlersOptions } from "./handlers.ts";
-import { launchWorker } from "./worker-launch.ts";
+import { handlersLayer } from "./handlers.ts";
 import type { WorkerScope } from "./worker-launch.ts";
+import { launchWorker } from "./worker-launch.ts";
 
 import { WorkerInitSchema, ZoteroReads } from "#contract/rpc.ts";
 

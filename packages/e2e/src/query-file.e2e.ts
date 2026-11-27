@@ -5,11 +5,11 @@ import { LIBRARIES } from "@zotlit/scripts/fixture";
 
 import { reachable } from "./e2e-run-fixture.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
-import { byItem, itemsByModified } from "./e2e-run-query-types.ts";
 import type {
   ItemQueryReport,
   LibraryScopeReport,
 } from "./e2e-run-query-types.ts";
+import { byItem, itemsByModified } from "./e2e-run-query-types.ts";
 import { cliCommand, obRun, waitFor } from "./obsidian-cli.ts";
 import type { EmptyView } from "./page-host.ts";
 describe.skipIf(!reachable)("End-to-end Run", () => {

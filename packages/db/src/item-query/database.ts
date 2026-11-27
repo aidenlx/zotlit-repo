@@ -5,12 +5,12 @@ import type {
   LayoutVersionRow,
 } from "#layout/index.ts";
 import type { QueryOperators } from "#queries/_shared.ts";
-import { fillPlaceholders, sql } from "drizzle-orm";
 import type { AnyColumn, Query, SQL } from "drizzle-orm";
+import { fillPlaceholders, sql } from "drizzle-orm";
 import { Context, Data, Effect } from "effect";
 
-import { layoutErrorOf } from "./layout.ts";
 import type { ItemQueryLayoutError } from "./layout.ts";
+import { layoutErrorOf } from "./layout.ts";
 
 import {
   columnsByTable,

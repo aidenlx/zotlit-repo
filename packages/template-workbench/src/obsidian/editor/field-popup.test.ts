@@ -1,8 +1,8 @@
 import type { FieldPopupKeys } from "#core/language/index.ts";
 // @vitest-environment happy-dom
 import type { EditorView } from "@codemirror/view";
-import { Scope } from "obsidian";
 import type { Keymap } from "obsidian";
+import { Scope } from "obsidian";
 import { expect, it, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";

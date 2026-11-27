@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { bundledNotice } from "./worker-notices.ts";
 import type { LicenceFallback } from "./worker-notices.ts";
+import { bundledNotice } from "./worker-notices.ts";
 
 async function workspace(
   packages: Record<

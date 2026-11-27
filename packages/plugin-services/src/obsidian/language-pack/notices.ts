@@ -1,16 +1,16 @@
-import { Effect, Fiber, Layer, Option, Schema, Stream } from "effect";
 import type { Exit } from "effect";
+import { Effect, Fiber, Layer, Option, Schema, Stream } from "effect";
 
 import { Notifier, reportProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
 import { logAndContinue } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { LanguagePack } from "./service.ts";
 import type {
   LanguagePackInstallError,
   LanguagePackRestartNotice,
 } from "./service.ts";
+import { LanguagePack } from "./service.ts";
 
 const RESTART_NOTICE_DURATION = "10 seconds";
 

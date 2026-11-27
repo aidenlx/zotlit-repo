@@ -14,8 +14,8 @@ import type {
 } from "@/lib/template-contract/model.ts";
 import * as m from "@/paraglide/messages.js";
 
-import { TypeTable } from "./type-table.tsx";
 import type { DetailNode, TypeNode } from "./type-table.tsx";
+import { TypeTable } from "./type-table.tsx";
 
 const model = pageModel as unknown as Pick<PageModel, "sections">;
 

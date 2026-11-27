@@ -1,10 +1,10 @@
-import { loader } from "fumadocs-core/source";
 import type { Source } from "fumadocs-core/source";
+import { loader } from "fumadocs-core/source";
 import { rcompare } from "semver";
 
 import { blogs, changelogs, docs, lessons } from "./collections.ts";
-import { i18n } from "./i18n.ts";
 import type { SiteLocale } from "./i18n.ts";
+import { i18n } from "./i18n.ts";
 import { docsPageTitle } from "./shared.ts";
 
 export function createDocsLoader<T extends Source>(input: T) {

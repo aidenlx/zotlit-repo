@@ -16,8 +16,8 @@ import { ATTACHMENT_LOADING } from "./attachment-hydration.ts";
 import type { FieldNeeds, QueryItem } from "./fields.ts";
 import type { QueryNote } from "./note-fields.ts";
 import { NOTE_LOADING } from "./note-hydration.ts";
-import { relationList } from "./record-loader.ts";
 import type { LoadingDescriptor } from "./record-loader.ts";
+import { relationList } from "./record-loader.ts";
 import {
   relatedAttachments,
   relatedItemAnnotations,

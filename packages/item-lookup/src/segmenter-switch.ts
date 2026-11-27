@@ -1,5 +1,5 @@
-import { Context, Effect } from "effect";
 import type { Layer } from "effect";
+import { Context, Effect } from "effect";
 
 import type { PackFailure } from "@zotlit/resource-pack/format.ts";
 import type { PackEntryLocation } from "@zotlit/resource-pack/reader.ts";

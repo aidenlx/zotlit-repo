@@ -6,8 +6,8 @@ import type {
 } from "#obsidian/citation-index/service.ts";
 import { describe, expect, it } from "vitest";
 
-import { buildReferenceEntries as presentReferenceEntries } from "./entries.ts";
 import type { ReferenceBuildOptions } from "./entries.ts";
+import { buildReferenceEntries as presentReferenceEntries } from "./entries.ts";
 
 import { ambiguousCandidates } from "#__fixtures__/citation-index/ambiguous-candidates.ts";
 import { citationOutcome } from "#obsidian/citation-index/outcome.ts";

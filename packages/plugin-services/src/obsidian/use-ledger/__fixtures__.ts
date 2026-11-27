@@ -1,5 +1,5 @@
-import { Context, DateTime, Effect, Layer, Stream } from "effect";
 import type { Scope } from "effect";
+import { Context, DateTime, Effect, Layer, Stream } from "effect";
 
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";

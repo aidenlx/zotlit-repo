@@ -10,6 +10,7 @@ import {
 } from "@zotlit/db-testing/scenario";
 
 import { checkLayout } from "./database.ts";
+import type { ScanRow } from "./index.ts";
 import {
   ItemQueryDatabase,
   ItemQueryDatabaseError,
@@ -19,7 +20,6 @@ import {
   readUniverseRows,
   SCAN_PAGE_SIZE,
 } from "./index.ts";
-import type { ScanRow } from "./index.ts";
 
 import { connectClient } from "#desktop/node-client.ts";
 import { relations } from "#drizzle/relations.ts";

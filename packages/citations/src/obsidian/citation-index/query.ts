@@ -1,6 +1,6 @@
 import type { CitationOutcome } from "./outcome.ts";
-import { occurrencesEqual } from "./scan.ts";
 import type { CitationOccurrence } from "./scan.ts";
+import { occurrencesEqual } from "./scan.ts";
 
 export interface ResolvedNote {
   indexedKey: string;

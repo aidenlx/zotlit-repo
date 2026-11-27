@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
 
 import { TemplateFacade } from "./facade.ts";
+import type { FrontmatterMergeConflict } from "./frontmatter-merge.ts";
 import {
   FRONTMATTER_ABSENT,
   mergeManagedFrontmatterEntries,
 } from "./frontmatter-merge.ts";
-import type { FrontmatterMergeConflict } from "./frontmatter-merge.ts";
 import {
   evalManagedFrontmatterEntries,
   stringifyFrontmatterInOrder,

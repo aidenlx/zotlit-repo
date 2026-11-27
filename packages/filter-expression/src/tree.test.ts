@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import type { FilterTree } from "./index.ts";
 import {
   composeFilterTree,
   foldFilterTree,
   isFilterTree,
   readFilterTree,
 } from "./index.ts";
-import type { FilterTree } from "./index.ts";
 
 describe("composeFilterTree", () => {
   it.each<[string, FilterTree, string]>([

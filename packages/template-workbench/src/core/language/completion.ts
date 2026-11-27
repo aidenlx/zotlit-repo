@@ -8,17 +8,17 @@ import type { Extension } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { regex } from "arkregex";
 
-import { syntaxCompletion } from "./field-popup.ts";
 import type { CompletionPresentation } from "./field-popup.ts";
+import { syntaxCompletion } from "./field-popup.ts";
 import { pairingContext } from "./pairing-context.ts";
 import { expressionBrackets, addPair, pairingState } from "./pairing-state.ts";
-import { completionEdit, suggestions } from "./suggestions.ts";
 import type {
   CompletionEdit,
   Suggestion,
   SuggestionConfig,
   SuggestionResult,
 } from "./suggestions.ts";
+import { completionEdit, suggestions } from "./suggestions.ts";
 
 export function applyTemplateCompletion(
   view: EditorView,

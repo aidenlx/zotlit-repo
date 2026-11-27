@@ -12,8 +12,8 @@ import type { ExpressionVocabulary } from "@zotlit/template-workbench/core/langu
 import { customFieldNamesAtom } from "./atoms.ts";
 import { datasetSpec } from "./datasets.ts";
 import { useQueryViewState } from "./model.ts";
-import { fieldLabel } from "./view-properties.ts";
 import type { ViewProperties } from "./view-properties.ts";
+import { fieldLabel } from "./view-properties.ts";
 import type { QueryView } from "./view.tsx";
 
 import { boundRecords } from "#obsidian/query-view/context-hint.ts";

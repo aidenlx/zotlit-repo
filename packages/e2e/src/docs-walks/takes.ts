@@ -5,8 +5,8 @@ import { dirname, join, relative } from "node:path";
 import { promisify } from "node:util";
 
 import type { CameraEvent, CameraTrack } from "./camera.ts";
-import { cutSettings } from "./clip-settings.ts";
 import type { ClipSettings } from "./clip-settings.ts";
+import { cutSettings } from "./clip-settings.ts";
 
 const execFileAsync = promisify(execFile);
 

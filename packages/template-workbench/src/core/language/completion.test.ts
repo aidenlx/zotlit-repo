@@ -5,8 +5,8 @@ import { Effect } from "effect";
 import { expect, it } from "vitest";
 
 import { applyTemplateCompletion } from "./completion.ts";
-import { suggestions } from "./suggestions.ts";
 import type { Suggestion } from "./suggestions.ts";
+import { suggestions } from "./suggestions.ts";
 
 const CALL = '{% render "';
 

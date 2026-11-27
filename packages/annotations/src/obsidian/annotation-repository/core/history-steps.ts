@@ -17,9 +17,10 @@ import { Effect } from "effect";
 
 import { autosaveDue, draftFor } from "./draft-store.ts";
 import { holding, writeHolding } from "./lists.ts";
-import { DRAFT_FIELDS, proposedTags } from "./model.ts";
 import type { AnnotationRecord } from "./model.ts";
+import { DRAFT_FIELDS, proposedTags } from "./model.ts";
 import type { CoreState } from "./state.ts";
+import type { WriteReadError, WriteRunFailed } from "./writes.ts";
 import {
   command,
   createAnnotation,
@@ -31,7 +32,6 @@ import {
   writeBlocked,
   writeText,
 } from "./writes.ts";
-import type { WriteReadError, WriteRunFailed } from "./writes.ts";
 
 import {
   AnnotationHistory,

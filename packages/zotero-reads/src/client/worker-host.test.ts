@@ -3,6 +3,7 @@ import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import type { ChangeEvent, FileReadsConfig } from "#contract/rpc.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
+import type { Duration } from "effect";
 import {
   Deferred,
   Effect,
@@ -17,7 +18,6 @@ import {
   Scope,
   Stream,
 } from "effect";
-import type { Duration } from "effect";
 import { TestClock } from "effect/testing";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
@@ -28,9 +28,9 @@ import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import * as readsEvents from "./events.ts";
-import { connectWorker, makeWorkerReads } from "./worker-host.ts";
 import type { ReapWorkerSnapshots } from "./worker-host.ts";
 import type { WorkerConnection } from "./worker-host.ts";
+import { connectWorker, makeWorkerReads } from "./worker-host.ts";
 
 import { readsFixture } from "#__fixtures__/reads.ts";
 import { DbUnavailable } from "#contract/rpc.ts";

@@ -1,6 +1,6 @@
 import type { ExcerptImage } from "#core/excerpt-image/format.ts";
-import { Cause, Data, Effect, Result, Schema } from "effect";
 import type { PlatformError } from "effect";
+import { Cause, Data, Effect, Result, Schema } from "effect";
 import type { CliData } from "obsidian";
 
 import { renderDiagnostic } from "@zotlit/item-query";

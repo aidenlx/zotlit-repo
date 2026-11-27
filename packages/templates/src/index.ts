@@ -1,11 +1,11 @@
-import { Eta, EtaError, EtaParseError } from "eta/core";
 import type { EtaConfig, TemplateFunction } from "eta/core";
+import { Eta, EtaError, EtaParseError } from "eta/core";
 
 import { basename } from "./basename.ts";
 import { formatBlockquote } from "./blockquote.ts";
 import { coerceOutput } from "./coerce.ts";
-import { DEFAULT_AUTO_TRIM } from "./constants.ts";
 import type { AutoTrim } from "./constants.ts";
+import { DEFAULT_AUTO_TRIM } from "./constants.ts";
 import { embed } from "./embed.ts";
 import { filenameSuffix } from "./filename-suffix.ts";
 import { formatTemplatePandocCitation } from "./pandoc-citation-adapter.ts";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { toTemplateTag } from "./zt-tag.ts";
 import type { ItemTag } from "./zt-tag.ts";
+import { toTemplateTag } from "./zt-tag.ts";
 
 const itemTag = (name: string, type: ItemTag["type"]): ItemTag => ({
   itemID: 1,

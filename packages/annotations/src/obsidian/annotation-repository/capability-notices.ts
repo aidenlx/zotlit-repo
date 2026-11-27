@@ -7,8 +7,8 @@ import type {
 } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 import { editingCapabilityCopy } from "./capability-copy.ts";
-import { capabilityReason } from "./capability.ts";
 import type { EditingCapability } from "./capability.ts";
+import { capabilityReason } from "./capability.ts";
 
 export interface CapabilityNotice {
   title: string;

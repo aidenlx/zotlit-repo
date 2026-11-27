@@ -7,8 +7,8 @@ import type {
   BibliographyRenderState,
   RenderPresentation,
 } from "#obsidian/pandoc/render-cache.ts";
-import { hashKey } from "@tanstack/query-core";
 import type { QueryFunction } from "@tanstack/query-core";
+import { hashKey } from "@tanstack/query-core";
 import {
   Cause,
   Effect,

@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { KeyboardEvent } from "react";
+import { useState } from "react";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";

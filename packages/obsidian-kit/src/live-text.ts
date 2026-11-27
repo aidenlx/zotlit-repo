@@ -1,5 +1,6 @@
 import type { ChangeSpec } from "@codemirror/state";
 import { diffChars } from "diff";
+import type { TFile, Vault, Workspace } from "obsidian";
 import {
   getFrontMatterInfo,
   MarkdownView,
@@ -7,7 +8,6 @@ import {
   stringifyYaml,
   TextFileView,
 } from "obsidian";
-import type { TFile, Vault, Workspace } from "obsidian";
 
 export type LiveTextApp = {
   vault: Pick<Vault, "process">;

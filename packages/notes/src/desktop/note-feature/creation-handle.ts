@@ -8,11 +8,11 @@ import { exitOver, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
-import { createNoteInteractively } from "./creation-view.ts";
 import type {
   InteractiveCreationOptions,
   InteractiveCreationPorts,
 } from "./creation-view.ts";
+import { createNoteInteractively } from "./creation-view.ts";
 import type { NoteFeature } from "./service.ts";
 
 export type NoteCreationServices =

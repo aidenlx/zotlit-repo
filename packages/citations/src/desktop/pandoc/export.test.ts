@@ -21,8 +21,8 @@ import type {
   BibliographyFailure,
   BibliographyItemRef,
 } from "./bibliography.ts";
-import { exportCitedDocument } from "./export.ts";
 import type { ExportFailure, ExportPorts, ExportResult } from "./export.ts";
+import { exportCitedDocument } from "./export.ts";
 
 import { inProcessParseClient } from "#core/citation-parse/in-process.ts";
 import { PANDOC_RESOLVE_MAP_FILENAME } from "#core/pandoc/filter/index.ts";

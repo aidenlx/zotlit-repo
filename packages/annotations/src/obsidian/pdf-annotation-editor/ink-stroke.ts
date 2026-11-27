@@ -1,8 +1,8 @@
 import type { ReaderPage } from "./creation.ts";
 import type { Point } from "./hit-test.ts";
 import { clampToViewBox, StrokeSamples } from "./ink-path.ts";
-import { update } from "./reader-surface-model.ts";
 import type { ReaderSurface } from "./reader-surface-model.ts";
+import { update } from "./reader-surface-model.ts";
 import { clearLiveStroke, publishLiveStroke } from "./reader-surface-state.ts";
 import { pdfPointAt } from "./surface.ts";
 

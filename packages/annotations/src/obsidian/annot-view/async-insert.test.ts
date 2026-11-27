@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { history, undo } from "@codemirror/commands";
-import { TFile } from "obsidian";
 import type { Editor, EventRef, MarkdownFileInfo, Workspace } from "obsidian";
+import { TFile } from "obsidian";
 import { describe, expect, it } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";

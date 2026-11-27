@@ -53,6 +53,7 @@ import {
   reconcileDrafts,
 } from "./draft-store.ts";
 import { recordExistence, recordGroup, recordStep } from "./history-record.ts";
+import type { AnnotationLibraryUnresolved } from "./lists.ts";
 import {
   announceReadPixels,
   attachmentHolding,
@@ -67,13 +68,6 @@ import {
   sourceStillBound,
   writeHolding,
 } from "./lists.ts";
-import type { AnnotationLibraryUnresolved } from "./lists.ts";
-import {
-  ANNOTATIONS,
-  TEXT_FIELD_SPECS,
-  freshValueOf,
-  fromLocalApi,
-} from "./model.ts";
 import type {
   AnnotationConfirmation,
   AnnotationMutation,
@@ -85,6 +79,12 @@ import type {
   PendingProposal,
   ProposedFields,
   WriteAttempt,
+} from "./model.ts";
+import {
+  ANNOTATIONS,
+  TEXT_FIELD_SPECS,
+  freshValueOf,
+  fromLocalApi,
 } from "./model.ts";
 import { leave, settle, standingOutcome, takeOver } from "./outcomes.ts";
 import type { CoreState } from "./state.ts";

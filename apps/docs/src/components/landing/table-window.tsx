@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,13 +24,13 @@ import {
   TextAlignStart,
   X,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { Fragment } from "react";
 import type { CSSProperties, RefObject } from "react";
+import { Fragment } from "react";
 
 import { cn } from "@/lib/cn.ts";
 import { m } from "@/paraglide/messages.js";
 
+import type { Paper } from "./papers.ts";
 import {
   BY_YEAR,
   COLLECTION,
@@ -38,7 +39,6 @@ import {
   QUERY_FOLDER,
   TAGS,
 } from "./papers.ts";
-import type { Paper } from "./papers.ts";
 
 export const FINAL = 17;
 

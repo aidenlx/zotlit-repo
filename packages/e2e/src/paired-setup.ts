@@ -5,8 +5,8 @@ import type { TestProject } from "vitest/node";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { openPairedEnvironment } from "./paired-environment.ts";
 import type { PairedEnvironment } from "./paired-environment.ts";
+import { openPairedEnvironment } from "./paired-environment.ts";
 import { e2eResultsDir } from "./results-dir.ts";
 import { isObsidianReachable } from "./vault-script.ts";
 

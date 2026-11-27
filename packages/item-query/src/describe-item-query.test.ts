@@ -15,6 +15,16 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryLayoutError } from "@zotlit/db/item-query";
 
 import { faultCode, runEffect } from "./__fixtures__/test-helpers.ts";
+import type {
+  FilterValueType,
+  FunctionDefinition,
+  FunctionParameter,
+  PropertyDefinition,
+  ItemQueryRequest,
+  ItemQuerySchema,
+  SchemaFunction,
+  SchemaParameter,
+} from "./index.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
@@ -25,16 +35,6 @@ import {
   METHOD_ENTRIES,
   parameterAt,
   PROPERTY_ENTRIES,
-} from "./index.ts";
-import type {
-  FilterValueType,
-  FunctionDefinition,
-  FunctionParameter,
-  PropertyDefinition,
-  ItemQueryRequest,
-  ItemQuerySchema,
-  SchemaFunction,
-  SchemaParameter,
 } from "./index.ts";
 import {
   describeAnnotationQuery,

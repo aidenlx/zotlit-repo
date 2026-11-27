@@ -6,13 +6,13 @@ import { Text } from "@codemirror/state";
 import { it as effectIt } from "@effect/vitest";
 import { DateTime, Effect } from "effect";
 import { TestClock } from "effect/testing";
-import { TFile } from "obsidian";
 import type {
   App,
   Editor,
   EditorPosition,
   EditorSuggestContext,
 } from "obsidian";
+import { TFile } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { placeInsertion } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";

@@ -9,11 +9,11 @@ import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
 import { WorkbenchHostError } from "./host.tsx";
-import { makeRenderSchedulerAtoms } from "./scheduler-atoms.ts";
 import type {
   RenderSchedulerAtomsOptions,
   RenderSchedulerInput,
 } from "./scheduler-atoms.ts";
+import { makeRenderSchedulerAtoms } from "./scheduler-atoms.ts";
 
 import {
   failedRender,

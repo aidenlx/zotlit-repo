@@ -1,6 +1,5 @@
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
 import type { LiteratureNoteAttachmentsHandle } from "#obsidian/attachment-open/handle.ts";
-import { TFile } from "obsidian";
 import type {
   App,
   CachedMetadata,
@@ -8,18 +7,19 @@ import type {
   MetadataCache,
   Workspace,
 } from "obsidian";
+import { TFile } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Notice } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
+import type { AttachmentOpenDeps } from "./actions.ts";
 import {
   addAttachmentOpenActions,
   openGesture,
   pdfPickerReader,
 } from "./actions.ts";
-import type { AttachmentOpenDeps } from "./actions.ts";
 import { openAttachments } from "./open-attachments.ts";
 import type { TargetOpener } from "./open-target.ts";
 

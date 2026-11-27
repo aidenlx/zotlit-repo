@@ -38,7 +38,6 @@ import { Cause, Effect, Schema, Semaphore, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
-import { apiVersion, Menu, Scope, TextFileView } from "obsidian";
 import type {
   App,
   TFile,
@@ -47,6 +46,8 @@ import type {
   ViewStateResult,
   WorkspaceLeaf,
 } from "obsidian";
+import { apiVersion, Menu, Scope, TextFileView } from "obsidian";
+import type { ReactNode } from "react";
 import {
   useCallback,
   useEffect,
@@ -54,9 +55,8 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ReactNode } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { bibliographyRevisionAtom } from "@zotlit/citations/obsidian/pandoc/atoms.ts";
 import type { UpdateResult } from "@zotlit/notes/desktop/note-feature/operations.ts";
@@ -125,15 +125,16 @@ import {
   materializeDefault,
   profileOfFile,
 } from "./atoms.ts";
+import type { FieldsPanelModel } from "./fields-panel.tsx";
 import {
   FieldsMoreOptions,
   FieldsPanel,
   makeFieldsActions,
   makeFieldsPanelModel,
 } from "./fields-panel.tsx";
-import type { FieldsPanelModel } from "./fields-panel.tsx";
 import { ViewItemRow } from "./item-row.tsx";
 import { openWorkbenchLayout, setLeafState } from "./layout.ts";
+import type { TemplateWorkbenchModel } from "./model.ts";
 import {
   holdTemplateWorkbenchModel,
   makePartialPreviews,
@@ -143,7 +144,6 @@ import {
   savedWorkbench,
   setPresentation,
 } from "./model.ts";
-import type { TemplateWorkbenchModel } from "./model.ts";
 import { openTemplateWorkbench } from "./open.ts";
 import { createSharedPartialEffect } from "./partial-command.ts";
 import {

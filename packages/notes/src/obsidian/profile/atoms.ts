@@ -8,8 +8,8 @@ import { viewRuntime, held } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { Profile } from "./service.ts";
 import type { ProfileState, LiteratureNoteProfile } from "./service.ts";
+import { Profile } from "./service.ts";
 import { profileSettings } from "./settings.ts";
 
 export const profileStateAtom = held(

@@ -1,7 +1,7 @@
 import type { ShownCitation } from "#obsidian/citation-text/present.ts";
 import { Effect } from "effect";
-import { Menu } from "obsidian";
 import type { HoverParent, Workspace } from "obsidian";
+import { Menu } from "obsidian";
 
 import {
   menuEvent,
@@ -14,21 +14,21 @@ import {
   logLevelEnabled,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 
-import { citationHoverIntent } from "./hover.ts";
 import type { CitationHoverIntent, HoverPreferences } from "./hover.ts";
-import {
-  citationClickIntent,
-  citationTarget,
-  navigationIntent,
-} from "./intent.ts";
+import { citationHoverIntent } from "./hover.ts";
 import type {
   CitationClickIntent,
   CitedWork,
   HoveredWork,
   NavigationPane,
 } from "./intent.ts";
-import { hoverGesture, mouseGesture, triggerCitekeyHover } from "./shell.ts";
+import {
+  citationClickIntent,
+  citationTarget,
+  navigationIntent,
+} from "./intent.ts";
 import type { GestureSurface } from "./shell.ts";
+import { hoverGesture, mouseGesture, triggerCitekeyHover } from "./shell.ts";
 
 declare module "@zotlit/obsidian-kit/menu-events.ts" {
   interface ZotLitMenuEvents {

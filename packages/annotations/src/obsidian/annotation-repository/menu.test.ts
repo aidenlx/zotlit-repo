@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { TFile } from "obsidian";
 import type { Menu as ObsidianMenu, MenuItem, WorkspaceLeaf } from "obsidian";
+import { TFile } from "obsidian";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
 import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";

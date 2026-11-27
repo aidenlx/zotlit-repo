@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type { CardPlace, CardSelection } from "./card-selection.ts";
 import {
   NO_SELECTION,
   cardPlace,
   nextCardSelection,
 } from "./card-selection.ts";
-import type { CardPlace, CardSelection } from "./card-selection.ts";
 
 const p = (key: string) => cardPlace(key, null);
 

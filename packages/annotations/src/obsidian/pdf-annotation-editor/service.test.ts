@@ -1,8 +1,8 @@
 import type { FakeReader } from "#__fixtures__/pdf-annotation-editor.ts";
 import type { HistoryOutcome } from "#obsidian/annotation-repository/service.ts";
 import { DateTime, Effect } from "effect";
-import { Scope, TExternalFile } from "obsidian";
 import type { App, EventRef, View, Workspace, WorkspaceLeaf } from "obsidian";
+import { Scope, TExternalFile } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";

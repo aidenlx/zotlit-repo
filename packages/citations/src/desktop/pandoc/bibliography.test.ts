@@ -11,14 +11,14 @@ import {
   ZoteroHttp,
 } from "@zotlit/plugin-kernel/zotero-http.ts";
 
-import {
-  fetchBibliography as fetchEffect,
-  LOCAL_API_PREF,
-} from "./bibliography.ts";
 import type {
   BibliographyItemRef,
   BibliographyPorts,
   BibliographyResult,
+} from "./bibliography.ts";
+import {
+  fetchBibliography as fetchEffect,
+  LOCAL_API_PREF,
 } from "./bibliography.ts";
 
 const fetchBibliography = (

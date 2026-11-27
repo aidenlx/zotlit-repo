@@ -1,15 +1,15 @@
+import type {
+  ComponentPropsWithoutRef,
+  KeyboardEvent,
+  Ref,
+  RefObject,
+} from "react";
 import {
   createContext,
   useCallback,
   useContext,
   useRef,
   useState,
-} from "react";
-import type {
-  ComponentPropsWithoutRef,
-  KeyboardEvent,
-  Ref,
-  RefObject,
 } from "react";
 
 const DEFAULT_COMMIT_KEYS: readonly string[] = ["Enter"];

@@ -2,7 +2,6 @@ import type { WorkbenchHostDeps } from "#__fixtures__/view.ts";
 import type { DefaultProfileTarget } from "#desktop/view/customize.ts";
 // @vitest-environment happy-dom
 import { Effect } from "effect";
-import { MarkdownView, TFile } from "obsidian";
 import type {
   App,
   Command,
@@ -11,6 +10,7 @@ import type {
   ViewState,
   WorkspaceLeaf,
 } from "obsidian";
+import { MarkdownView, TFile } from "obsidian";
 import {
   beforeEach,
   afterEach,

@@ -74,10 +74,10 @@ import { readIndexedItemIDs } from "./item-scan.ts";
 import { layerConnectionItemSource } from "./item-source.ts";
 import { itemsByIndexedKeys } from "./items-by-indexed-keys.ts";
 import { listCollectionChoices } from "./membership.ts";
-import { layerSegmenterBinaryReader } from "./segmenter.ts";
 import type { ReadSegmenter } from "./segmenter.ts";
-import { exportItemSnapshot } from "./snapshot/export.ts";
+import { layerSegmenterBinaryReader } from "./segmenter.ts";
 import type { SnapshotRevision } from "./snapshot/export.ts";
+import { exportItemSnapshot } from "./snapshot/export.ts";
 
 import {
   DbUnavailable,

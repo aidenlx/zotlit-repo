@@ -1,5 +1,5 @@
-import { useMemo } from "react";
 import type { Ref } from "react";
+import { useMemo } from "react";
 
 import type {
   ChooserActionRow,
@@ -17,6 +17,7 @@ import { annotationColorLabel } from "@zotlit/plugin-kernel/annotation-colors.ts
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 
+import type { TagChip } from "./filter.ts";
 import {
   cappedSelection,
   deriveSwatchColors,
@@ -24,7 +25,6 @@ import {
   filterAnnotations,
   isFilterActive,
 } from "./filter.ts";
-import type { TagChip } from "./filter.ts";
 import {
   useAnnotFilter,
   useAnnotStore,

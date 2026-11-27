@@ -1,8 +1,8 @@
 import type { Library } from "#queries/libraries.ts";
 import { Effect } from "effect";
 
-import { checkLayout, defineStatement } from "./database.ts";
 import type { ItemQueryDatabase, ItemQueryReaderError } from "./database.ts";
+import { checkLayout, defineStatement } from "./database.ts";
 
 import { selectLibraries } from "#queries/libraries.ts";
 

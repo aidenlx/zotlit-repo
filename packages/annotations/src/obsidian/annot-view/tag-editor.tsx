@@ -1,13 +1,13 @@
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
+import type { App } from "obsidian";
 import {
   AbstractInputSuggest,
   prepareSimpleSearch,
   renderMatches,
   Scope,
 } from "obsidian";
-import type { App } from "obsidian";
-import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { tagTypeToName } from "@zotlit/db";
 import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
@@ -19,10 +19,10 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TagsInput, useTagsInput, useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
-import { sameHeldTags } from "./card-controls.ts";
 import type { HeldTags } from "./card-controls.ts";
-import { renderHeldTagsPanel } from "./editor-sheet.ts";
+import { sameHeldTags } from "./card-controls.ts";
 import type { EditorSurface, HeldDraftActions } from "./editor-sheet.ts";
+import { renderHeldTagsPanel } from "./editor-sheet.ts";
 
 import { tagChipVariants } from "#core/annot-view/tag-chip.ts";
 

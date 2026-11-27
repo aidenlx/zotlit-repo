@@ -1,7 +1,7 @@
 import { sep } from "node:path";
 
-import { hasSource } from "./oxlint-ast.ts";
 import type { AstNode, ModuleStatement, Rule } from "./oxlint-ast.ts";
+import { hasSource } from "./oxlint-ast.ts";
 
 const LOGTAPE_MODULE = "@logtape/logtape";
 const KERNEL_PACKAGE = "@zotlit/plugin-kernel/";

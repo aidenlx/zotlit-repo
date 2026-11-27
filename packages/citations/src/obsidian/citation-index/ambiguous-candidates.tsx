@@ -1,5 +1,5 @@
-import { candidateRow } from "./ambiguity.ts";
 import type { AmbiguousCandidate } from "./ambiguity.ts";
+import { candidateRow } from "./ambiguity.ts";
 
 export function AmbiguousCandidates({
   candidates,

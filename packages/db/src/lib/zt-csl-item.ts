@@ -10,10 +10,10 @@ import {
 } from "@zotlit/zotero-types/csl";
 import { isMultipartDate } from "@zotlit/zotero-types/date";
 
-import { parseNameParticles } from "./zt-csl-name.ts";
 import type { CslPersonName } from "./zt-csl-name.ts";
-import { parseItemDate } from "./zt-date.ts";
+import { parseNameParticles } from "./zt-csl-name.ts";
 import type { ItemDate } from "./zt-date.ts";
+import { parseItemDate } from "./zt-date.ts";
 import { extraToCsl } from "./zt-extra-to-csl.ts";
 import { itemUri } from "./zt-uri.ts";
 

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { forceParsing } from "@codemirror/language";
-import { EditorState } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
+import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

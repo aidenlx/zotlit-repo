@@ -1,6 +1,6 @@
 import type { FakeReader } from "#__fixtures__/pdf-annotation-editor.ts";
-import { Scope } from "obsidian";
 import type { App, EventRef, Workspace } from "obsidian";
+import { Scope } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 // @vitest-environment happy-dom

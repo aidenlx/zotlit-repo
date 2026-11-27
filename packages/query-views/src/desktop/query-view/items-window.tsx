@@ -1,4 +1,5 @@
 import type { VirtualRows } from "#obsidian/query-view/virtual-rows.ts";
+import type { HTMLAttributes, LiHTMLAttributes, ReactNode } from "react";
 import {
   Fragment,
   useCallback,
@@ -7,7 +8,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { HTMLAttributes, LiHTMLAttributes, ReactNode } from "react";
 
 import { observeResize } from "@zotlit/obsidian-kit/observe-resize.ts";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";

@@ -5,8 +5,8 @@ import type {
 } from "#core/data-tree/index.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { Effect } from "effect";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
@@ -19,28 +19,28 @@ import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
-import { explorerSections, listPropertyLabels } from "./explorer-sections.ts";
 import type { ExplorerReader } from "./explorer-sections.ts";
-import { DisplayTree } from "./explorer-tree.tsx";
+import { explorerSections, listPropertyLabels } from "./explorer-sections.ts";
 import type { DisplaySection, FieldRowState } from "./explorer-tree.tsx";
+import { DisplayTree } from "./explorer-tree.tsx";
 import { FieldDetails, placeFieldDetails } from "./field-details.tsx";
-import {
-  fieldForm,
-  fieldForms,
-  TEMPLATE_INSERTION,
-} from "./field-insertion.ts";
 import type {
   FieldForm,
   FieldInsertionContext,
   FieldInsertOptions,
 } from "./field-insertion.ts";
+import {
+  fieldForm,
+  fieldForms,
+  TEMPLATE_INSERTION,
+} from "./field-insertion.ts";
 import { useFieldsPanelRows } from "./fields-panel.tsx";
-import { useContainerName, useWorkbenchHost } from "./host.tsx";
 import type { WorkbenchClipboardError } from "./host.tsx";
-import { showWorkbenchMenu } from "./menu.ts";
+import { useContainerName, useWorkbenchHost } from "./host.tsx";
 import type { WorkbenchMenuItem, WorkbenchMenuRequest } from "./menu.ts";
-import { announceFields } from "./model.ts";
+import { showWorkbenchMenu } from "./menu.ts";
 import type { TemplateRoot } from "./model.ts";
+import { announceFields } from "./model.ts";
 
 import {
   buildDisplayTree,

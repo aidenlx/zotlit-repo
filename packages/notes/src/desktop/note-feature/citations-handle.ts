@@ -1,7 +1,7 @@
 import type { Profile } from "#obsidian/profile/service.ts";
 import type { Template } from "#obsidian/template/service.ts";
-import { Effect } from "effect";
 import type { Context } from "effect";
+import { Effect } from "effect";
 
 import type { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import type { AnnotationCitation } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";

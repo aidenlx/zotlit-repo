@@ -4,6 +4,12 @@ import { expect, it, vi } from "vitest";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
+import type {
+  ChildrenRequest,
+  ClientOptions,
+  WireAnnotation,
+  ZoteroAnswers,
+} from "./__fixtures__.ts";
 import {
   annotationPage,
   ATTACHMENT_KEY,
@@ -19,12 +25,6 @@ import {
   SERVER_ID,
   serverChanged,
   unreachable,
-} from "./__fixtures__.ts";
-import type {
-  ChildrenRequest,
-  ClientOptions,
-  WireAnnotation,
-  ZoteroAnswers,
 } from "./__fixtures__.ts";
 import type {
   LocalApiAnnotation,

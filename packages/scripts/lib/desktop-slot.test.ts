@@ -1,5 +1,5 @@
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { once } from "node:events";
 import {
   mkdir,

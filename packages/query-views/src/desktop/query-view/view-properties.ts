@@ -14,8 +14,8 @@ import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
 import { DATASETS } from "./datasets.ts";
 import { useQueryViewState } from "./model.ts";
-import { formulaIssuesOf } from "./results.ts";
 import type { FormulaIssue } from "./results.ts";
+import { formulaIssuesOf } from "./results.ts";
 import { groupPaths } from "./rows.ts";
 import type { QueryView } from "./view.tsx";
 

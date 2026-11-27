@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { createLanguagePackRuntime, noopLogger } from "./index.ts";
 import type {
   LanguagePack,
   LanguagePackRuntime,
   TargetLocaleMessages,
 } from "./index.ts";
+import { createLanguagePackRuntime, noopLogger } from "./index.ts";
 
 type Input = string | number;
 

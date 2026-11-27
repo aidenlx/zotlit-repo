@@ -8,8 +8,8 @@ import type { AnnotViewState } from "@zotlit/annotations/obsidian/annot-view/vie
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { ANNOT_VIEW_TYPE, AnnotationView } from "./view.tsx";
 import type { AnnotViewDeps } from "./view.tsx";
+import { ANNOT_VIEW_TYPE, AnnotationView } from "./view.tsx";
 
 type AnnotViewPlugin = Pick<
   Plugin,

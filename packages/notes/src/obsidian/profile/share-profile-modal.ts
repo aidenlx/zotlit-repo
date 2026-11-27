@@ -1,5 +1,5 @@
-import { Modal, Setting } from "obsidian";
 import type { App, ButtonComponent, TextComponent } from "obsidian";
+import { Modal, Setting } from "obsidian";
 import inc from "semver/functions/inc";
 
 import {

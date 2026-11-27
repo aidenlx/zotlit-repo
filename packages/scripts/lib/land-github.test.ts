@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ghLandGitHub, githubRepository } from "./land-github.ts";
 import type { GhRun } from "./land-github.ts";
+import { ghLandGitHub, githubRepository } from "./land-github.ts";
 
 const REPO = "aidenlx/zotlit-repo";
 

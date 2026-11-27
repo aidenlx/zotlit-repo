@@ -1,8 +1,8 @@
 import { liquidTagLanguage } from "@codemirror/lang-liquid";
 import type { Range } from "@codemirror/state";
 import { Prec } from "@codemirror/state";
-import { Decoration } from "@codemirror/view";
 import type { EditorView } from "@codemirror/view";
+import { Decoration } from "@codemirror/view";
 import { highlightTree } from "@lezer/highlight";
 
 import { decorationLayer } from "./decorations.ts";

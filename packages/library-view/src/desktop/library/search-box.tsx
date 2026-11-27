@@ -1,8 +1,8 @@
 import { Component } from "obsidian";
-import { useSyncExternalStore } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
-import { createRoot } from "react-dom/client";
+import { useSyncExternalStore } from "react";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { SearchInput } from "@zotlit/obsidian-kit/components/obsidian/search-input.tsx";
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -17,15 +17,15 @@ import type {
 
 import type { LibraryNode } from "./document.ts";
 import type { HeaderSearch } from "./heading.tsx";
+import type { SearchSession } from "./search-model.ts";
 import {
   makeSearchModel,
   patchSearch,
   SearchModelProvider,
   useSearchState,
 } from "./search-model.ts";
-import type { SearchSession } from "./search-model.ts";
-import { TreeModelProvider, useTreeState } from "./tree-model.ts";
 import type { TreeModel } from "./tree-model.ts";
+import { TreeModelProvider, useTreeState } from "./tree-model.ts";
 
 import { waitForRead } from "#obsidian/library/model.ts";
 import { TextAction } from "#obsidian/library/text-action.tsx";

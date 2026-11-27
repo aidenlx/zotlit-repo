@@ -7,8 +7,8 @@ import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { READER_API } from "@zotlit/reader-api";
 
-import { ReaderConnection } from "./service.ts";
 import type { ReaderConnectionState } from "./service.ts";
+import { ReaderConnection } from "./service.ts";
 
 export const READER_PLUGIN_ID = "zotlit-reader";
 const ZOTLIT_PLUGIN_ID = "zotlit";

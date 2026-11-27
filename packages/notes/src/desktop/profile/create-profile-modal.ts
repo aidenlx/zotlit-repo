@@ -7,8 +7,8 @@ import type {
   PreparedProfileCreation,
 } from "#obsidian/profile/service.ts";
 import { Effect } from "effect";
-import { DropdownComponent, Modal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
+import { DropdownComponent, Modal, TextComponent } from "obsidian";
 
 import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import type { InstalledCslStyle } from "@zotlit/citations/core/pandoc/csl-style.ts";

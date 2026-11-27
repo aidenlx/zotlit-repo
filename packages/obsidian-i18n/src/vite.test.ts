@@ -1,8 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { runInNewContext } from "node:vm";
-import { build } from "vite";
 import type { Plugin, ResolvedConfig, UserConfig } from "vite";
+import { build } from "vite";
 import { describe, expect, onTestFinished, test } from "vitest";
 
 import {

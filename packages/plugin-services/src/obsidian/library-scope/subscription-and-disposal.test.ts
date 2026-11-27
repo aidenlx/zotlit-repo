@@ -11,8 +11,8 @@ import {
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { libraryScopeFixture } from "./__fixtures__.ts";
-import { scopeChanges } from "./service.ts";
 import type { LibraryScopeState } from "./service.ts";
+import { scopeChanges } from "./service.ts";
 import { LIBRARY_SCOPE_KEY } from "./service.ts";
 
 import { platformSettings } from "#__fixtures__/platform-settings.ts";

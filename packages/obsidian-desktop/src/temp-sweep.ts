@@ -1,5 +1,5 @@
-import { Cause, Clock, Duration, Effect, FileSystem, Option } from "effect";
 import type { PlatformError } from "effect";
+import { Cause, Clock, Duration, Effect, FileSystem, Option } from "effect";
 import { join } from "node:path";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";

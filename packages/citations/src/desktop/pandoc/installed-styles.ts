@@ -1,6 +1,6 @@
 import type { InstalledCslStyle } from "#core/pandoc/csl-style.ts";
-import { Effect } from "effect";
 import type { FileSystem, PlatformError } from "effect";
+import { Effect } from "effect";
 import { join } from "node:path";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";

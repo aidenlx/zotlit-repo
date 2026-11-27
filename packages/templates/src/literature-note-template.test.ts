@@ -5,12 +5,12 @@ import {
   DEFAULT_ANNOTATION_ETA as annotationEta,
   DEFAULT_ANNOTATION_LIQUID as annotationLiquid,
 } from "./default-annotation.ts";
+import type { LiteratureNoteTemplateError } from "./facade.ts";
 import {
   convertLegacyFrontmatterFields,
   literatureNoteTemplateManifestRange,
   TemplateFacade,
 } from "./facade.ts";
-import type { LiteratureNoteTemplateError } from "./facade.ts";
 import { formatManagedRegion } from "./obsidian.ts";
 
 function documentWithFrontmatter(frontmatter: string): string {

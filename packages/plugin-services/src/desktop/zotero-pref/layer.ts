@@ -2,6 +2,7 @@ import type {
   ZoteroPrefSnapshot,
   ZoteroProfileInfo,
 } from "#core/zotero-pref/service.ts";
+import type { PlatformError } from "effect";
 import {
   Cause,
   Context,
@@ -12,7 +13,6 @@ import {
   Schema,
   SubscriptionRef,
 } from "effect";
-import type { PlatformError } from "effect";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";

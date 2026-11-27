@@ -4,8 +4,8 @@ import { afterEach, expect, it, vi } from "vitest";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import type { OverlayPageView } from "./render.ts";
-import { selectionPagesOf } from "./selection-capture.ts";
 import type { ClientBox } from "./selection-capture.ts";
+import { selectionPagesOf } from "./selection-capture.ts";
 
 const SCALE = 1.5;
 const PAGE_HEIGHT = 792;

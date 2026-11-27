@@ -4,8 +4,8 @@ import * as v from "valibot";
 
 import * as m from "@/paraglide/messages.js";
 
-import { assetUrl, tagUrl } from "./github-releases.ts";
 import type { ReleaseChannel } from "./github-releases.ts";
+import { assetUrl, tagUrl } from "./github-releases.ts";
 import { gitConfig, repoSlug } from "./shared.ts";
 
 const ZOTERO_ADDON_ID = "zotlit@aidenlx.site";

@@ -11,8 +11,8 @@ import type {
 } from "#core/render/result.ts";
 import type { Extension } from "@codemirror/state";
 import { Data, Effect } from "effect";
-import { createContext, useContext } from "react";
 import type { ComponentType, HTMLAttributes, ReactNode } from "react";
+import { createContext, useContext } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 

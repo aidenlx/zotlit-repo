@@ -1,6 +1,7 @@
 import type { EffectiveReadMode } from "#contract/rpc.ts";
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import type { ChangeEvent, SnapshotId } from "#contract/rpc.ts";
+import type { Scope } from "effect";
 import {
   Cause,
   Context,
@@ -13,9 +14,8 @@ import {
   Stream,
   SubscriptionRef,
 } from "effect";
-import type { Scope } from "effect";
-import { RpcSchema } from "effect/rpc";
 import type { RpcClientError } from "effect/rpc";
+import { RpcSchema } from "effect/rpc";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 

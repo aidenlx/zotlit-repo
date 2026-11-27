@@ -1,5 +1,5 @@
-import { Context, toValueSync, Value } from "liquidjs";
 import type { Liquid } from "liquidjs";
+import { Context, toValueSync, Value } from "liquidjs";
 import { stringify as stringifyYaml } from "yaml";
 
 import { basename } from "./basename.ts";
@@ -8,15 +8,15 @@ import type {
   FrontmatterLanguage,
   FrontmatterMergeStrategy,
 } from "./constants.ts";
+import type { FrontmatterJsonValue } from "./frontmatter-json-e.ts";
 import {
   assertFrontmatterOutputDomain,
   assertFrontmatterSpreadOutput,
   ManagedFrontmatterError,
   renderJsonEFrontmatterValue,
 } from "./frontmatter-json-e.ts";
-import type { FrontmatterJsonValue } from "./frontmatter-json-e.ts";
-import { FRONTMATTER_ABSENT } from "./frontmatter-merge.ts";
 import type { EvaluatedFrontmatterField } from "./frontmatter-merge.ts";
+import { FRONTMATTER_ABSENT } from "./frontmatter-merge.ts";
 import type { ManagedFrontmatterEntry } from "./literature-note-template.ts";
 
 export {

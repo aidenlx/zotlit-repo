@@ -7,15 +7,15 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { CslItemData } from "@zotlit/db";
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 
-import {
-  CitationEngineError,
-  CitationRequestSupersededError,
-  createCitationEngine,
-} from "./engine.ts";
 import type {
   CitationEngine,
   PrepareRequest,
   RenderRequest,
+} from "./engine.ts";
+import {
+  CitationEngineError,
+  CitationRequestSupersededError,
+  createCitationEngine,
 } from "./engine.ts";
 
 const WASM_PATH = join(

@@ -12,8 +12,8 @@ import {
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { MarkPopupControl, PopupColumn } from "./mark-popup.tsx";
-import { selectionToolOf } from "./tools.ts";
 import type { AnnotationTool, MarkTool, SelectionTool } from "./tools.ts";
+import { selectionToolOf } from "./tools.ts";
 
 import { editingBlockedReason } from "#obsidian/annot-view/card-controls.ts";
 import { EditorSheetSlot } from "#obsidian/annot-view/comment-parts.tsx";

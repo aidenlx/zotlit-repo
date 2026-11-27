@@ -13,6 +13,7 @@ import { ANNOTATION_SCENARIO_QUERIES } from "./__fixtures__/annotation-scenario-
 import type { RunOptions } from "./__fixtures__/test-helpers.ts";
 import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { ItemQueryError } from "./error.ts";
+import type { ItemQueryRequest } from "./index.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
@@ -20,7 +21,6 @@ import {
   collectQuery,
   consumeQuery,
 } from "./index.ts";
-import type { ItemQueryRequest } from "./index.ts";
 import { ItemQueryScheduler } from "./scheduler.ts";
 
 let scenario: ScenarioDatabase<NodeDatabaseClient>;

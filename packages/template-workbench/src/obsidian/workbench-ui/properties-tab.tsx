@@ -28,8 +28,8 @@ import { diagnosticText, documentDiagnosis, problemText } from "./problems.ts";
 import { PropertyList, propertyText } from "./property-list.tsx";
 import { indexAfterMove, useListReorder } from "./reorder.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
-import { SliceEditor } from "./slice-editor.tsx";
 import type { SuggestionSource } from "./slice-editor.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
 import { useRetention } from "./visited.ts";
 
 import {

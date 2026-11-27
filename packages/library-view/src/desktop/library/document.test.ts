@@ -22,6 +22,7 @@ import type {
 import { splitFilters } from "@zotlit/query-views/core/query-view/view-plan/filter-split.ts";
 import type { LibrarySelector } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
+import type { LibraryNode, LibraryViewDocument } from "./document.ts";
 import {
   CARD_HEIGHT_MIN,
   CARD_WIDTH_MIN,
@@ -47,7 +48,6 @@ import {
   withTreeCollapsed,
   withTreeWidth,
 } from "./document.ts";
-import type { LibraryNode, LibraryViewDocument } from "./document.ts";
 
 const viewFilter = (file: QueryFile, view: QueryFileView) =>
   splitFilters(file, view).engine(null)?.text;

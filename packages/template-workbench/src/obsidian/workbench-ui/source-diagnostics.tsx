@@ -6,11 +6,11 @@ import type { Diagnostic } from "@codemirror/lint";
 import { forEachDiagnostic, setDiagnosticsEffect } from "@codemirror/lint";
 import { Compartment } from "@codemirror/state";
 import { EditorView, GutterMarker, gutter } from "@codemirror/view";
-import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
+import { createContext, useContext } from "react";
 
-import { diagnosisExplanation } from "./problems.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
+import { diagnosisExplanation } from "./problems.ts";
 
 import { entryPosition, sliceOffsets } from "#core/document/index.ts";
 import { currentCallSite, currentSliceSite } from "#core/render/locate.ts";

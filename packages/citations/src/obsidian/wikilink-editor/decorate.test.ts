@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 
 import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citation.ts";
 
-import { searchMatchHighlights, wikilinkDecorations } from "./decorate.ts";
 import type { WikilinkDisplayContext } from "./decorate.ts";
+import { searchMatchHighlights, wikilinkDecorations } from "./decorate.ts";
 import type { WikilinkSpan } from "./scan.ts";
 
 function span(

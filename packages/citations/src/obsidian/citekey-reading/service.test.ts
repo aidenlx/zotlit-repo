@@ -5,13 +5,13 @@ import type { CitationHoverRequest } from "#obsidian/citekey-navigation/index.ts
 import type { RenderedCitation } from "#obsidian/pandoc/engine.ts";
 import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Layer, Scope, Stream } from "effect";
-import { Keymap, MarkdownView } from "obsidian";
 import type {
   MarkdownPostProcessor,
   MarkdownPostProcessorContext,
   MarkdownRenderChild,
   WorkspaceLeaf,
 } from "obsidian";
+import { Keymap, MarkdownView } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";

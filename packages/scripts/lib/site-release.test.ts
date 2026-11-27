@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
+import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
+import type { Git } from "./site-release.ts";
 import {
   deployVerdict,
   gitIn,
@@ -15,7 +16,6 @@ import {
   syncTo,
   tagMessage,
 } from "./site-release.ts";
-import type { Git } from "./site-release.ts";
 
 const SLOW = 20_000;
 

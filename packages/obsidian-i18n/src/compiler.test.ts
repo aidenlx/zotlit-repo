@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import { createServer } from "vite";
 import { describe, expect, test, vi } from "vitest";
 
+import type { CompileResult, GeneratedArtifacts } from "./compiler.ts";
 import {
   formatCompilerWarnings,
   compile,
@@ -16,12 +17,11 @@ import {
   loadMessageData,
   writeOutput,
 } from "./compiler.ts";
-import type { CompileResult, GeneratedArtifacts } from "./compiler.ts";
-import { validateLanguagePack } from "./core/index.ts";
 import type {
   LanguagePackRuntime,
   TargetLocaleMessages,
 } from "./core/index.ts";
+import { validateLanguagePack } from "./core/index.ts";
 import {
   addLocale,
   addSourcePattern,

@@ -1,3 +1,4 @@
+import type { Stream } from "effect";
 import {
   Context,
   DateTime,
@@ -8,7 +9,6 @@ import {
   Schema,
   SubscriptionRef,
 } from "effect";
-import type { Stream } from "effect";
 import type { TFile } from "obsidian";
 
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";

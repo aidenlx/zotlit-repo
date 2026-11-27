@@ -1,5 +1,5 @@
-import { Option, Schema } from "effect";
 import type { Effect } from "effect";
+import { Option, Schema } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import {
   createContext,

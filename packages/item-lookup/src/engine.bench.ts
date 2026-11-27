@@ -5,8 +5,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { IndexedItem } from "@zotlit/db";
 
-import { buildEngineIndex, searchEngineIndex } from "./engine.ts";
 import type { EngineIndex } from "./engine.ts";
+import { buildEngineIndex, searchEngineIndex } from "./engine.ts";
 import { makeCreator, makeIndexedItem } from "./fixtures.ts";
 import { layerSegmenterNone } from "./segmenter.ts";
 

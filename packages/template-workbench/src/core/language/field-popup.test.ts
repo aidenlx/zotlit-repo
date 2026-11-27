@@ -4,16 +4,16 @@ import {
   selectedCompletionIndex,
   startCompletion,
 } from "@codemirror/autocomplete";
-import { EditorState } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
+import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { documentFocus } from "./__fixtures__.ts";
-import { fieldPopupKeyHost } from "./field-popup.ts";
 import type { FieldPopupKeys } from "./field-popup.ts";
-import { filterExpressionCompletion } from "./filter-expression-completion.ts";
+import { fieldPopupKeyHost } from "./field-popup.ts";
 import type { ExpressionVocabulary } from "./filter-expression-completion.ts";
+import { filterExpressionCompletion } from "./filter-expression-completion.ts";
 import { filterExpressionLanguage } from "./filter-expression.ts";
 
 const VOCABULARY: ExpressionVocabulary = {

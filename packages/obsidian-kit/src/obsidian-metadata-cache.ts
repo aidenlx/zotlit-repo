@@ -1,6 +1,6 @@
 import type { ObsidianEventEmitter } from "#obsidian-event-source.ts";
-import { Context, Effect, Layer } from "effect";
 import type { Stream } from "effect";
+import { Context, Effect, Layer } from "effect";
 import type {
   CachedMetadata,
   MetadataCache as ObsidianMetadataCache,

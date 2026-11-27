@@ -1,5 +1,5 @@
-import { findNodeAtLocation, getNodeValue, parseTree } from "jsonc-parser";
 import type { Node } from "jsonc-parser";
+import { findNodeAtLocation, getNodeValue, parseTree } from "jsonc-parser";
 
 import type { RenderCallerSource } from "@zotlit/notes/core/template/render-failure.ts";
 

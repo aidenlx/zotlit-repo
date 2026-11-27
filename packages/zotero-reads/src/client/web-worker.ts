@@ -2,10 +2,10 @@ import type { WebApiReadsConfig } from "#contract/rpc.ts";
 import type { ZoteroReadsWeb } from "#contract/web-worker-rpc.ts";
 import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
 import { regex } from "arkregex";
-import { Effect, Layer } from "effect";
 import type { Scope } from "effect";
-import { RpcClient, RpcWorker } from "effect/rpc";
+import { Effect, Layer } from "effect";
 import type { RpcClientError } from "effect/rpc";
+import { RpcClient, RpcWorker } from "effect/rpc";
 
 import { layerHostLogPort } from "@zotlit/plugin-kernel/worker/effect-log-port.ts";
 import type { PackRead } from "@zotlit/resource-pack/reader.ts";

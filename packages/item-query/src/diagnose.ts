@@ -15,6 +15,7 @@ import type {
 } from "./fault.ts";
 import type { ValueShape } from "./fields.ts";
 import { isError, operandMessage, typeNoun } from "./filter-error.ts";
+import type { FunctionDefinition } from "./filter-functions.ts";
 import {
   GLOBAL_FUNCTION_NAMES,
   GLOBAL_FUNCTIONS,
@@ -29,15 +30,14 @@ import {
   propertyOf,
   takesType,
 } from "./filter-functions.ts";
-import type { FunctionDefinition } from "./filter-functions.ts";
-import { hasBareForm } from "./filter-plan.ts";
 import type { StaticType } from "./filter-plan.ts";
+import { hasBareForm } from "./filter-plan.ts";
 import type { FilterValue } from "./filter-values.ts";
 import { nearMatches } from "./near-match.ts";
 import { planPath } from "./projection.ts";
 import type { QueryClock } from "./query-clock.ts";
-import { COUNT_FIELDS, UNLIMITED_LIMIT } from "./request.ts";
 import type { QueryContext } from "./request.ts";
+import { COUNT_FIELDS, UNLIMITED_LIMIT } from "./request.ts";
 
 interface DiagnosisContext extends ItemQueryErrorLocation {
   readonly dataset: QueryDataset;

@@ -9,6 +9,7 @@ import {
   createFixtureSchema,
 } from "@zotlit/db-testing";
 
+import type { TagMemo } from "./tags.ts";
 import {
   getAllTagNames,
   getLibraryTagNames,
@@ -16,7 +17,6 @@ import {
   resolveItemTags,
   resolveItemTagsByIDs,
 } from "./tags.ts";
-import type { TagMemo } from "./tags.ts";
 
 import { relations } from "#drizzle/relations.ts";
 import { tagTypeToName } from "#lib/zt-tag.ts";

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
+import { useEffect, useRef } from "react";
 
 import {
   ExcerptPicture,

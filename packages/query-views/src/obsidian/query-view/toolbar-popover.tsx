@@ -1,11 +1,11 @@
 import type { IconName } from "obsidian";
-import { useRef, useState } from "react";
 import type {
   ButtonHTMLAttributes,
   HTMLAttributes,
   ReactNode,
   Ref,
 } from "react";
+import { useRef, useState } from "react";
 
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { PinnedPopover } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";

@@ -1,7 +1,7 @@
-import { Compartment } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
-import { EditorView, ViewPlugin, tooltips } from "@codemirror/view";
+import { Compartment } from "@codemirror/state";
 import type { ViewUpdate } from "@codemirror/view";
+import { EditorView, ViewPlugin, tooltips } from "@codemirror/view";
 
 import { PINNED_POPOVER_BODY } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
 

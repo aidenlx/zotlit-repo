@@ -17,12 +17,12 @@ import { useUniqueId } from "@zotlit/ui";
 
 import { CardsLayoutFields, cardsLayoutOptions } from "./cards-layout.tsx";
 import { DATASETS } from "./datasets.ts";
-import { annotationsLayoutOptions, CARD_WIDTH, layoutsFor } from "./layouts.ts";
 import type { AnnotationsLayoutOptions } from "./layouts.ts";
+import { annotationsLayoutOptions, CARD_WIDTH, layoutsFor } from "./layouts.ts";
 import { ListLayoutFields, listLayoutOptions } from "./list-layout.tsx";
 import { useQueryViewState } from "./model.ts";
-import { VIEW_NAME_RESERVED, viewNameIssue } from "./view-edits.ts";
 import type { ViewNameIssue } from "./view-edits.ts";
+import { VIEW_NAME_RESERVED, viewNameIssue } from "./view-edits.ts";
 import type { QueryView } from "./view.tsx";
 
 import { QUERY_FILE_DATASETS } from "#core/query-view/query-file.ts";

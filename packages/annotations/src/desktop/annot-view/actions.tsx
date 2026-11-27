@@ -17,10 +17,10 @@ import type {
 } from "#obsidian/annotation-repository/service.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/service.ts";
 import { Effect } from "effect";
-import { Menu } from "obsidian";
 import type { App, PaneType } from "obsidian";
-import { createContext } from "react";
+import { Menu } from "obsidian";
 import type { DragEvent, KeyboardEvent, MouseEvent } from "react";
+import { createContext } from "react";
 
 import { requireElectron } from "@zotlit/obsidian-desktop/require.ts";
 import { confirm } from "@zotlit/obsidian-kit/confirm.ts";
@@ -45,6 +45,7 @@ import { addCopyIndexedKeyMenuItem } from "@zotlit/plugin-services/obsidian/inde
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
+import type { AnnotationWriteRequest, CitationRead } from "./atoms.ts";
 import {
   annotationDraftCommand,
   openExcerptDemandCommand,
@@ -53,7 +54,6 @@ import {
   resultValue,
   requireResult,
 } from "./atoms.ts";
-import type { AnnotationWriteRequest, CitationRead } from "./atoms.ts";
 import type { ExcerptImageTarget } from "./excerpt-image-state.ts";
 import { buildHeaderMenu } from "./menus.ts";
 

@@ -10,8 +10,8 @@ import type {
   PackBinaryStatus,
 } from "@zotlit/resource-pack/status.ts";
 
-import { createCitationEngine } from "./engine.ts";
 import type { CitationEngine } from "./engine.ts";
+import { createCitationEngine } from "./engine.ts";
 
 export type PandocEngineStatus = PackBinaryStatus | null;
 

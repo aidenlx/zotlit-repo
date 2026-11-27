@@ -8,6 +8,7 @@ import {
   SCENARIO_LIBRARIES,
 } from "@zotlit/db-testing/scenario";
 
+import type { StatementRun } from "./index.ts";
 import {
   ItemQueryDatabase,
   ItemQueryStatementObserver,
@@ -20,7 +21,6 @@ import {
   readScanPage,
   readUniverseRows,
 } from "./index.ts";
-import type { StatementRun } from "./index.ts";
 
 import { connectClient } from "#desktop/node-client.ts";
 

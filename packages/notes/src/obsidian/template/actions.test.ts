@@ -1,8 +1,8 @@
 import { expect, it } from "@effect/vitest";
 // @vitest-environment happy-dom
 import { Effect, Exit, Fiber, Layer } from "effect";
-import { TFile } from "obsidian";
 import type { App, Command } from "obsidian";
+import { TFile } from "obsidian";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -16,10 +16,10 @@ import {
   openCitationTemplate,
   reportCitationTemplateOpen,
 } from "./actions.ts";
-import { Template, templateFailure } from "./service.ts";
 import type { TemplateFailure } from "./service.ts";
-import { TemplateWorkbenchLauncher } from "./workbench-launcher.ts";
+import { Template, templateFailure } from "./service.ts";
 import type { TemplateWorkbenchLaunch } from "./workbench-launcher.ts";
+import { TemplateWorkbenchLauncher } from "./workbench-launcher.ts";
 
 const CITATION = Object.assign(new TFile(), {
   path: "Templates/zotlit-citation.md",

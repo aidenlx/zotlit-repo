@@ -6,8 +6,8 @@ import { layerDeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage
 import { layerObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { runtimeServices } from "@zotlit/plugin-kernel/effect-services.ts";
 
-import { startLanguagePack } from "./service.ts";
 import type { LanguagePackIdentity, LanguagePackStartup } from "./service.ts";
+import { startLanguagePack } from "./service.ts";
 
 export function startI18n(
   app: App,

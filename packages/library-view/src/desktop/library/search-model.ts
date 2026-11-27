@@ -17,8 +17,8 @@ import {
 } from "@zotlit/zotero-reads/client/atoms.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { librariesOf } from "./document.ts";
 import type { LibraryNode } from "./document.ts";
+import { librariesOf } from "./document.ts";
 import type { SearchFound } from "./search-box.tsx";
 import { sameLibrary } from "./tree.ts";
 

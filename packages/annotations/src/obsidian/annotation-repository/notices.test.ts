@@ -20,8 +20,8 @@ import type {
 import type { EditingCapability } from "./capability.ts";
 import { CapabilityNotices, layerCapabilityNotices } from "./notices.ts";
 import { AnnotationRepository } from "./service.ts";
-import { IDLE } from "./write.ts";
 import type { MutationState, WriteConflict } from "./write.ts";
+import { IDLE } from "./write.ts";
 
 const ATTACHMENT = "ABCD2345";
 const ANNOTATION = "EFGH2345";

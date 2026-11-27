@@ -2,6 +2,7 @@ import type { EffectiveReadMode } from "#contract/rpc.ts";
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import type { ChangeEvent, FileReadsConfig } from "#contract/rpc.ts";
 import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
+import type { FileSystem } from "effect";
 import {
   Cause,
   Deferred,
@@ -16,20 +17,19 @@ import {
   Semaphore,
   Stream,
 } from "effect";
-import type { FileSystem } from "effect";
 import { RpcClient, RpcWorker } from "effect/rpc";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
 import { layerHostLogPort } from "@zotlit/plugin-kernel/worker/effect-log-port.ts";
 
+import type { StreamOptions } from "./settle-on-stop.ts";
 import {
   settledRequests,
   stoppedErrors,
   streamOrQueue,
   untilStopped,
 } from "./settle-on-stop.ts";
-import type { StreamOptions } from "./settle-on-stop.ts";
 
 import { makeStateFeed } from "#contract/change-feed.ts";
 import { DbUnavailable, WorkerInitSchema, ZoteroReads } from "#contract/rpc.ts";

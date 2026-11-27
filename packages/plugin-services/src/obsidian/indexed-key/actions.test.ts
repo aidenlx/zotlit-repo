@@ -1,5 +1,5 @@
-import { TFile } from "obsidian";
 import type { App, Command, MetadataCache, Vault, Workspace } from "obsidian";
+import { TFile } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";

@@ -6,8 +6,8 @@ import { settingsOf } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import type { ToggleComponent } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { forwardLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 
-import { installToggleRow, toggleRowTarget } from "./rows.ts";
 import type { ToggleRow, ToggleRowTarget } from "./rows.ts";
+import { installToggleRow, toggleRowTarget } from "./rows.ts";
 
 import { FakeControlSection } from "#__fixtures__/graph-citations/test-double.ts";
 

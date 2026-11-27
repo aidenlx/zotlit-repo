@@ -1,8 +1,8 @@
 import type { ProfilePick } from "#desktop/profile/profile-picker.ts";
 import { Cause, Effect } from "effect";
 import { dirname } from "node:path/posix";
-import { ConfirmationModal } from "obsidian";
 import type { App, TFile } from "obsidian";
+import { ConfirmationModal } from "obsidian";
 
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { normalizeFolderPath } from "@zotlit/obsidian-kit/ensure-folder.ts";
@@ -16,8 +16,8 @@ import {
   noteKeyFromFrontmatter,
 } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
-import { installedStyles, settleProfilePick } from "./creation-view.ts";
 import type { InteractiveCreationPorts } from "./creation-view.ts";
+import { installedStyles, settleProfilePick } from "./creation-view.ts";
 import { NoteFeature } from "./service.ts";
 import { noteOperationDiagnosticContent } from "./update-single.ts";
 

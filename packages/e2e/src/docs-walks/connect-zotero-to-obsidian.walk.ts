@@ -20,13 +20,13 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import type { Rect } from "./camera.ts";
 import { clipSettings } from "./clip-settings.ts";
 import { openDocsBrowser } from "./docs-browser.ts";
+import type { DocsWalk } from "./docs-walk.ts";
 import {
   openDocsWalk,
   readNotices,
   recordRequested,
   watchNotices,
 } from "./docs-walk.ts";
-import type { DocsWalk } from "./docs-walk.ts";
 import {
   bringToFront,
   DesktopShotSpoiled,

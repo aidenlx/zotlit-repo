@@ -14,8 +14,8 @@ import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { SourceTags } from "./obsidian.ts";
-import { publishZotero, UPDATE_HOST_TAG } from "./zotero.ts";
 import type { ReleaseHost } from "./zotero.ts";
+import { publishZotero, UPDATE_HOST_TAG } from "./zotero.ts";
 
 import { getWorkspaceRoot } from "#package-roots";
 

@@ -1,10 +1,10 @@
 import { existsSync, globSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { normalizePath } from "vite";
 import type { Plugin } from "vite";
+import { normalizePath } from "vite";
 
-import { scanVideos } from "./media-store.ts";
 import type { MediaSize, StoredVideo } from "./media-store.ts";
+import { scanVideos } from "./media-store.ts";
 
 export interface StepMedia extends MediaSize {
   poster?: MediaSize;

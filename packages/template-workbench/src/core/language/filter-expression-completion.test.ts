@@ -7,11 +7,11 @@ import { describe, expect, it, vi } from "vitest";
 import { ANNOTATIONS, ITEMS } from "@zotlit/item-query";
 
 import { datasetVocabulary } from "./expression-vocabulary.ts";
+import type { ExpressionVocabulary } from "./filter-expression-completion.ts";
 import {
   expressionCompletions,
   filterExpressionCompletion,
 } from "./filter-expression-completion.ts";
-import type { ExpressionVocabulary } from "./filter-expression-completion.ts";
 import { filterExpressionLanguage } from "./filter-expression.ts";
 
 const FILTER: ExpressionVocabulary = {

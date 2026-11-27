@@ -5,8 +5,8 @@ import type { AnnotationRecord } from "#obsidian/annotation-repository/service.t
 import type { App } from "obsidian";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
@@ -14,8 +14,8 @@ import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { AnnotActionsContext, NOOP_ACTIONS } from "./actions.tsx";
 import type { AnnotActions } from "./actions.tsx";
+import { AnnotActionsContext, NOOP_ACTIONS } from "./actions.tsx";
 import { AnnotView } from "./AnnotView.tsx";
 
 import { makeAnnotHost } from "#__fixtures__/annot-view/host.ts";

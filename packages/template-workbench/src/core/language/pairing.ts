@@ -1,5 +1,5 @@
-import { EditorSelection, Prec } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
+import { EditorSelection, Prec } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 
 import { pairingContext } from "./pairing-context.ts";

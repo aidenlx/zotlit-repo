@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, MarkdownView } from "obsidian";
+import { MarkdownRenderChild } from "obsidian";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 

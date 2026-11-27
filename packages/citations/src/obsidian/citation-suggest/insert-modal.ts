@@ -1,5 +1,5 @@
-import { Keymap } from "obsidian";
 import type { Editor, TFile } from "obsidian";
+import { Keymap } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";

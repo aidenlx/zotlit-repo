@@ -9,16 +9,15 @@ import type {
 import { collectionWarnings } from "./collection-warnings.ts";
 import { datasetEngine } from "./dataset-engines.ts";
 import type { QueryDataset } from "./dataset.ts";
-import { diagnoseUnusedFormula, diagnoseWarning } from "./diagnose.ts";
 import type { WarningSource } from "./diagnose.ts";
+import { diagnoseUnusedFormula, diagnoseWarning } from "./diagnose.ts";
 import type { ItemQueryError } from "./error.ts";
 import { consumeDataset } from "./execution.ts";
 import type { FilterPlan } from "./filter-plan.ts";
 import { indexedKeyWarnings } from "./indexed-key-selection.ts";
 import { readQueryClock } from "./query-clock.ts";
-import { openQuerySources } from "./query-sources.ts";
 import type { QuerySources } from "./query-sources.ts";
-import { planRequest } from "./request.ts";
+import { openQuerySources } from "./query-sources.ts";
 import type {
   ItemQueryRequest,
   QueryResult,
@@ -27,6 +26,7 @@ import type {
   QueryGroup,
   TargetLibrary,
 } from "./request.ts";
+import { planRequest } from "./request.ts";
 
 export interface QuerySummary extends QueryMetadata {
   readonly groups?: readonly Omit<QueryGroup, "rows">[];

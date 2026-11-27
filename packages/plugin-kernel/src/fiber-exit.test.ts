@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@effect/vitest";
-import { Effect, Exit, Fiber, Scope } from "effect";
 import type { Fiber as FiberType } from "effect";
+import { Effect, Exit, Fiber, Scope } from "effect";
 
 import { joinForked, observeExit } from "./fiber-exit.ts";
 

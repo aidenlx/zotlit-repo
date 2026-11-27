@@ -1,5 +1,6 @@
-import { PopoverState, Scope } from "obsidian";
 import type { App, HoverParent, Modifier } from "obsidian";
+import { PopoverState, Scope } from "obsidian";
+import type { HTMLAttributes, Ref, RefObject } from "react";
 import {
   Fragment,
   createContext,
@@ -9,7 +10,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { HTMLAttributes, Ref, RefObject } from "react";
 import { createPortal } from "react-dom";
 
 import { composing } from "@zotlit/ui";

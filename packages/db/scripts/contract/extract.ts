@@ -10,7 +10,6 @@ import type {
   ContractType,
 } from "#contract/ir.ts";
 import { regex } from "arkregex";
-import { Node } from "ts-morph";
 import type {
   InterfaceDeclaration,
   JSDoc,
@@ -19,6 +18,7 @@ import type {
   Symbol as TypeSymbol,
   Type,
 } from "ts-morph";
+import { Node } from "ts-morph";
 
 const TEMPORAL_LIB = "lib.esnext.temporal.d.ts";
 

@@ -5,8 +5,8 @@ import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/ser
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { readTemplateData } from "./data.ts";
 import type { TemplateDataServices } from "./data.ts";
+import { readTemplateData } from "./data.ts";
 
 export interface MigrationVerificationData {
   readonly note: object;

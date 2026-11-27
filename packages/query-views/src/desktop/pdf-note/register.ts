@@ -1,6 +1,6 @@
 import type { LiteratureNotes } from "#desktop/query-view/table-notes.ts";
-import { FileView, setIcon, setTooltip } from "obsidian";
 import type { App, Plugin, View, WorkspaceLeaf } from "obsidian";
+import { FileView, setIcon, setTooltip } from "obsidian";
 
 import type { ReaderSession } from "@zotlit/annotations/core/reader-session/session.ts";
 import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
@@ -10,8 +10,8 @@ import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 
-import { openNoteBeside, pdfNoteOpens } from "./open-note.ts";
 import type { PdfSessions } from "./open-note.ts";
+import { openNoteBeside, pdfNoteOpens } from "./open-note.ts";
 
 export interface PdfNoteDeps {
   app: App;

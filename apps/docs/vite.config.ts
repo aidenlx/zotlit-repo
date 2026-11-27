@@ -6,8 +6,8 @@ import viteReact from "@vitejs/plugin-react";
 import { fumadocsMdx } from "fumadocs-mdx/vite";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vite";
 import type { Plugin } from "vite";
+import { defineConfig } from "vite";
 
 import { paraglideVitePlugin } from "@zotlit/paraglide-vite";
 
@@ -17,8 +17,8 @@ import { chinesePagesPlugin } from "./src/lib/chinese-pages-plugin.ts";
 import { firstCommitsPlugin } from "./src/lib/first-commits.ts";
 import { buildHeaderRules, renderHeadersFile } from "./src/lib/headers.ts";
 import { learnMediaPlugin } from "./src/lib/learn-media.ts";
-import { mediaStorePlugin, scanVideos } from "./src/lib/media-store.ts";
 import type { StoredVideo } from "./src/lib/media-store.ts";
+import { mediaStorePlugin, scanVideos } from "./src/lib/media-store.ts";
 import { createOgCardRenderer } from "./src/lib/og-card.tsx";
 import { ogCards } from "./src/lib/og-cards.ts";
 import { prerenderPages } from "./src/lib/prerender-pages.ts";

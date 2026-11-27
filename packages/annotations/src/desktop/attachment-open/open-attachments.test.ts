@@ -5,11 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Keymap, Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { openAttachments } from "./open-attachments.ts";
 import type {
   AttachmentOpenClickEvent,
   AttachmentReader,
 } from "./open-attachments.ts";
+import { openAttachments } from "./open-attachments.ts";
 
 type Row = ObsidianOpenableAttachment;
 

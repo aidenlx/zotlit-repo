@@ -1,6 +1,6 @@
 import { join } from "node:path";
-import { defineConfig } from "vite";
 import type { ConfigEnv } from "vite";
+import { defineConfig } from "vite";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 

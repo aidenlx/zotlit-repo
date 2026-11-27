@@ -1,7 +1,7 @@
 import type { FakePdfEngine } from "#__fixtures__/pdf-engine.ts";
 import { it } from "@effect/vitest";
-import { Effect, Exit, Fiber } from "effect";
 import type { FileSystem, Layer } from "effect";
+import { Effect, Exit, Fiber } from "effect";
 import { TestClock } from "effect/testing";
 import { open } from "node:fs/promises";
 import { expect, vi } from "vitest";

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
 
+import type { IndexSignature } from "./index-items.ts";
 import {
   getIndexedItemRowsRange,
   getIndexedItemCount,
@@ -15,7 +16,6 @@ import {
   getItemIDBounds,
   sumSignatureRanges,
 } from "./index-items.ts";
-import type { IndexSignature } from "./index-items.ts";
 
 import { relations } from "#drizzle/relations.ts";
 import { USER_LIBRARY_ID } from "#lib/constants.ts";

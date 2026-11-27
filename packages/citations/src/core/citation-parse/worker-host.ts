@@ -1,10 +1,10 @@
-import { Deferred, Effect } from "effect";
 import type { Scope } from "effect";
+import { Deferred, Effect } from "effect";
 import type { RpcMessage } from "effect/rpc";
 import type { Worker as EffectWorker } from "effect/workers";
 
-import { decodeParseReply, ParseFailed, ParseWorkerDied } from "./client.ts";
 import type { ParseRequest, ParseReply } from "./client.ts";
+import { decodeParseReply, ParseFailed, ParseWorkerDied } from "./client.ts";
 import {
   isMeasuringScans,
   measuredScan,

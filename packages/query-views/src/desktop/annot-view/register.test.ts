@@ -7,8 +7,8 @@ import type { FollowMode } from "@zotlit/annotations/obsidian/annot-view/store.t
 import { DEFAULT_FOLLOW_MODE } from "@zotlit/annotations/obsidian/annot-view/view-state.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { addFollowModeCommands } from "./register.ts";
 import type { FollowModeCommandTarget } from "./register.ts";
+import { addFollowModeCommands } from "./register.ts";
 
 function view(
   state: { followMode?: FollowMode; pinnable?: string | null } = {},

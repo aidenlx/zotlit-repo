@@ -16,8 +16,8 @@ import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { runEffect } from "./__fixtures__/test-helpers.ts";
-import { ATTACHMENTS, collectQuery, consumeQuery, ITEMS } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
+import { ATTACHMENTS, collectQuery, consumeQuery, ITEMS } from "./index.ts";
 
 setFlagsFromString("--no-opt");
 setFlagsFromString("--no-maglev");

@@ -8,13 +8,13 @@ import { answerOf, makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
+import type { LibraryViewDocument } from "./document.ts";
 import {
   DEFAULT_LIBRARY_VIEW_DOCUMENT,
   parseLibraryViewDocument,
   serializeLibraryViewDocument,
   withText,
 } from "./document.ts";
-import type { LibraryViewDocument } from "./document.ts";
 
 import { waitForRead } from "#obsidian/library/model.ts";
 

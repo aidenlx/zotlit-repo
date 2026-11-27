@@ -1,11 +1,11 @@
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
-import { Component } from "obsidian";
 import type { IconName } from "obsidian";
-import { Fragment } from "react";
+import { Component } from "obsidian";
 import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
-import { createRoot } from "react-dom/client";
+import { Fragment } from "react";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -17,9 +17,10 @@ import { libraryLabel } from "@zotlit/plugin-services/core/library-scope/label.t
 import { useUniqueId } from "@zotlit/ui";
 import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { nodeKey, READING_STATE_FACETS, sortTags } from "./document.ts";
 import type { LibraryNode, ReadingStateFacet } from "./document.ts";
+import { nodeKey, READING_STATE_FACETS, sortTags } from "./document.ts";
 import { TagSelector } from "./tag-selector.tsx";
+import type { TreeSession } from "./tree-model.ts";
 import {
   makeTreeModel,
   patchTree,
@@ -27,9 +28,8 @@ import {
   TreeModelProvider,
   useTreeState,
 } from "./tree-model.ts";
-import type { TreeSession } from "./tree-model.ts";
-import { CLOSED_PREFIX, findNode, knowsNode, sameLibrary } from "./tree.ts";
 import type { TreeCollection, TreeLibrary } from "./tree.ts";
+import { CLOSED_PREFIX, findNode, knowsNode, sameLibrary } from "./tree.ts";
 
 import { FILTER_CHIP_CLASS } from "#core/library/chip.ts";
 import { waitForRead } from "#obsidian/library/model.ts";

@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
-import { Keymap, MarkdownView, Platform, TFile } from "obsidian";
 import type { App, Instruction, Modifier, WorkspaceLeaf } from "obsidian";
+import { Keymap, MarkdownView, Platform, TFile } from "obsidian";
 import { afterEach } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

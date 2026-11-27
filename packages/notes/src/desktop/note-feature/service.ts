@@ -23,6 +23,11 @@ import {
   NoteIndex,
 } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
+import type {
+  CreationPlanningServices,
+  PlannedCreation,
+  PreparedProfileNote,
+} from "./creation-planning.ts";
 import {
   getImportedNotesForItem,
   planCreations,
@@ -30,11 +35,6 @@ import {
   prepareProfileSwitch,
   resolveCompanionNote,
   resolveCreationProfile,
-} from "./creation-planning.ts";
-import type {
-  CreationPlanningServices,
-  PlannedCreation,
-  PreparedProfileNote,
 } from "./creation-planning.ts";
 import { refusedCreate } from "./diagnostics.ts";
 import type {
@@ -52,15 +52,6 @@ import type {
   UpdateResult,
   WriteNoteUpdateOptions,
 } from "./types.ts";
-import {
-  composeEvents,
-  createNote,
-  overwriteNote,
-  replacedKeys,
-  switchNoteProfile,
-  updateNote,
-  writeNoteUpdate,
-} from "./write-pipeline.ts";
 import type {
   CreateNoteError,
   NoteWriteContext,
@@ -70,6 +61,15 @@ import type {
   UpdateNoteError,
   UpdateNoteOptions,
   WriteNoteUpdateError,
+} from "./write-pipeline.ts";
+import {
+  composeEvents,
+  createNote,
+  overwriteNote,
+  replacedKeys,
+  switchNoteProfile,
+  updateNote,
+  writeNoteUpdate,
 } from "./write-pipeline.ts";
 
 const MAX_UNINDEXED_CREATES = 256;

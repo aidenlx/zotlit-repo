@@ -8,8 +8,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { describeDriverConformance } from "@zotlit/db-testing/conformance";
 
-import { loadSqliteWasm, SqliteError, StorageError } from "./index.ts";
 import type { SqliteWasmDatabase } from "./index.ts";
+import { loadSqliteWasm, SqliteError, StorageError } from "./index.ts";
 
 const require = createRequire(import.meta.url);
 const wasm = readFileSync(

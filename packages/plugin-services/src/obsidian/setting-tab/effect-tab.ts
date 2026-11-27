@@ -1,6 +1,6 @@
 import type { PluginSettings } from "#obsidian/settings/service.ts";
-import { Cause, Context, Effect, Fiber, Scope, Stream } from "effect";
 import type { FileSystem } from "effect";
+import { Cause, Context, Effect, Fiber, Scope, Stream } from "effect";
 
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";

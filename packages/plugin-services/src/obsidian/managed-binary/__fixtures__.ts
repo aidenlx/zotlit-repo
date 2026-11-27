@@ -6,10 +6,10 @@ import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";
 import { writePack } from "@zotlit/resource-pack/writer.ts";
 
 import type { OldStoreDirectory } from "./old-store-cleanup.ts";
-import { layerPackBinary } from "./pack-binary.ts";
 import type { PackBinary, PackBinaryApi } from "./pack-binary.ts";
-import { ResourcePackPlatform, resourcePackPorts } from "./pack-platform.ts";
+import { layerPackBinary } from "./pack-binary.ts";
 import type { ResourcePackHostPorts } from "./pack-platform.ts";
+import { ResourcePackPlatform, resourcePackPorts } from "./pack-platform.ts";
 
 export const layerPackDevice = (
   ports: ResourcePackHostPorts,

@@ -7,8 +7,8 @@ import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { highlightEmoji } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import { RESET_SETTING } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { settingsRuntimeOf } from "./__fixtures__.ts";
 import type { SettingsFixtureOptions } from "./__fixtures__.ts";
+import { settingsRuntimeOf } from "./__fixtures__.ts";
 import {
   migrateLegacyV0,
   migrateV1ToV2,

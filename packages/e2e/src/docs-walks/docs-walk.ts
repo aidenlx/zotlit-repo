@@ -1,30 +1,31 @@
 import { prepareRunWindow } from "@e2e/background-throttling.ts";
 import type { CameraEvent, Rect } from "@e2e/docs-walks/camera.ts";
 import { captureObsidianLayer } from "@e2e/docs-walks/capture.ts";
-import {
-  encodeClip,
-  encodeMovie,
-  readTrack,
-} from "@e2e/docs-walks/clip-encode.ts";
 import type {
   CameraLog,
   ClipSequence,
   RecordedFrame,
 } from "@e2e/docs-walks/clip-encode.ts";
-import { clipSettings } from "@e2e/docs-walks/clip-settings.ts";
+import {
+  encodeClip,
+  encodeMovie,
+  readTrack,
+} from "@e2e/docs-walks/clip-encode.ts";
 import type { ClipSettings } from "@e2e/docs-walks/clip-settings.ts";
+import { clipSettings } from "@e2e/docs-walks/clip-settings.ts";
 import type {
   DocsBrowser,
   DocsBrowserPage,
 } from "@e2e/docs-walks/docs-browser.ts";
-import { bringToFront, recordDesktop } from "@e2e/docs-walks/macos-desktop.ts";
 import type { DesktopShot } from "@e2e/docs-walks/macos-desktop.ts";
+import { bringToFront, recordDesktop } from "@e2e/docs-walks/macos-desktop.ts";
 import {
   arrowStyle,
   pointerGlide,
   pointerLook,
   ringStyle,
 } from "@e2e/docs-walks/pointer-look.ts";
+import type { TakeRun } from "@e2e/docs-walks/takes.ts";
 import {
   outputSizes,
   takeRecipe,
@@ -33,11 +34,10 @@ import {
   videoLength,
   writeTake,
 } from "@e2e/docs-walks/takes.ts";
-import type { TakeRun } from "@e2e/docs-walks/takes.ts";
 import { cli, obRun } from "@e2e/obsidian-cli.ts";
 import { openPairedEnvironment } from "@e2e/paired-environment.ts";
-import { openZoteroRdp } from "@e2e/paired-zotero.ts";
 import type { ZoteroRdp } from "@e2e/paired-zotero.ts";
+import { openZoteroRdp } from "@e2e/paired-zotero.ts";
 import { execFile, spawn } from "node:child_process";
 import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";

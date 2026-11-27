@@ -1,8 +1,8 @@
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Layer } from "effect";
+import type { App } from "obsidian";
 import { ButtonComponent, ConfirmationModal } from "obsidian";
 import { TFile } from "obsidian";
-import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";

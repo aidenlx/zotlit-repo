@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { annotationValue } from "./annotation.ts";
 import { attachmentLastRead, attachmentPath } from "./attachment.ts";
-import { KNOWN_DIFFERENCES } from "./known-differences.ts";
 import type { Port, Value } from "./known-differences.ts";
+import { KNOWN_DIFFERENCES } from "./known-differences.ts";
 import { strToMultipart } from "./multipart-date.ts";
 import { noteToTitle } from "./note.ts";
 import { isoToSql } from "./sql-date.ts";

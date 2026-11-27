@@ -1,5 +1,5 @@
-import { Cause, Console, DateTime, Effect, Logger } from "effect";
 import type { Scope } from "effect";
+import { Cause, Console, DateTime, Effect, Logger } from "effect";
 import type { DataAdapter } from "obsidian";
 
 import type { LogRecord } from "@zotlit/plugin-kernel/effect-log.ts";

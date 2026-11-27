@@ -1,7 +1,7 @@
 import { it } from "@effect/vitest";
 import { Context, Effect, Fiber, Layer, Stream } from "effect";
-import { Events } from "obsidian";
 import type { App, PluginManifest } from "obsidian";
+import { Events } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";

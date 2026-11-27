@@ -1,5 +1,5 @@
-import { Clock, Deferred, Duration, Effect, Schema, Stream } from "effect";
 import type { Scope } from "effect";
+import { Clock, Deferred, Duration, Effect, Schema, Stream } from "effect";
 import { createHash } from "node:crypto";
 import { basename, join } from "node:path/posix";
 import type { CliData } from "obsidian";

@@ -1,5 +1,5 @@
-import { setIcon, setTooltip } from "obsidian";
 import type { IconName } from "obsidian";
+import { setIcon, setTooltip } from "obsidian";
 
 import { onActivateKey } from "@zotlit/obsidian-kit/utils.ts";
 

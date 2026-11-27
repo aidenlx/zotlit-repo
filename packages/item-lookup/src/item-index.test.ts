@@ -1,5 +1,5 @@
-import { Cause, Context, Effect, Exit, Fiber, Layer, Scheduler } from "effect";
 import type { Scope } from "effect";
+import { Cause, Context, Effect, Exit, Fiber, Layer, Scheduler } from "effect";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -7,12 +7,12 @@ import { describe, expect, it } from "vitest";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 
 import { makeMemoryItemRow as item } from "./fixtures.ts";
-import { ItemIndex, layerItemIndex, SourceUnavailable } from "./item-index.ts";
 import type { IndexSettings, SearchHit } from "./item-index.ts";
-import { makeMemoryItemSource } from "./memory-item-source.ts";
+import { ItemIndex, layerItemIndex, SourceUnavailable } from "./item-index.ts";
 import type { MemoryItemRow, MemoryItemSource } from "./memory-item-source.ts";
-import { makeMemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader.ts";
+import { makeMemoryItemSource } from "./memory-item-source.ts";
 import type { MemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader.ts";
+import { makeMemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader.ts";
 import type { SegmenterBinary, SegmenterStatus } from "./segmenter-switch.ts";
 
 const GROUP_LIBRARY_ID = 2;

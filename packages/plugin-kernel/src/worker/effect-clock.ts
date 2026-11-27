@@ -1,5 +1,5 @@
-import { DateTime, Option } from "effect";
 import type { Clock } from "effect";
+import { DateTime, Option } from "effect";
 
 export function monotonicMillis(clock: Clock.Clock): () => number {
   return () => Number(clock.monotonicTimeNanosUnsafe()) / 1_000_000;

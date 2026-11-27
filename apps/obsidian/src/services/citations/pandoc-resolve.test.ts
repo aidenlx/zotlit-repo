@@ -6,8 +6,8 @@ import { Effect } from "effect";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { TFile } from "obsidian";
 import type { MetadataCache } from "obsidian";
+import { TFile } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { runFileEffect } from "@zotlit/citations/__fixtures__/pandoc/file-effects.ts";

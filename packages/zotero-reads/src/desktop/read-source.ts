@@ -1,4 +1,5 @@
 import type { ConfiguredReadMode, EffectiveReadMode } from "#contract/rpc.ts";
+import type { Scope, PlatformError } from "effect";
 import {
   Cause,
   Deferred,
@@ -9,10 +10,9 @@ import {
   Schedule,
   Schema,
 } from "effect";
-import type { Scope, PlatformError } from "effect";
 import { createHash } from "node:crypto";
-import { open, stat } from "node:fs/promises";
 import type { FileHandle } from "node:fs/promises";
+import { open, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";

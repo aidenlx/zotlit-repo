@@ -1,5 +1,5 @@
-import { Cause, Effect } from "effect";
 import type { Fiber } from "effect";
+import { Cause, Effect } from "effect";
 
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";

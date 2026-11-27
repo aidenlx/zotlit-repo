@@ -3,12 +3,12 @@ import type {
   QueryViewHost,
 } from "#desktop/query-view/view.tsx";
 import { Effect } from "effect";
-import { ItemView, Scope } from "obsidian";
 import type {
   Menu as ObsidianMenu,
   ViewStateResult,
   WorkspaceLeaf,
 } from "obsidian";
+import { ItemView, Scope } from "obsidian";
 
 import type { ReaderSession } from "@zotlit/annotations/core/reader-session/session.ts";
 import { ReaderSessionHost } from "@zotlit/annotations/core/reader-session/session.ts";

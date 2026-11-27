@@ -12,8 +12,8 @@ import type {
 import * as Atom from "effect/reactivity/Atom";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";

@@ -1,4 +1,5 @@
 import type { ZoteroDatabase } from "#client/database.ts";
+import type { AnyColumn, SQL } from "drizzle-orm";
 import {
   and,
   asc,
@@ -9,15 +10,14 @@ import {
   notInArray,
   sql,
 } from "drizzle-orm";
-import type { AnyColumn, SQL } from "drizzle-orm";
 import { Effect } from "effect";
 
-import { defineStatement, idSlots, unindexed } from "./database.ts";
 import type {
   IdSlot,
   ItemQueryDatabase,
   ItemQueryReaderError,
 } from "./database.ts";
+import { defineStatement, idSlots, unindexed } from "./database.ts";
 
 import { deletedItems, items, itemTypesCombined } from "#drizzle/schema.ts";
 import { CHILD_ITEM_TYPES } from "#lib/item-types.ts";

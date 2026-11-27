@@ -1,14 +1,14 @@
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber } from "effect";
-import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import type { App } from "obsidian";
+import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import { afterEach, expect, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { awaitUpdateNotesChoice } from "./update-notes-view.ts";
 import type { ActiveNote } from "./update-notes-view.ts";
+import { awaitUpdateNotesChoice } from "./update-notes-view.ts";
 
 const activeNote = (): ActiveNote => ({
   file: new TFile(),

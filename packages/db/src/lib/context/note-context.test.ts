@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
 
+import type { AnnotationResolvers, NoteResolvers } from "./note-context.ts";
 import {
   buildAnnotationParents,
   buildAnnotationsTemplateData,
@@ -18,7 +19,6 @@ import {
   fetchNoteContext,
   fetchNoteSource,
 } from "./note-context.ts";
-import type { AnnotationResolvers, NoteResolvers } from "./note-context.ts";
 
 import { relations } from "#drizzle/relations.ts";
 import { USER_LIBRARY_ID } from "#lib/constants.ts";

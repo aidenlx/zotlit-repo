@@ -9,8 +9,8 @@ import { describe, expect, it, vi } from "vitest";
 import { RUNTIMES } from "@zotlit/scripts/runtime-table";
 import type { Runtime } from "@zotlit/scripts/runtime-table";
 
-import { embeddedWorker } from "./embedded-worker.ts";
 import type { EmbeddedWorkerOptions } from "./embedded-worker.ts";
+import { embeddedWorker } from "./embedded-worker.ts";
 
 const ID = "virtual:scheduler-worker";
 

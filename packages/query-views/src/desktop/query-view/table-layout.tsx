@@ -8,6 +8,7 @@ import type {
 } from "#worker/item-query/query-view.ts";
 import { Effect, Schema } from "effect";
 import { Keymap } from "obsidian";
+import type { CSSProperties, ReactNode } from "react";
 import {
   useEffect,
   useLayoutEffect,
@@ -16,7 +17,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { CSSProperties, ReactNode } from "react";
 
 import type { TargetOpenGesture } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
 import { zoteroUri } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
@@ -31,8 +31,8 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import { ItemsWindow } from "./items-window.tsx";
 import type { DrawnEntry, WindowEntry } from "./items-window.tsx";
+import { ItemsWindow } from "./items-window.tsx";
 import type { QueryLayout } from "./layouts.ts";
 import { useQueryTask, useQueryViewState } from "./model.ts";
 import { CellContent, recordCells, searchFinds } from "./record-rows.tsx";
@@ -41,8 +41,8 @@ import { TableHeader } from "./table-header.tsx";
 import type { LiteratureNotes, VaultHost } from "./table-notes.ts";
 import { cellText } from "./value-text.ts";
 import { VaultEditCell, useVaultVersion } from "./vault-cell.tsx";
-import { useViewProperties } from "./view-properties.ts";
 import type { PropertyEntry } from "./view-properties.ts";
+import { useViewProperties } from "./view-properties.ts";
 import type { QueryView } from "./view.tsx";
 
 import { useItemRow } from "#core/query-view/item-rows.ts";

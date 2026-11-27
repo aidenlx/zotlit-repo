@@ -10,6 +10,7 @@ import type {
 } from "#desktop/note-import/batch-import.ts";
 import type { NoteImportView } from "#desktop/note-import/view.ts";
 import type { ProfileDialogServices } from "#desktop/profile/dialogs.ts";
+import type { Scope } from "effect";
 import {
   Cause,
   Effect,
@@ -21,7 +22,6 @@ import {
   Result,
   Stream,
 } from "effect";
-import type { Scope } from "effect";
 import type { ObsidianProtocolData } from "obsidian";
 
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";

@@ -2,8 +2,8 @@ import type { WelcomeBannerDeps } from "#desktop/welcome/banner.tsx";
 import type { LibrarySelection } from "#obsidian/library/model.ts";
 import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
-import { debounce, ItemView, Keymap, Scope } from "obsidian";
 import type { Component, Modifier, WorkspaceLeaf } from "obsidian";
+import { debounce, ItemView, Keymap, Scope } from "obsidian";
 
 import { inTextEntry } from "@zotlit/annotations/obsidian/pdf-annotation-editor/capability-affordance.ts";
 import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
@@ -43,6 +43,13 @@ import { composing } from "@zotlit/ui";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { itemNodeAtom } from "./atoms.ts";
+import type {
+  LibraryNode,
+  LibraryViewDocument,
+  LibraryViewLabels,
+  LibraryViewQuery,
+  ReadingStateFacet,
+} from "./document.ts";
 import {
   CARD_HEIGHT_DEFAULT,
   CARD_HEIGHT_MIN,
@@ -69,13 +76,6 @@ import {
   withTreeCollapsed,
   withTreeWidth,
 } from "./document.ts";
-import type {
-  LibraryNode,
-  LibraryViewDocument,
-  LibraryViewLabels,
-  LibraryViewQuery,
-  ReadingStateFacet,
-} from "./document.ts";
 import { renderHeading } from "./heading.tsx";
 import type { ItemActions } from "./item-actions.ts";
 import { createItemDrag, refuseItemDrop } from "./item-drag.ts";
@@ -84,10 +84,10 @@ import { ZoteroNotFound } from "./not-found.tsx";
 import { PaneWidth } from "./pane-width.ts";
 import { ReadingCard } from "./reading-card.tsx";
 import { recentReason, RECENT_REASON_FIELDS } from "./reason.ts";
-import { rowMenu } from "./row-menu.ts";
 import type { MenuItem } from "./row-menu.ts";
-import { LibrarySearch } from "./search-box.tsx";
+import { rowMenu } from "./row-menu.ts";
 import type { SearchFound } from "./search-box.tsx";
+import { LibrarySearch } from "./search-box.tsx";
 import { LibraryViewStorage } from "./storage.ts";
 import { scopeForLibrary } from "./tree-model.ts";
 

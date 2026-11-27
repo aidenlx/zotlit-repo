@@ -16,30 +16,30 @@ import type {
 import type { SelectedText } from "@zotlit/pdf-structure";
 import { offeredSwatches } from "@zotlit/plugin-kernel/annotation-colors.ts";
 
-import { createPopupRow } from "./create-popup.tsx";
 import type {
   CreatePopupControl,
   CreatePopupRowInput,
 } from "./create-popup.tsx";
-import { creationToolbar } from "./creation-toolbar.ts";
+import { createPopupRow } from "./create-popup.tsx";
 import type { CreationToolbarControl } from "./creation-toolbar.ts";
-import { fitStoredTextBox } from "./free-text-layout.ts";
+import { creationToolbar } from "./creation-toolbar.ts";
 import type { TextMeasure } from "./free-text-layout.ts";
-import {
-  capturesImage,
-  isEditablePosition,
-  sameGeometry,
-} from "./geometry-edit.ts";
+import { fitStoredTextBox } from "./free-text-layout.ts";
 import type {
   EditablePosition,
   Grip,
   PdfPoint,
   PdfRect,
 } from "./geometry-edit.ts";
-import { markPopupRow } from "./mark-popup.tsx";
+import {
+  capturesImage,
+  isEditablePosition,
+  sameGeometry,
+} from "./geometry-edit.ts";
 import type { MarkPopupRowInput, MarkPopupVerb } from "./mark-popup.tsx";
-import { gestureOf } from "./tools.ts";
+import { markPopupRow } from "./mark-popup.tsx";
 import type { AnnotationTool, MarkTool } from "./tools.ts";
+import { gestureOf } from "./tools.ts";
 
 import { lockBlock } from "#core/annotation-repository/lock.ts";
 import {

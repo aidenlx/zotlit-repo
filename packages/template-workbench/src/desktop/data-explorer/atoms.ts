@@ -3,11 +3,11 @@ import { Cause, Effect } from "effect";
 import { TemplateDataReads } from "@zotlit/notes/desktop/template/data-reads.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 
+import type { TemplateDataExportTarget } from "./export-file.ts";
 import {
   failTemplateDataExport,
   saveTemplateDataExport,
 } from "./export-file.ts";
-import type { TemplateDataExportTarget } from "./export-file.ts";
 
 export const makeExportTemplateDataCommand = () =>
   viewRuntime.fn(

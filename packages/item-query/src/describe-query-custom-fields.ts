@@ -8,12 +8,12 @@ import type {
 
 import type { QueryDataset } from "./dataset.ts";
 import type { SchemaCustomField } from "./describe-item-query.ts";
+import type { ValueShape } from "./fields.ts";
 import {
   CUSTOM_FIELD_VALUE_SHAPE,
   customFilterValue,
   fieldDefinition,
 } from "./fields.ts";
-import type { ValueShape } from "./fields.ts";
 import { hasBareForm } from "./filter-plan.ts";
 import { openQuerySources } from "./query-sources.ts";
 

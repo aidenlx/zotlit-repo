@@ -1,6 +1,7 @@
 import type { TemplateName } from "#core/template/defaults.ts";
 import type { EngineFaultSpan } from "#core/template/errors.ts";
 import type { ResolvedProfile } from "#obsidian/profile/bindings.ts";
+import type { Cause } from "effect";
 import {
   Context,
   Effect,
@@ -12,9 +13,8 @@ import {
   Stream,
   SubscriptionRef,
 } from "effect";
-import type { Cause } from "effect";
-import { TFile, TFolder } from "obsidian";
 import type { App, TAbstractFile } from "obsidian";
+import { TFile, TFolder } from "obsidian";
 
 import { citekeysToCiteTemplateData } from "@zotlit/db";
 import type {

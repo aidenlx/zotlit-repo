@@ -1,7 +1,7 @@
 import type { ZoteroDatabase } from "#client/database.ts";
 
-import { defineQuery } from "./_shared.ts";
 import type { QueryRow } from "./_shared.ts";
+import { defineQuery } from "./_shared.ts";
 
 export interface BaseFieldTable<TName extends string> {
   readonly fieldIDs: readonly number[];

@@ -1,7 +1,7 @@
 import type { ZoteroDatabase } from "#client/database.ts";
 import type { relations } from "#drizzle/relations.ts";
-import { inArray, sql } from "drizzle-orm";
 import type { AnyColumn, DBQueryConfig, Placeholder, SQL } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 
 export { CHILD_ITEM_TYPES } from "#lib/item-types.ts";
 

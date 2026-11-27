@@ -1,7 +1,7 @@
 import type { ZoteroDatabase } from "#client/database.ts";
 import type { LibraryType } from "#drizzle/schema.ts";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
 import { defineQuery } from "./_shared.ts";
 

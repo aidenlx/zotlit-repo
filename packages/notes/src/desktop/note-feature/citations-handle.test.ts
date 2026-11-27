@@ -20,8 +20,8 @@ import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
-import { bindNoteCitations } from "./citations-handle.ts";
 import type { NoteCitationServices } from "./citations-handle.ts";
+import { bindNoteCitations } from "./citations-handle.ts";
 
 import { defaults } from "#__fixtures__/settings.ts";
 import {

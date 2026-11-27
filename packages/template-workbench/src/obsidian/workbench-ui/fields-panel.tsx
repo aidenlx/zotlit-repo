@@ -1,4 +1,5 @@
 import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react";
+import type { ReactNode, RefObject } from "react";
 import {
   createContext,
   useContext,
@@ -7,7 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ReactNode, RefObject } from "react";
 
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";

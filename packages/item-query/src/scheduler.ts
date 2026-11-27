@@ -1,5 +1,5 @@
-import { Context } from "effect";
 import type { Fiber } from "effect";
+import { Context } from "effect";
 import { MixedScheduler } from "effect/Scheduler";
 
 export const SLICE_BUDGET_MS = 4;

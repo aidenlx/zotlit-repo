@@ -2,7 +2,6 @@ import { Context, Effect, Layer } from "effect";
 
 import type { CitationVariant, ContractRoot } from "@zotlit/db";
 
-import { readCitationData, readTemplateData } from "./data.ts";
 import type {
   CitationDataLoadResult,
   CitationSelector,
@@ -10,6 +9,7 @@ import type {
   TemplateDataLoadResult,
   TemplateDataServices,
 } from "./data.ts";
+import { readCitationData, readTemplateData } from "./data.ts";
 
 export class TemplateDataReads extends Context.Service<
   TemplateDataReads,

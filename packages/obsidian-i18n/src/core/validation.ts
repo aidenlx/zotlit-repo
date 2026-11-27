@@ -1,5 +1,5 @@
-import { isSupportedLanguagePackFormatter } from "./language-pack.ts";
 import type { LanguagePack } from "./language-pack.ts";
+import { isSupportedLanguagePackFormatter } from "./language-pack.ts";
 
 export { isSupportedLanguagePackFormatter } from "./language-pack.ts";
 

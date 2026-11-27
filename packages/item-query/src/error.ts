@@ -1,8 +1,8 @@
 import { Data } from "effect";
 
 import type { QueryDataset } from "./dataset.ts";
-import { diagnose } from "./diagnose.ts";
 import type { Diagnostic } from "./diagnose.ts";
+import { diagnose } from "./diagnose.ts";
 import type { ItemQueryFault, Span } from "./fault.ts";
 import type { FormulaDiagnostics, QueryContext } from "./request.ts";
 

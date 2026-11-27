@@ -17,6 +17,7 @@ import { monotonicMillis } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { DbUnavailable } from "@zotlit/zotero-reads/contract/db-unavailable.ts";
 import type { QueryJobRunner } from "@zotlit/zotero-reads/worker/handlers.ts";
 
+import type { QueryWriter } from "./answer.ts";
 import {
   answer,
   answerCustomFields,
@@ -24,12 +25,11 @@ import {
   exportUnavailable,
   QueryOutputError,
 } from "./answer.ts";
-import type { QueryWriter } from "./answer.ts";
 import { makeAttachmentFileResolver } from "./attachment-files.ts";
-import { diagnostic, failure } from "./contract.ts";
 import type { QueryIdentity } from "./contract.ts";
-import { createTrace, finishTrace } from "./trace.ts";
+import { diagnostic, failure } from "./contract.ts";
 import type { QueryMeter, WorkerMeasurement } from "./trace.ts";
+import { createTrace, finishTrace } from "./trace.ts";
 import type { QueryAnswer, QueryJob } from "./worker-protocol.ts";
 
 export interface QueryJobEnv {

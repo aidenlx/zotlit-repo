@@ -10,8 +10,8 @@ import type { ReferenceEntry } from "#obsidian/references/entries.ts";
 import type { ReferencesCopyTarget } from "#obsidian/references/state.ts";
 import { Effect } from "effect";
 import type { App } from "obsidian";
-import { createContext, useContext } from "react";
 import type { MouseEvent } from "react";
+import { createContext, useContext } from "react";
 
 import {
   openAttachments,

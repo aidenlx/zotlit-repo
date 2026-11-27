@@ -27,8 +27,8 @@ import {
   positionDocumentItem,
   readingState,
 } from "./e2e-run-fixture.ts";
-import { activeTab, pdfOpened, unreadOf } from "./e2e-run-helpers.ts";
 import type { ActiveTab } from "./e2e-run-helpers.ts";
+import { activeTab, pdfOpened, unreadOf } from "./e2e-run-helpers.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
 import {
   pressPromptKey,

@@ -16,12 +16,12 @@ import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join } from "node:path";
 import { describe, expect } from "vitest";
 
+import type { CslResponse } from "./csl.ts";
 import {
   CSL_COMMAND,
   materializeCslStyle,
   resolveCslStyle as resolveStyleEffect,
 } from "./csl.ts";
-import type { CslResponse } from "./csl.ts";
 import { resolveInstalledStyle } from "./styles.ts";
 
 import { CONTRACT_VERSION } from "#core/pandoc/contract.ts";

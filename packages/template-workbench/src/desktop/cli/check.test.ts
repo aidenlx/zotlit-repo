@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Context, Deferred, Effect, Exit, Fiber } from "effect";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { apiVersion } from "obsidian";
 import type { CliData } from "obsidian";
+import { apiVersion } from "obsidian";
 import { beforeEach, describe, expect, vi } from "vitest";
 import { parse } from "yaml";
 

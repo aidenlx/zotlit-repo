@@ -9,8 +9,8 @@ import type {
 import type { ItemQueryError } from "./error.ts";
 import type { FilterPlan } from "./filter-plan.ts";
 import type { QuerySources } from "./query-sources.ts";
-import { loadRelation, relationChunk } from "./relation-hydration.ts";
 import type { RelationChunk } from "./relation-hydration.ts";
+import { loadRelation, relationChunk } from "./relation-hydration.ts";
 import type { ItemQueryPlan, TargetLibrary } from "./request.ts";
 
 export type Read<A> = Effect.Effect<A, ItemQueryReaderError, ItemQueryDatabase>;

@@ -5,6 +5,11 @@ import type { AnnotViewAttachment } from "@zotlit/db";
 import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
+import type {
+  FollowMenuAction,
+  FollowMenuEntry,
+  HeaderMenuEntry,
+} from "./presentation.ts";
 import {
   annotViewBody,
   attachmentLine,
@@ -13,11 +18,6 @@ import {
   headerIndicators,
   headerMenu,
   headerShape,
-} from "./presentation.ts";
-import type {
-  FollowMenuAction,
-  FollowMenuEntry,
-  HeaderMenuEntry,
 } from "./presentation.ts";
 import { initialAnnotState } from "./state.ts";
 import type { AnnotState } from "./store.ts";

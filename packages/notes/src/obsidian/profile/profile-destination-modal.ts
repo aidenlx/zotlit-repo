@@ -1,5 +1,5 @@
-import { Modal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
+import { Modal, TextComponent } from "obsidian";
 
 import {
   dialogFooter,

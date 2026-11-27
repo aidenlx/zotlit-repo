@@ -1,4 +1,3 @@
-import { useCallback, useRef } from "react";
 import type {
   ButtonHTMLAttributes,
   FocusEvent,
@@ -8,6 +7,7 @@ import type {
   Ref,
   RefObject,
 } from "react";
+import { useCallback, useRef } from "react";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { composing } from "@zotlit/ui";

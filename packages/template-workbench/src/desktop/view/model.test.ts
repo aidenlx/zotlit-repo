@@ -3,8 +3,8 @@ import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Queue, Stream, SubscriptionRef } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
-import { TFile } from "obsidian";
 import type { App } from "obsidian";
+import { TFile } from "obsidian";
 import { vi } from "vitest";
 
 import { defaults } from "@zotlit/notes/__fixtures__/settings.ts";

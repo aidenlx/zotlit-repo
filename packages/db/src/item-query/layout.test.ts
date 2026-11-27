@@ -2,8 +2,8 @@ import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import { Cause, Effect, Exit } from "effect";
 import { existsSync, rmSync } from "node:fs";
 import { dirname } from "node:path";
-import { constants } from "node:sqlite";
 import type { DatabaseSync } from "node:sqlite";
+import { constants } from "node:sqlite";
 import { afterEach, assert, describe, expect, it } from "vitest";
 
 import type {

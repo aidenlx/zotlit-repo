@@ -2,8 +2,8 @@ import { regex } from "arkregex";
 
 import { chinesePrefix, unlocalizedPath } from "./i18n.ts";
 import { htmlPagePath } from "./markdown-routes.ts";
-import { markdownEditionHeaders } from "./shared.ts";
 import type { DocsLine } from "./shared.ts";
+import { markdownEditionHeaders } from "./shared.ts";
 
 export interface HeaderRule {
   source: string;

@@ -7,8 +7,8 @@ import type {
   ReaderTarget,
 } from "@zotlit/plugin-services/core/local-server/service.ts";
 
-import { ReaderSessionHost } from "./session.ts";
 import type { ReaderSessionTarget } from "./session.ts";
+import { ReaderSessionHost } from "./session.ts";
 
 export interface ZoteroReaderResolution {
   target: ReaderSessionTarget;

@@ -2,13 +2,13 @@ import { Clock, Duration, Effect, Redacted, Ref, Semaphore } from "effect";
 
 import { ZOTERO_VOCABULARY } from "@zotlit/zotero-types/vocabulary";
 
+import type { WebApiError } from "./errors.ts";
 import {
   WebApiNetworkError,
   WebApiNoAccess,
   WebApiProtocolError,
   WebApiRateLimited,
 } from "./errors.ts";
-import type { WebApiError } from "./errors.ts";
 
 export type WebApiFetch = (
   url: string,

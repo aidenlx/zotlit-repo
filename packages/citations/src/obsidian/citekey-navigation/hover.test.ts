@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type { CitationHoverGesture, HoverPreferences } from "./hover.ts";
 import {
   citationHoverIntent,
   hoverEditingMode,
   hoverPreferences,
 } from "./hover.ts";
-import type { CitationHoverGesture, HoverPreferences } from "./hover.ts";
 
 import { defaults } from "#__fixtures__/settings.ts";
 

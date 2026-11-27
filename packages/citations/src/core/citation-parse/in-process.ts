@@ -1,12 +1,12 @@
-import { Effect } from "effect";
 import type { Scope } from "effect";
-import { RpcClient, RpcServer } from "effect/rpc";
+import { Effect } from "effect";
 import type { RpcClientError, RpcGroup } from "effect/rpc";
+import { RpcClient, RpcServer } from "effect/rpc";
 
 import { makeInMemoryRpcProtocols } from "@zotlit/plugin-kernel/worker/effect-rpc-in-process.ts";
 
-import { decodeParseReply, ParseFailed } from "./client.ts";
 import type { ParseClient } from "./client.ts";
+import { decodeParseReply, ParseFailed } from "./client.ts";
 import { layerParseHandlers } from "./handlers.ts";
 import { CitationParseRpc } from "./rpc.ts";
 

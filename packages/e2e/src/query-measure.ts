@@ -32,14 +32,6 @@ import { obRun } from "./obsidian-cli.ts";
 import { cli, cliCommand, waitFor } from "./obsidian-cli.ts";
 import type { BackgroundWindow } from "./page-notes-types.ts";
 import { pinPdfSidebar } from "./pdf-sidebar-pin.ts";
-import {
-  DATASET_QUERY_SPECS,
-  evaluateTier,
-  failedEngineChecks,
-  formatSummary,
-  median,
-  THRESHOLDS,
-} from "./query-record.ts";
 import type {
   CancelMeasurement,
   HeapMeasurement,
@@ -48,6 +40,14 @@ import type {
   QueryClass,
   QueryMeasurement,
   TierMeasurement,
+} from "./query-record.ts";
+import {
+  DATASET_QUERY_SPECS,
+  evaluateTier,
+  failedEngineChecks,
+  formatSummary,
+  median,
+  THRESHOLDS,
 } from "./query-record.ts";
 import {
   clearVault,

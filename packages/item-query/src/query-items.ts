@@ -1,5 +1,5 @@
-import { fieldRoot } from "./dataset.ts";
 import type { QueryDataset } from "./dataset.ts";
+import { fieldRoot } from "./dataset.ts";
 import {
   BUILT_IN_NAMES,
   DEFAULT_FIELDS,

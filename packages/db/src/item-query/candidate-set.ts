@@ -3,8 +3,8 @@ import { Effect } from "effect";
 
 import type { TagCandidateLeaf, KeysCandidateLeaf } from "./candidate-leaf.ts";
 import { candidateTag } from "./candidate-predicates.ts";
-import { defineStatement, unindexed } from "./database.ts";
 import type { ItemQueryDatabase, ItemQueryReaderError } from "./database.ts";
+import { defineStatement, unindexed } from "./database.ts";
 
 import {
   collectionItems,

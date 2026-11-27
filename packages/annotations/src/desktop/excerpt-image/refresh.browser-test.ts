@@ -7,8 +7,8 @@ import { Effect } from "effect";
 
 import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
 
-import { EXCERPT_DISPLAY } from "./display.ts";
 import type { ExcerptDisplayDemand, ExcerptImageDisplay } from "./display.ts";
+import { EXCERPT_DISPLAY } from "./display.ts";
 import { excerptKey } from "./key.ts";
 
 import { check } from "#__fixtures__/excerpt-image/check.ts";

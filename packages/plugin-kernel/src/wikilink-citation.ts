@@ -8,8 +8,8 @@ import type {
   PandocCitationItem,
 } from "@zotlit/templates/pandoc-citation";
 
-import { citationRunItem } from "./citation-fragment.ts";
 import type { CitationRunItem } from "./citation-fragment.ts";
+import { citationRunItem } from "./citation-fragment.ts";
 import type { CitationSource } from "./citation-source.ts";
 
 const FRAGMENT_PREFIX = "cite:";

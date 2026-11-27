@@ -16,8 +16,8 @@ import {
   attachmentAnnotations,
   e2eFixture,
 } from "./e2e-run-fixture.ts";
-import { activeTab, pdfOpened } from "./e2e-run-helpers.ts";
 import type { ActiveTab } from "./e2e-run-helpers.ts";
+import { activeTab, pdfOpened } from "./e2e-run-helpers.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
 import { pressPromptKey, selectSuggestion } from "./e2e-run-note-helpers.ts";
 import * as suite from "./e2e-run-suite-helpers.ts";

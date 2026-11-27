@@ -1,8 +1,8 @@
 import type { QueryHostDeps } from "#__fixtures__/query-view/host.ts";
 import type { QueryViewOutcome } from "#worker/item-query/query-view.ts";
 import { Stream } from "effect";
-import { debounce } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
+import { debounce } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 

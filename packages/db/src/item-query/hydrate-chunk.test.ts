@@ -12,6 +12,7 @@ import {
 } from "@zotlit/db-testing/scenario";
 
 import { readItemAttachments } from "./attachments.ts";
+import type { HydrateFields, HydratedItem, HydrateRelation } from "./index.ts";
 import {
   HYDRATE_CHUNK_SIZE,
   ItemQueryDatabase,
@@ -20,7 +21,6 @@ import {
   readFieldVocabulary,
   readHydrateChunk,
 } from "./index.ts";
-import type { HydrateFields, HydratedItem, HydrateRelation } from "./index.ts";
 
 import { connectClient } from "#desktop/node-client.ts";
 

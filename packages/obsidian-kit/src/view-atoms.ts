@@ -5,13 +5,13 @@ import type { MetadataCache } from "#obsidian-metadata-cache.ts";
 import type { Vault } from "#obsidian-vault.ts";
 import type { Workspace } from "#obsidian-workspace.ts";
 import { RegistryContext } from "@effect/atom-react";
-import { Context, Effect, Layer, Option } from "effect";
 import type { FileSystem, Stream } from "effect";
+import { Context, Effect, Layer, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
-import { createElement } from "react";
 import type { ReactNode } from "react";
+import { createElement } from "react";
 
 import { scheduleBrowserTask } from "@zotlit/plugin-kernel/browser-scheduler.ts";
 

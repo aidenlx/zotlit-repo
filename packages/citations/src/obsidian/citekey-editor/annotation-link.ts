@@ -5,15 +5,15 @@ import type {
 } from "#obsidian/citation-text/present.ts";
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
 import { syntaxTree } from "@codemirror/language";
-import { RangeSetBuilder } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
+import { RangeSetBuilder } from "@codemirror/state";
+import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import {
   Decoration,
   EditorView,
   ViewPlugin,
   WidgetType,
 } from "@codemirror/view";
-import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import { Effect } from "effect";
 import { editorInfoField, Keymap, livePreviewState } from "obsidian";
 

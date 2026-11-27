@@ -1,6 +1,6 @@
 import { i18n, localizedPath } from "./i18n.ts";
-import { contentRouteUrl, suffixEditionUrl } from "./markdown-routes.ts";
 import type { MarkdownPage, MarkdownSection } from "./markdown-routes.ts";
+import { contentRouteUrl, suffixEditionUrl } from "./markdown-routes.ts";
 import type { RedirectRule } from "./v1-redirects.ts";
 
 export const V2_MOVES: Record<string, string> = {

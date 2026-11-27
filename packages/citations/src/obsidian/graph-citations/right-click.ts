@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { around } from "monkey-around";
-import { Keymap, Menu } from "obsidian";
 import type { Workspace } from "obsidian";
+import { Keymap, Menu } from "obsidian";
 
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 import {

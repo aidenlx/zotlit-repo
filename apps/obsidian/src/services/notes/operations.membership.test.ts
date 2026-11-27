@@ -1,7 +1,7 @@
 import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Layer, Stream } from "effect";
-import { TFolder } from "obsidian";
 import type { TFile } from "obsidian";
+import { TFolder } from "obsidian";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { stringify as stringifyYaml } from "yaml";
 

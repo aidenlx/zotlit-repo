@@ -1,7 +1,7 @@
 import type { ZoteroDatabase } from "#client/database.ts";
 import type { CreatorFieldMode } from "#lib/zt-creator.ts";
-import { sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 import { logLibrary } from "@zotlit/shared/logging";
 import {
@@ -30,8 +30,8 @@ import type {
   WebApiItemData,
 } from "@zotlit/zotero-types/web-api";
 
-import { readVocabulary } from "./vocabulary.ts";
 import type { ReplicaVocabulary } from "./vocabulary.ts";
+import { readVocabulary } from "./vocabulary.ts";
 
 import { USER_LIBRARY_ID } from "#lib/constants.ts";
 import { annotationTypeFromName } from "#lib/zt-annot.ts";

@@ -20,6 +20,7 @@ import { openScenarioApi } from "@zotlit/web-library/fake-zotero-api/scenario";
 import { startWebWorker } from "@zotlit/zotero-reads/client/web-worker.ts";
 import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
+import type { FloorFetch } from "./__fixtures__/floor-worker.ts";
 import {
   builtModule,
   builtRoot,
@@ -31,7 +32,6 @@ import {
   POST_FLOOR_APIS,
   ROOTS,
 } from "./__fixtures__/floor-worker.ts";
-import type { FloorFetch } from "./__fixtures__/floor-worker.ts";
 import { checkLoads } from "./worker-loads.ts";
 
 const PACK_URL = "https://pack.zotlit.test/main.js";

@@ -4,8 +4,8 @@ import { act } from "preact/test-utils";
 import { createElement as h } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { Select } from "./select.tsx";
 import type { SelectOption } from "./select.tsx";
+import { Select } from "./select.tsx";
 
 import { editorApp } from "#__fixtures__/editor-app.ts";
 import { pressTop } from "#__fixtures__/keymap.ts";

@@ -7,8 +7,8 @@ import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { joinForked, observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 
-import { viewRuntime } from "./view-atoms.ts";
 import type { ViewServices } from "./view-atoms.ts";
+import { viewRuntime } from "./view-atoms.ts";
 
 export type ViewRun = <A, E>(
   effect: Effect.Effect<A, E, ViewServices>,

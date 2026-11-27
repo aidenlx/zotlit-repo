@@ -1,5 +1,5 @@
-import { evalQuotedToken, toValueSync, TypeGuards, Value } from "liquidjs";
 import type { Context, Liquid, Template } from "liquidjs";
+import { evalQuotedToken, toValueSync, TypeGuards, Value } from "liquidjs";
 
 import { PandocCitationError } from "./pandoc-citation.ts";
 import { TexCitationError } from "./tex-citation.ts";

@@ -5,8 +5,8 @@ import { parse } from "yaml";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { presentCitations } from "./markdown.tsx";
-import { retainPreviewOutputs, previewBaseline } from "./render.ts";
 import type { PreviewRenderResult } from "./render.ts";
+import { retainPreviewOutputs, previewBaseline } from "./render.ts";
 
 import {
   createRenderFixture,

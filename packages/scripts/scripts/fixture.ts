@@ -4,8 +4,8 @@ import type { DesktopSlot } from "#desktop-slot";
 import type { VaultPlugin } from "#vault-plugins";
 import { access } from "node:fs/promises";
 import { join } from "node:path";
-import yargs from "yargs";
 import type { Argv } from "yargs";
+import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import {

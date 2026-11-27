@@ -10,6 +10,11 @@ import { describe, expect, it } from "vitest";
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
+import type {
+  CardBlock,
+  CardControls,
+  CardControlsInput,
+} from "./card-controls.ts";
 import {
   annotationBlocks,
   cardControls,
@@ -22,11 +27,6 @@ import {
   heldTagDraft,
   shownComment,
   shownTagNames,
-} from "./card-controls.ts";
-import type {
-  CardBlock,
-  CardControls,
-  CardControlsInput,
 } from "./card-controls.ts";
 
 import { deadlineAfter } from "#__fixtures__/annotation-repository/capability.ts";

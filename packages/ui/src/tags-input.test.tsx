@@ -5,8 +5,8 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { useState } from "react";
 import type { ComponentProps, FocusEvent as ReactFocusEvent } from "react";
+import { useState } from "react";
 import { afterEach, expect, it } from "vitest";
 
 import { TagsInput } from "./tags-input.tsx";

@@ -37,6 +37,13 @@ import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { LiteratureNoteTemplateError } from "@zotlit/templates/facade";
 
+import type {
+  Diagnostic,
+  DiagnosticCode,
+  LiteratureNoteDocumentRow,
+  LiteratureNoteProfileRow,
+  WorkbenchCommand,
+} from "./envelope.ts";
 import {
   dataLoadDiagnostic,
   diagnostic,
@@ -46,13 +53,6 @@ import {
   notSettledDiagnostic,
   rejectionDiagnostic,
   templateFaultDiagnostic,
-} from "./envelope.ts";
-import type {
-  Diagnostic,
-  DiagnosticCode,
-  LiteratureNoteDocumentRow,
-  LiteratureNoteProfileRow,
-  WorkbenchCommand,
 } from "./envelope.ts";
 import { renderGuide } from "./guide.ts";
 import { INSPECT_DIAGNOSTICS } from "./inspect-contract.ts";

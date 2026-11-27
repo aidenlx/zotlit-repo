@@ -1,16 +1,16 @@
 import type { OpenablePdfs } from "#core/attachment-open/openable.ts";
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
 import type { LiteratureNoteAttachmentsHandle } from "#obsidian/attachment-open/handle.ts";
-import { TFile } from "obsidian";
 import type { App, PaneType, Plugin } from "obsidian";
+import { TFile } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
-import { openAttachments } from "./open-attachments.ts";
 import type { AttachmentReader } from "./open-attachments.ts";
+import { openAttachments } from "./open-attachments.ts";
 import type { OpenTarget, TargetOpener } from "./open-target.ts";
 
 export interface TargetOpenGesture {

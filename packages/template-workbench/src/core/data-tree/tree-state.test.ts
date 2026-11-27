@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import type { TreeState } from "./tree-state.ts";
 import {
   initialTreeState,
   setAnchor,
   setFilter,
   toggleNode,
 } from "./tree-state.ts";
-import type { TreeState } from "./tree-state.ts";
 
 describe("toggleNode", () => {
   it("toggles the key in expanded when not filtering", () => {

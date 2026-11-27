@@ -1,8 +1,8 @@
 import type { RenderTemplate } from "#core/cli/vocabulary.ts";
 import type { PartialContext } from "#core/render/index.ts";
 import type { WorkbenchIdentity } from "#worker/cli/workbench-identity.ts";
-import { Schema } from "effect";
 import type { Effect } from "effect";
+import { Schema } from "effect";
 import type { CliData } from "obsidian";
 
 import { DEFAULT_CITATION_VARIANT } from "@zotlit/db";
@@ -30,10 +30,10 @@ import type {
 } from "@zotlit/obsidian-kit/cli-params.ts";
 import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { diagnostic } from "./envelope.ts";
 import type { Diagnostic } from "./envelope.ts";
-import { GUIDE_TOPIC_NAMES } from "./guide.ts";
+import { diagnostic } from "./envelope.ts";
 import type { GuideTopic } from "./guide.ts";
+import { GUIDE_TOPIC_NAMES } from "./guide.ts";
 
 import { CONTRACT_ROOT_NAMES } from "#core/cli/schema.ts";
 import {

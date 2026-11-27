@@ -8,14 +8,14 @@ import type {
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { QueryAnnotation } from "./annotation-fields.ts";
-import { ANNOTATION_LOADING } from "./annotation-hydration.ts";
 import type { AnnotationNeeds } from "./annotation-hydration.ts";
+import { ANNOTATION_LOADING } from "./annotation-hydration.ts";
 import type { QueryAttachment } from "./attachment-fields.ts";
 import { AttachmentFileResolver } from "./dataset.ts";
 import type { FieldNeeds, QueryItem } from "./fields.ts";
 import { ITEM_LOADING } from "./hydration.ts";
-import { parentRecord, relationList } from "./record-loader.ts";
 import type { LoadingDescriptor } from "./record-loader.ts";
+import { parentRecord, relationList } from "./record-loader.ts";
 import { relatedAttachmentAnnotations } from "./relation-hydration.ts";
 
 export interface AttachmentNeeds {

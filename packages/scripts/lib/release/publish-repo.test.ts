@@ -5,8 +5,8 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { prepareShellCommit, pushShellCommit } from "./publish-repo.ts";
 import type { PublishRepoOptions } from "./publish-repo.ts";
+import { prepareShellCommit, pushShellCommit } from "./publish-repo.ts";
 
 import { git, makeGitRepos } from "#git-repos";
 

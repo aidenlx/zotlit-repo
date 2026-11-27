@@ -3,8 +3,8 @@ import { Fragment, useMemo, useState } from "react";
 
 import type { DrawnEntry } from "./items-window.tsx";
 import type { ListLayoutOptions } from "./list-layout.tsx";
-import { RecordCell, holdsError } from "./record-rows.tsx";
 import type { GroupEntry, RecordCells } from "./record-rows.tsx";
+import { RecordCell, holdsError } from "./record-rows.tsx";
 import type { PropertyEntry } from "./view-properties.ts";
 
 import { sameMetrics, useRowHeights } from "#core/query-view/list-heights.ts";

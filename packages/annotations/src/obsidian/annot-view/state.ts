@@ -15,8 +15,8 @@ import { toggledValues } from "@zotlit/obsidian-kit/components/chooser-logic.ts"
 import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 
 import type { CaretPoint } from "./editor-sheet.ts";
-import { filterAnnotations } from "./filter.ts";
 import type { AnnotFilter } from "./filter.ts";
+import { filterAnnotations } from "./filter.ts";
 
 import { cardPlace, NO_SELECTION } from "#core/annot-view/card-selection.ts";
 import { byTextField } from "#obsidian/annotation-repository/write.ts";

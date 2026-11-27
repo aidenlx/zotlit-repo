@@ -4,22 +4,22 @@ import { RegistryContext, RegistryProvider } from "@effect/atom-react";
 import { Effect, Layer } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
-import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
+import { createContext, useContext } from "react";
 
 import type { WorkbenchReportContext } from "@zotlit/notes/core/template/render-report.ts";
 import { scheduleBrowserTask } from "@zotlit/plugin-kernel/browser-scheduler.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { NO_MATCH_DATA } from "./host.tsx";
 import type { WorkbenchHost, WorkbenchHostError } from "./host.tsx";
-import { holdWorkbenchModel, makeWorkbenchModel } from "./model.ts";
+import { NO_MATCH_DATA } from "./host.tsx";
 import type {
   WorkbenchModel,
   WorkbenchModelOptions,
   WorkbenchRuntime,
   WorkbenchViewState,
 } from "./model.ts";
+import { holdWorkbenchModel, makeWorkbenchModel } from "./model.ts";
 
 import { WorkbenchDocumentController as Controller } from "#core/document/controller.ts";
 

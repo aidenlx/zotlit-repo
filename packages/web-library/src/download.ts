@@ -39,16 +39,17 @@ import {
   SettingList,
   VersionMap,
 } from "./answers.ts";
-import {
-  isHeaderSafeKey,
-  makeWebApiClient,
-  MAX_CONCURRENT_REQUESTS,
-} from "./api-client.ts";
 import type {
   WebApiAnswer,
   WebApiClient,
   WebApiClientOptions,
 } from "./api-client.ts";
+import {
+  isHeaderSafeKey,
+  makeWebApiClient,
+  MAX_CONCURRENT_REQUESTS,
+} from "./api-client.ts";
+import type { WebApiError, WebLibrarySyncError } from "./errors.ts";
 import {
   describeStorageFailure,
   ReplicaStorageError,
@@ -56,7 +57,6 @@ import {
   WebApiNoAccess,
   WebApiProtocolError,
 } from "./errors.ts";
-import type { WebApiError, WebLibrarySyncError } from "./errors.ts";
 
 export const OBJECTS_PER_REQUEST = 50;
 export const MAX_PASS_ATTEMPTS = 5;

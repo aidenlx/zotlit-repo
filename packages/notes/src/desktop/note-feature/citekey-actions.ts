@@ -3,8 +3,8 @@ import { Effect, Layer } from "effect";
 import { CitekeyNoteActions } from "@zotlit/citations/obsidian/citekey-editor/note-actions.ts";
 
 import type { NoteCreationServices } from "./creation-handle.ts";
-import { createNoteInteractively } from "./creation-view.ts";
 import type { InteractiveCreationPorts } from "./creation-view.ts";
+import { createNoteInteractively } from "./creation-view.ts";
 import { resolveLiteratureNoteWithWarning } from "./update-single.ts";
 
 export const layerCitekeyNoteActions = (

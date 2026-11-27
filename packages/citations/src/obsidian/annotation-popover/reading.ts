@@ -4,8 +4,8 @@ import type {
 } from "#obsidian/citation-text/present.ts";
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
 import { Effect, Layer } from "effect";
-import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, MarkdownView } from "obsidian";
+import { MarkdownRenderChild } from "obsidian";
 import { createRoot } from "react-dom/client";
 
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
@@ -29,8 +29,8 @@ import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/servic
 import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
 import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
 
-import { AnnotationPopover } from "./service.ts";
 import type { AnnotationHoverRequest } from "./service.ts";
+import { AnnotationPopover } from "./service.ts";
 
 import { showCitation } from "#obsidian/citation-text/present.ts";
 import { CitationText } from "#obsidian/citation-text/service.ts";

@@ -8,11 +8,11 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { bindingResources, stepMarkHistory } from "./operations.ts";
-import { makeReaderSurfaceModel } from "./reader-surface-model.ts";
 import type {
   ReaderSurfaceModel,
   ReaderSurfaceRegistry,
 } from "./reader-surface-model.ts";
+import { makeReaderSurfaceModel } from "./reader-surface-model.ts";
 import {
   initialReaderSurfaceState,
   toggleMarks,

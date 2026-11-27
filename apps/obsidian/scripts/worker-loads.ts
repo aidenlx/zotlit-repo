@@ -2,8 +2,8 @@ import type { ESTree } from "vite";
 
 import type { Runtime } from "@zotlit/scripts/runtime-table";
 
-import { patternNames, walkScopes } from "./worker-scope.ts";
 import type { Binding, Resolve } from "./worker-scope.ts";
+import { patternNames, walkScopes } from "./worker-scope.ts";
 
 type Node = ESTree.Expression | ESTree.Super | ESTree.Argument;
 

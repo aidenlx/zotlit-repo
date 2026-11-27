@@ -13,8 +13,8 @@ import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { layerAttachmentSkipNotice } from "./notices.ts";
-import { AttachmentImport } from "./service.ts";
 import type { AttachmentSkipSummary } from "./service.ts";
+import { AttachmentImport } from "./service.ts";
 
 const SUMMARY: AttachmentSkipSummary = {
   blocked: 2,

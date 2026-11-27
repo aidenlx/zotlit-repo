@@ -1,5 +1,5 @@
-import { Effect } from "effect";
 import type { Context } from "effect";
+import { Effect } from "effect";
 
 import type { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";

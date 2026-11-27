@@ -5,8 +5,8 @@ import type { DocumentFormat } from "#obsidian/pandoc/engine.ts";
 import { Effect } from "effect";
 import { homedir } from "node:os";
 import { extname } from "node:path";
-import { Modal, Setting } from "obsidian";
 import type { App } from "obsidian";
+import { Modal, Setting } from "obsidian";
 
 import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
 import type { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";

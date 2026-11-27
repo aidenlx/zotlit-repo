@@ -1,9 +1,9 @@
 import { mapCitationItems } from "./citation-items.ts";
+import type { PandocCitationForm } from "./pandoc-citation.ts";
 import {
   formatPandocCitation,
   PandocCitationError,
 } from "./pandoc-citation.ts";
-import type { PandocCitationForm } from "./pandoc-citation.ts";
 
 export function formatTemplatePandocCitation(
   value: unknown,

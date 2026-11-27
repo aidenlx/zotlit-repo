@@ -2,8 +2,9 @@ import { mkdir, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
+import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
+import type { ContractVersion } from "./contract-versions.ts";
 import {
   CONTRACT_EXEMPTIONS,
   CONTRACT_VERSIONS,
@@ -13,7 +14,6 @@ import {
   repositoryContractSources,
   scanContractVersions,
 } from "./contract-versions.ts";
-import type { ContractVersion } from "./contract-versions.ts";
 import { getWorkspaceRoot } from "./package-roots.ts";
 
 const SLOW = 20_000;

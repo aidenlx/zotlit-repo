@@ -1,5 +1,5 @@
-import { createScanner } from "jsonc-parser";
 import type { SyntaxKind } from "jsonc-parser";
+import { createScanner } from "jsonc-parser";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";

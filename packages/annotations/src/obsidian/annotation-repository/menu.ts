@@ -4,12 +4,12 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 
+import type { HistorySurface } from "./actions.ts";
 import {
   HISTORY_DIRECTIONS,
   historyCommandName,
   historyStands,
 } from "./actions.ts";
-import type { HistorySurface } from "./actions.ts";
 import type { HistoryDirection } from "./history.ts";
 import type { AnnotationRepository } from "./service.ts";
 

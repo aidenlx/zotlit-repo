@@ -1,6 +1,6 @@
 import { Layer, ManagedRuntime } from "effect";
-import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, describe, expect, it, vi } from "vitest";
 

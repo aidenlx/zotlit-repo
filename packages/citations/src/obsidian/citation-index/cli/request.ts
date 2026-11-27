@@ -18,8 +18,8 @@ import type {
   CliRejection,
 } from "@zotlit/obsidian-kit/cli-params.ts";
 
-import { diagnostic } from "./envelope.ts";
 import type { CitationsIdentity, Diagnostic } from "./envelope.ts";
+import { diagnostic } from "./envelope.ts";
 
 const SELECTOR_EXCLUSIVITY_MESSAGE =
   "cited-by takes exactly one of key=<zotero-key> or citekey=<citation-key>.";

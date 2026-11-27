@@ -1,15 +1,15 @@
-import { fieldRoot } from "./dataset.ts";
 import type { SortableField } from "./dataset.ts";
+import { fieldRoot } from "./dataset.ts";
 import type { FieldDefinition, FilterField } from "./fields.ts";
 import type { FilterNode, FilterRegistry } from "./filter-plan.ts";
 import { indexedKeyField, keyField } from "./key-fields.ts";
 import type { PathResolver } from "./projection.ts";
+import type { RecordVocabulary } from "./record-field.ts";
 import {
   definitionFilter,
   mapNavigation,
   recordField,
 } from "./record-field.ts";
-import type { RecordVocabulary } from "./record-field.ts";
 
 export function liftParentRecord<Item, Needs, Row, ParentNeeds>(options: {
   readonly name: string;

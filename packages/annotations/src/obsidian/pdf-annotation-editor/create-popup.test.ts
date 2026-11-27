@@ -4,10 +4,10 @@ import { expect, it } from "vitest";
 
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 
-import { createPopupRow } from "./create-popup.tsx";
 import type { CreatePopupControl } from "./create-popup.tsx";
-import { resolveToolColors } from "./tools.ts";
+import { createPopupRow } from "./create-popup.tsx";
 import type { MarkTool } from "./tools.ts";
+import { resolveToolColors } from "./tools.ts";
 
 import { editingCapabilityCopy } from "#obsidian/annotation-repository/capability-copy.ts";
 import { IDLE } from "#obsidian/annotation-repository/write.ts";

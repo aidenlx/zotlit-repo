@@ -2,8 +2,8 @@ import type { QueryViewDeps } from "#desktop/query-view/view.tsx";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { Scope } from "obsidian";
 import type { App } from "obsidian";
+import { Scope } from "obsidian";
 import { act } from "preact/test-utils";
 import { expect, vi } from "vitest";
 

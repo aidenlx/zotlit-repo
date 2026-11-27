@@ -3,8 +3,8 @@ import type {
   CandidateRow,
 } from "#obsidian/citation-index/ambiguity.ts";
 import { Effect, Layer } from "effect";
-import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
+import { SuggestModal } from "obsidian";
 
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -16,8 +16,8 @@ import {
   appendTrailingFlair,
 } from "@zotlit/plugin-services/obsidian/item-lookup/render-hit.ts";
 
-import { CitekeyEditor } from "./service.ts";
 import type { AmbiguousCitekey } from "./service.ts";
+import { CitekeyEditor } from "./service.ts";
 
 import { candidateRow } from "#obsidian/citation-index/ambiguity.ts";
 

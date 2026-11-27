@@ -10,8 +10,8 @@ import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import { Keymap } from "obsidian";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
@@ -19,8 +19,8 @@ import { pressTop } from "@zotlit/obsidian-kit/__fixtures__/keymap.ts";
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { AnnotActionsContext } from "./actions.tsx";
 import type { AnnotActions } from "./actions.tsx";
+import { AnnotActionsContext } from "./actions.tsx";
 import { Annotation } from "./Annotation.tsx";
 
 import { makeAnnotHost } from "#__fixtures__/annot-view/host.ts";

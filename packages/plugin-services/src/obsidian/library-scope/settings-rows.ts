@@ -4,12 +4,12 @@ import type {
   SettingTabContext,
 } from "#obsidian/setting-tab/context.ts";
 import { Effect } from "effect";
-import { Menu } from "obsidian";
 import type {
   Setting,
   SettingDefinition,
   SettingDefinitionList,
 } from "obsidian";
+import { Menu } from "obsidian";
 
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";

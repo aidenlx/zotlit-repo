@@ -7,10 +7,10 @@ import { $ } from "zx";
 import { SOURCE_REPOSITORY } from "@zotlit/config/repositories";
 
 import { DOCS_SITE_URL, NPM_DIST_TAG, releaseLine } from "./lines.ts";
-import { prepareShellCommit } from "./publish-repo.ts";
 import type { PublishRepoOptions, ShellCommit } from "./publish-repo.ts";
-import { NPM_REGISTRY } from "./registry.ts";
+import { prepareShellCommit } from "./publish-repo.ts";
 import type { Registry } from "./registry.ts";
+import { NPM_REGISTRY } from "./registry.ts";
 import { tarballDifferences } from "./tarball.ts";
 
 import {

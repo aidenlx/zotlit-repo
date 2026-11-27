@@ -4,6 +4,7 @@ import { expect, it, vi } from "vitest";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
+import type { ClientOptions, ZoteroAnswers } from "./__fixtures__.ts";
 import {
   authorized,
   denied,
@@ -18,7 +19,6 @@ import {
   writeAccepted,
   SERVER_ID,
 } from "./__fixtures__.ts";
-import type { ClientOptions, ZoteroAnswers } from "./__fixtures__.ts";
 import type { ZoteroLocalApi } from "./service.ts";
 
 const ITEM_PATH = "/api/users/0/items/PUPR5FG5";

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { TemplateFacade } from "./facade.ts";
+import type {
+  LiteratureNotePackFile,
+  LiteratureNotePackInstallRecord,
+} from "./literature-note-pack.ts";
 import {
   createLiteratureNotePackInstallRecord,
   diffLiteratureNotePack,
@@ -9,10 +13,6 @@ import {
   parseLiteratureNotePack,
   planLiteratureNotePackRevert,
   unpackLiteratureNotePartials,
-} from "./literature-note-pack.ts";
-import type {
-  LiteratureNotePackFile,
-  LiteratureNotePackInstallRecord,
 } from "./literature-note-pack.ts";
 import { parseLiteratureNoteTemplate } from "./literature-note-template.ts";
 

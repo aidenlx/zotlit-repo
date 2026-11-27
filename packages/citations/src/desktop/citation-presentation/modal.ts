@@ -3,8 +3,8 @@ import type {
   CitationPresentationChoice,
   DeclaredPresentation,
 } from "#obsidian/citation-presentation/presentation.ts";
-import { Modal, Setting } from "obsidian";
 import type { App, TextComponent } from "obsidian";
+import { Modal, Setting } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 

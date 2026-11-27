@@ -3,16 +3,16 @@ import type {
   WorkbenchDocumentController,
   WorkbenchSliceId,
 } from "#core/document/index.ts";
-import { MapMode, StateEffect } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
-import { Decoration, ViewPlugin } from "@codemirror/view";
+import { MapMode, StateEffect } from "@codemirror/state";
 import type { DecorationSet, EditorView } from "@codemirror/view";
+import { Decoration, ViewPlugin } from "@codemirror/view";
 import { useAtomValue } from "@effect/atom-react";
 import { Cause } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type * as Atom from "effect/reactivity/Atom";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";

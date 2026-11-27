@@ -2,8 +2,8 @@ import type { WorkbenchSuggesterRequest } from "#obsidian/workbench-ui/suggester
 // @vitest-environment happy-dom
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { Cause, Effect, Exit } from "effect";
 import type { Fiber } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import type { App } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 

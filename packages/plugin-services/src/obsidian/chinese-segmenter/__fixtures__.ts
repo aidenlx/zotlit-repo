@@ -11,8 +11,8 @@ import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 import type { HandlersOptions } from "@zotlit/zotero-reads/worker/handlers.ts";
 import { readSegmenterOver } from "@zotlit/zotero-reads/worker/segmenter.ts";
 
-import { layerChineseSegmenter } from "./service.ts";
 import type { ChineseSegmenter } from "./service.ts";
+import { layerChineseSegmenter } from "./service.ts";
 
 import { layerPackDevice } from "#obsidian/managed-binary/__fixtures__.ts";
 

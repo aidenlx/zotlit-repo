@@ -1,5 +1,5 @@
-import { defaultClipSettings } from "./clip-settings.ts";
 import type { ClipSettings } from "./clip-settings.ts";
+import { defaultClipSettings } from "./clip-settings.ts";
 
 export interface Rect {
   x: number;

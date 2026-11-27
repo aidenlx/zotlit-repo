@@ -1,6 +1,6 @@
 import { Effect, Queue, Schema } from "effect";
-import { RpcClient, RpcServer } from "effect/rpc";
 import type { RpcMessage, RpcSerialization } from "effect/rpc";
+import { RpcClient, RpcServer } from "effect/rpc";
 
 const CLIENT_ID = 0;
 

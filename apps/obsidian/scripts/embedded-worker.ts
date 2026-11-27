@@ -1,7 +1,7 @@
 import { builtinModules } from "node:module";
 import { constants, deflateRawSync } from "node:zlib";
-import { build, parseSync } from "vite";
 import type { InlineConfig, Plugin } from "vite";
+import { build, parseSync } from "vite";
 
 import { checkRequires } from "@zotlit/scripts/bundle-gate";
 import { PLATFORM_MODULES } from "@zotlit/scripts/runtime-table";

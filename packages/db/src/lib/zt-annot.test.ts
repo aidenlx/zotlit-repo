@@ -1,8 +1,8 @@
 import type { AnnotationPositionRaw } from "#drizzle/schema.ts";
 import { describe, expect, it } from "vitest";
 
-import { parseAnnotationPosition } from "./zt-annot-pos.ts";
 import type { AnnotationPosition } from "./zt-annot-pos.ts";
+import { parseAnnotationPosition } from "./zt-annot-pos.ts";
 import { annotationTypeToName } from "./zt-annot.ts";
 
 describe("parseAnnotationPosition", () => {

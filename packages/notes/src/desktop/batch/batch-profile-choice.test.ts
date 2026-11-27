@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Layer } from "effect";
-import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
+import { SuggestModal } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";

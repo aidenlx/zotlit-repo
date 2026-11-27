@@ -1,7 +1,7 @@
 import { Stream } from "effect";
 import { Layer } from "effect";
-import { Scope } from "obsidian";
 import type { App } from "obsidian";
+import { Scope } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
@@ -23,6 +23,7 @@ import { QueryView } from "@zotlit/query-views/desktop/query-view/view.tsx";
 import type { QueryViewDeps } from "@zotlit/query-views/desktop/query-view/view.tsx";
 import type { QueryViewOutcome } from "@zotlit/query-views/worker/item-query/query-view.ts";
 
+import type { LibraryViewDocument } from "./document.ts";
 import {
   DEFAULT_LIBRARY_VIEW_DOCUMENT,
   libraryViewQuery,
@@ -30,7 +31,6 @@ import {
   withExpanded,
   withSearch,
 } from "./document.ts";
-import type { LibraryViewDocument } from "./document.ts";
 import { LibraryViewStorage } from "./storage.ts";
 
 import { makeLibraryHost } from "#__fixtures__/library.ts";

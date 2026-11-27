@@ -1,7 +1,7 @@
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { FileSystemAdapter } from "obsidian";
 import type { App, Vault } from "obsidian";
+import { FileSystemAdapter } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";

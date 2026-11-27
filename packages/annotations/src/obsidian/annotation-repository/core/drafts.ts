@@ -20,18 +20,18 @@ import {
   sessionHolding,
   writeHolding,
 } from "./lists.ts";
+import type {
+  AnnotationMutation,
+  AnnotationState,
+  TagDraft,
+  TextFieldDraft,
+} from "./model.ts";
 import {
   TEXT_FIELD_SPECS,
   indexedID,
   proposedTags,
   proposedText,
   sameText,
-} from "./model.ts";
-import type {
-  AnnotationMutation,
-  AnnotationState,
-  TagDraft,
-  TextFieldDraft,
 } from "./model.ts";
 import {
   answerOf,

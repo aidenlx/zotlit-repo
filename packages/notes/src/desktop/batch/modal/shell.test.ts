@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { Deferred } from "effect";
-import { ButtonComponent } from "obsidian";
 import type { App } from "obsidian";
+import { ButtonComponent } from "obsidian";
 import { expect, it, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -9,9 +9,9 @@ import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { section } from "./dom.ts";
-import { BatchModal, FlatManifest, HierarchyManifest } from "./index.ts";
 import type { BatchProfileChoice } from "./index.ts";
 import type { BatchRunControls, BatchRunResult } from "./index.ts";
+import { BatchModal, FlatManifest, HierarchyManifest } from "./index.ts";
 
 import { batchGroups } from "#desktop/batch/batch-scope.ts";
 

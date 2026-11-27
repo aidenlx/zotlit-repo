@@ -2,14 +2,20 @@ import type {
   AnnotationRecord,
   AnnotationRepository,
 } from "#obsidian/annotation-repository/service.ts";
-import { Effect } from "effect";
 import type { Scope } from "effect";
+import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
 import { scheduleBrowserTask } from "@zotlit/plugin-kernel/browser-scheduler.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
+import type {
+  Floating,
+  ReaderSurfaceState,
+  Step,
+  Transition,
+} from "./reader-surface-state.ts";
 import {
   ingestAnnotationState,
   ingestRecords,
@@ -26,12 +32,6 @@ import {
   selectSelectedKeys,
   selectSelectedRow,
   selectTextDraft,
-} from "./reader-surface-state.ts";
-import type {
-  Floating,
-  ReaderSurfaceState,
-  Step,
-  Transition,
 } from "./reader-surface-state.ts";
 import type { AnnotationTool, ToolColorStore } from "./tools.ts";
 

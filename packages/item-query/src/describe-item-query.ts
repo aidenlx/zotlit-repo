@@ -9,16 +9,16 @@ import type {
 import type { QueryDataset } from "./dataset.ts";
 import { describeQueryCustomFields } from "./describe-query-custom-fields.ts";
 import type { ValueShape } from "./fields.ts";
+import type {
+  FunctionDefinition,
+  FunctionParameter,
+} from "./filter-functions.ts";
 import {
   GLOBAL_FUNCTIONS,
   IF_FUNCTION,
   METHOD_ENTRIES,
   PROPERTY_ENTRIES,
   VALUE_TYPES,
-} from "./filter-functions.ts";
-import type {
-  FunctionDefinition,
-  FunctionParameter,
 } from "./filter-functions.ts";
 import type { FilterValueType } from "./filter-values.ts";
 import { parseProjectionPath } from "./projection-path.ts";

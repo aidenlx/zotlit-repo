@@ -1,9 +1,9 @@
 import type { ZoteroDatabase } from "#client/database.ts";
-import { and, asc, desc, eq, isNull, notInArray, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, notInArray, sql } from "drizzle-orm";
 
-import { CHILD_ITEM_TYPES, defineQuery } from "./_shared.ts";
 import type { ParamsPlaceholder } from "./_shared.ts";
+import { CHILD_ITEM_TYPES, defineQuery } from "./_shared.ts";
 
 import {
   collectionItems,

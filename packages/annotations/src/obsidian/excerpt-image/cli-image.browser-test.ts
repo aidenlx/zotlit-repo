@@ -1,7 +1,7 @@
 import { Cause, Effect } from "effect";
 
-import { answerAnnotationImage } from "./cli-image.ts";
 import type { AnnotationImagePorts } from "./cli-image.ts";
+import { answerAnnotationImage } from "./cli-image.ts";
 import type { ExcerptRequest } from "./contract.ts";
 
 import { check } from "#__fixtures__/excerpt-image/check.ts";

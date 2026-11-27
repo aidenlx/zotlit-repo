@@ -31,18 +31,9 @@ import type {
   LocalApiSource,
 } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
-import { databaseRows } from "./bridge.ts";
 import type { DatabaseRowsError } from "./bridge.ts";
+import { databaseRows } from "./bridge.ts";
 import { cancelTextSave, reconcilePublishedDrafts } from "./draft-store.ts";
-import {
-  ANNOTATIONS,
-  DRAFT_FIELDS,
-  freshValueOf,
-  fromLocalApi,
-  indexedID,
-  sourceServerID,
-  templateTags,
-} from "./model.ts";
 import type {
   AnnotationConfirmation,
   AnnotationList,
@@ -51,6 +42,15 @@ import type {
   DatabaseAnnotationSource,
   HeldAnnotation,
   ProposedFields,
+} from "./model.ts";
+import {
+  ANNOTATIONS,
+  DRAFT_FIELDS,
+  freshValueOf,
+  fromLocalApi,
+  indexedID,
+  sourceServerID,
+  templateTags,
 } from "./model.ts";
 import { pendingWrites } from "./outcomes.ts";
 import type { CoreState } from "./state.ts";

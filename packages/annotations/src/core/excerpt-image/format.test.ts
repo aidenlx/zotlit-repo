@@ -1,12 +1,12 @@
 import { expect, it } from "vitest";
 
+import type { ExcerptImageFormat } from "./format.ts";
 import {
   detectExcerptImageFormat,
   isExcerptImage,
   PNG_FORMAT,
   WEBP_FORMAT,
 } from "./format.ts";
-import type { ExcerptImageFormat } from "./format.ts";
 
 import { redPng } from "#__fixtures__/excerpt-image/png.ts";
 import {

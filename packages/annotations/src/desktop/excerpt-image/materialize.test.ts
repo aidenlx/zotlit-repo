@@ -34,6 +34,7 @@ import { layerVaultDiskOver } from "@zotlit/plugin-shell/desktop/__fixtures__/va
 import type { ConnectHandlers } from "@zotlit/reader-api";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
+import type { MaterializedExcerpt } from "./materialize.ts";
 import {
   excerptAssetIdentities,
   isOwnedExcerptAssetPath,
@@ -41,7 +42,6 @@ import {
   materializeExcerpt,
   retainExcerpt,
 } from "./materialize.ts";
-import type { MaterializedExcerpt } from "./materialize.ts";
 
 import { availableOutcome } from "#__fixtures__/excerpt-image/outcome.ts";
 import {

@@ -5,8 +5,8 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { startLocalRegistry } from "./local-registry.ts";
 import type { LocalRegistry } from "./local-registry.ts";
+import { startLocalRegistry } from "./local-registry.ts";
 import { Registry } from "./registry.ts";
 import { tarballDifferences } from "./tarball.ts";
 

@@ -23,11 +23,11 @@ import type {
 } from "#obsidian/annotation-repository/service.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/service.ts";
 import { Effect } from "effect";
-import { Component, Platform } from "obsidian";
 import type { App, Scope } from "obsidian";
+import { Component, Platform } from "obsidian";
 import type { ReactNode } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { registerKeymap } from "@zotlit/obsidian-kit/disposables.ts";
@@ -45,8 +45,8 @@ import {
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import { zoteroDataDirAtom } from "@zotlit/plugin-services/obsidian/zotero-pref/atoms.ts";
 
-import { AnnotActionsContext, createAnnotActions } from "./actions.tsx";
 import type { AnnotActionDeps, AnnotActions } from "./actions.tsx";
+import { AnnotActionsContext, createAnnotActions } from "./actions.tsx";
 import { blocksNow } from "./Annotation.tsx";
 import { AnnotList } from "./AnnotView.tsx";
 import {

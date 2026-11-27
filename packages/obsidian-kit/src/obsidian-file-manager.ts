@@ -1,10 +1,10 @@
 import { Context, Effect, Layer } from "effect";
-import { normalizePath } from "obsidian";
 import type {
   FileManager as ObsidianFileManager,
   TAbstractFile,
   TFile,
 } from "obsidian";
+import { normalizePath } from "obsidian";
 
 import { FileExists, vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
 import type { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";

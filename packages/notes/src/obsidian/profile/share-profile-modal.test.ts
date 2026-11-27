@@ -26,8 +26,8 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TemplateFacade } from "@zotlit/templates/facade";
 
 import type { Profile, ProfileShareOptions } from "./service.ts";
-import { ShareProfileModal } from "./share-profile-modal.ts";
 import type { ShareOutput } from "./share-profile-modal.ts";
+import { ShareProfileModal } from "./share-profile-modal.ts";
 
 import { profileServiceFixture } from "#__fixtures__/profile/service.ts";
 import { shareProfile } from "#desktop/profile/dialogs.ts";

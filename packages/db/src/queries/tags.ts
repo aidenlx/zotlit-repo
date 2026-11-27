@@ -2,8 +2,8 @@ import type { ZoteroDatabase } from "#client/database.ts";
 import type { ItemTag, Tag } from "#lib/zt-tag.ts";
 import { distinct } from "@std/collections";
 
-import { defineQuery, defineKeyedQuery } from "./_shared.ts";
 import type { FindManyOptions } from "./_shared.ts";
+import { defineQuery, defineKeyedQuery } from "./_shared.ts";
 
 const itemTagOptions = {
   columns: { itemID: true, tagID: true, type: true },

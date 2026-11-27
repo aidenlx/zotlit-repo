@@ -3,8 +3,8 @@ import { Menu } from "obsidian";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { CITED_BY_SORT_GROUPS } from "./store.ts";
 import type { CitedBySortMode } from "./store.ts";
+import { CITED_BY_SORT_GROUPS } from "./store.ts";
 
 const SORT_LABELS: Record<CitedBySortMode, () => string> = {
   alphabetical: m.cited_by_sort_alphabetical,

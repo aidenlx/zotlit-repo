@@ -1,7 +1,6 @@
 import type { ObsidianEventEmitter } from "#obsidian-event-source.ts";
-import { Context, Effect, Layer } from "effect";
 import type { Stream } from "effect";
-import { TFolder } from "obsidian";
+import { Context, Effect, Layer } from "effect";
 import type {
   App,
   DataAdapter,
@@ -10,6 +9,7 @@ import type {
   TFile,
   Vault as ObsidianVault,
 } from "obsidian";
+import { TFolder } from "obsidian";
 
 import { isErrno } from "@zotlit/plugin-kernel/errno.ts";
 import {

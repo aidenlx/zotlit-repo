@@ -1,7 +1,7 @@
 import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
 import { Cause, Context, Effect, Layer, Option, Schema } from "effect";
-import { RpcClient, RpcClientError } from "effect/rpc";
 import type { RpcMessage } from "effect/rpc";
+import { RpcClient, RpcClientError } from "effect/rpc";
 import { Worker } from "effect/workers";
 
 import { CitationParseRpc } from "./rpc.ts";

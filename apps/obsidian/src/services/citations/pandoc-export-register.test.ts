@@ -10,8 +10,8 @@ import {
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { TFile } from "obsidian";
 import type { App, Command, Plugin } from "obsidian";
+import { TFile } from "obsidian";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { nodeFileSystem } from "@zotlit/citations/__fixtures__/pandoc/file-effects.ts";

@@ -2,8 +2,8 @@ import { access, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "zx";
 
-import { PUBLISH_BRANCH } from "./lines.ts";
 import type { ReleaseLine } from "./lines.ts";
+import { PUBLISH_BRANCH } from "./lines.ts";
 
 export const RELEASE_AUTHOR = {
   name: "github-actions[bot]",

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { fakeIssues } from "./__fixtures__/e2e-issues.ts";
+import type { E2eCase } from "./e2e-report.ts";
 import {
   E2E_ISSUE_TITLE,
   failedE2eCases,
@@ -11,7 +12,6 @@ import {
   readFailedE2eCases,
   reportE2eFailure,
 } from "./e2e-report.ts";
-import type { E2eCase } from "./e2e-report.ts";
 
 const REPO = "owner/repo";
 

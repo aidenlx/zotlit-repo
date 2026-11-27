@@ -4,12 +4,12 @@ import { describe, expect, it } from "vitest";
 import { planItemFilter } from "@zotlit/item-query";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { readerFailureText, readerWarningText } from "./reader-failure.ts";
 import type {
   LibraryRead,
   ViewFailureCode,
   ViewWarning,
 } from "./reader-failure.ts";
+import { readerFailureText, readerWarningText } from "./reader-failure.ts";
 
 const READS = {
   loading: { state: "loading", dbFileMissing: false },

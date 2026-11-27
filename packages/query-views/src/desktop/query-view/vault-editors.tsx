@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+import type { App, SearchMatchPart, SearchResult } from "obsidian";
 import {
   AbstractInputSuggest,
   Component,
@@ -7,8 +8,6 @@ import {
   renderMatches,
   Scope,
 } from "obsidian";
-import type { App, SearchMatchPart, SearchResult } from "obsidian";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type {
   HTMLAttributes,
   KeyboardEvent,
@@ -17,6 +16,7 @@ import type {
   Ref,
   RefObject,
 } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
@@ -32,8 +32,8 @@ import {
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { composing } from "@zotlit/ui";
 
-import { LIST_TYPES } from "./table-notes.ts";
 import type { VaultPropertyType } from "./table-notes.ts";
+import { LIST_TYPES } from "./table-notes.ts";
 
 import {
   dateInputValue,

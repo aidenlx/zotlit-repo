@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  citationClickIntent,
-  citationTarget,
-  navigationIntent,
-} from "./intent.ts";
 import type {
   CitedWork,
   NavigationGesture,
   NavigationTarget,
+} from "./intent.ts";
+import {
+  citationClickIntent,
+  citationTarget,
+  navigationIntent,
 } from "./intent.ts";
 
 const editorGesture = (

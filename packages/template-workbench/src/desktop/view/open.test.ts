@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { TFile } from "obsidian";
 import type {
   WorkspaceContainer,
   WorkspaceLeaf,
   WorkspaceRoot,
 } from "obsidian";
+import { TFile } from "obsidian";
 
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";

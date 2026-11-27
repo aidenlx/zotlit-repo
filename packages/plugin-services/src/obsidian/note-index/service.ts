@@ -1,6 +1,6 @@
 import { Context, Deferred, Effect, Layer, PubSub, Stream } from "effect";
-import { TFile } from "obsidian";
 import type { CachedMetadata, TAbstractFile } from "obsidian";
+import { TFile } from "obsidian";
 
 import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
@@ -24,6 +24,7 @@ import { heldCitekeyOf } from "@zotlit/zotero-reads/contract/citation-lookup.ts"
 import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { literatureNoteOf } from "./literature-note.ts";
+import type { ContribDiff, FileContributions } from "./parse.ts";
 import {
   diffContributions,
   EMPTY_CONTRIBUTIONS,
@@ -31,7 +32,6 @@ import {
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
 } from "./parse.ts";
-import type { ContribDiff, FileContributions } from "./parse.ts";
 
 export { itemKeyFromFrontmatter, noteKeyFromFrontmatter };
 export {

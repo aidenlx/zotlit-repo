@@ -6,7 +6,6 @@ import type { DateTime, Effect, FiberMap, FiberSet } from "effect";
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 
 import { databaseRowsResolver } from "./bridge.ts";
-import { DRAFT_FIELDS, fieldMaps } from "./model.ts";
 import type {
   AnnotationConfirmation,
   AnnotationList,
@@ -17,6 +16,7 @@ import type {
   DraftFields,
   OutcomeWrite,
 } from "./model.ts";
+import { DRAFT_FIELDS, fieldMaps } from "./model.ts";
 import type { WriteRunFailed } from "./writes.ts";
 
 import { newWriteToken } from "#obsidian/annotation-repository/write.ts";

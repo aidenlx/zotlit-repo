@@ -7,11 +7,11 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { annotationColorMenu, buildColorMenu } from "./color-menu.ts";
 import type { PdfPoint } from "./geometry-edit.ts";
 import type { PageBox, Point } from "./hit-test.ts";
-import { pageUnitSize } from "./render.ts";
 import type { OverlayPageView } from "./render.ts";
+import { pageUnitSize } from "./render.ts";
 import { applyTransform, inverseTransform } from "./selection-capture.ts";
-import { INK_WIDTHS, TEXT_FONT_SIZES } from "./tools.ts";
 import type { InkWidth, TextFontSize } from "./tools.ts";
+import { INK_WIDTHS, TEXT_FONT_SIZES } from "./tools.ts";
 
 const SECTION = menuSections(annotationColorMenu);
 

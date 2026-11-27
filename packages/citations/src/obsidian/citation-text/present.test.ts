@@ -9,6 +9,12 @@ import {
   lookupForWorks,
 } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
+import type {
+  CitationKeyState,
+  CitationSource,
+  CitationState,
+  DocumentCitations,
+} from "./present.ts";
 import {
   citationContent,
   citationState,
@@ -18,12 +24,6 @@ import {
   literalKeyStateOf,
   presentedCitationEqual,
   sectionCoordinates,
-} from "./present.ts";
-import type {
-  CitationKeyState,
-  CitationSource,
-  CitationState,
-  DocumentCitations,
 } from "./present.ts";
 
 import { rendered } from "#__fixtures__/citation-text.ts";

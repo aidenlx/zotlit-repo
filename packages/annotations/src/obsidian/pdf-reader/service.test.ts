@@ -1,9 +1,9 @@
 import { it } from "@effect/vitest";
 import { Effect, Exit, Layer, Scope } from "effect";
-import { TFile, WorkspaceLeaf } from "obsidian";
 import type { App, ViewState } from "obsidian";
-import { afterEach, beforeEach, expect, vi } from "vitest";
+import { TFile, WorkspaceLeaf } from "obsidian";
 import type { MockInstance } from "vitest";
+import { afterEach, beforeEach, expect, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";

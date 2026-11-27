@@ -1,12 +1,12 @@
 import type { NoteScanRow } from "@zotlit/db/item-query";
 
-import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields.ts";
 import type {
   FieldDefinition as ItemFieldDefinition,
   FieldNeeds,
   QueryItem,
   ValueShape,
 } from "./fields.ts";
+import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields.ts";
 import { timestamp } from "./filter-dates.ts";
 import type { FilterRegistry } from "./filter-plan.ts";
 import { keyField, indexedKeyField } from "./key-fields.ts";

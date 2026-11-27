@@ -1,5 +1,5 @@
-import { clearCache, layout, prepare } from "@chenglou/pretext";
 import type { PreparedText } from "@chenglou/pretext";
+import { clearCache, layout, prepare } from "@chenglou/pretext";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";

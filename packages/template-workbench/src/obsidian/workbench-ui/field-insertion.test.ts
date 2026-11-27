@@ -8,8 +8,8 @@ import { describe, expect, it } from "vitest";
 import { TemplateEngine as EtaEngine } from "@zotlit/templates";
 import { createLiquidEngine } from "@zotlit/templates/liquid";
 
-import { fieldForm } from "./field-insertion.ts";
 import type { FieldInsertionContext } from "./field-insertion.ts";
+import { fieldForm } from "./field-insertion.ts";
 
 import { buildDisplayTree } from "#core/data-tree/index.ts";
 import { withText } from "#core/data-tree/test-records.ts";

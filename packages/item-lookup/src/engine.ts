@@ -1,7 +1,7 @@
 import { regex } from "arkregex";
 import { Effect, Stream } from "effect";
-import MiniSearch from "minisearch";
 import type { SearchResult } from "minisearch";
+import MiniSearch from "minisearch";
 
 import { parseItemDate, parseItemLanguage } from "@zotlit/db";
 import type { IndexedItem, LanguageNameLookup } from "@zotlit/db";

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { createConnection } from "node:net";
 import type { Socket } from "node:net";
+import { createConnection } from "node:net";
 
 const BYTE_COLON = 0x3a;
 

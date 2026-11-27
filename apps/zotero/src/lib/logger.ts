@@ -1,3 +1,4 @@
+import type { LogLevel, Sink, TextFormatter } from "@logtape/logtape";
 import {
   configure,
   getLogger,
@@ -5,7 +6,6 @@ import {
   isLogLevel,
   reset,
 } from "@logtape/logtape";
-import type { LogLevel, Sink, TextFormatter } from "@logtape/logtape";
 
 import { MAIN_BUNDLE_NAME } from "@/constant.ts";
 import { prefs } from "@/prefs/index.ts";

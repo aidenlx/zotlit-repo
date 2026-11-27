@@ -1,6 +1,6 @@
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
-import { Keymap, Menu, SuggestModal } from "obsidian";
 import type { App, PaneType } from "obsidian";
+import { Keymap, Menu, SuggestModal } from "obsidian";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import {

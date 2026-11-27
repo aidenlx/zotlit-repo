@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { Events } from "obsidian";
 import type { App, PluginManifest } from "obsidian";
+import { Events } from "obsidian";
 import { afterEach, vi } from "vitest";
 
 import { renderRow } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";

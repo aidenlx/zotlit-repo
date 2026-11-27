@@ -3,8 +3,8 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
-import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { LiteratureNoteTemplateMigrationResult } from "@zotlit/notes/desktop/template/migration.ts";
@@ -12,11 +12,11 @@ import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { WelcomeActionsContext } from "./actions.ts";
 import type { WelcomeActions } from "./actions.ts";
+import { WelcomeActionsContext } from "./actions.ts";
 import type { ConversionRun } from "./atoms.ts";
-import { WelcomeModelProvider } from "./model.ts";
 import type { WelcomeModel } from "./model.ts";
+import { WelcomeModelProvider } from "./model.ts";
 import type { WelcomeState } from "./presentation.ts";
 import { Welcome } from "./Welcome.tsx";
 

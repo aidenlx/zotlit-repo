@@ -1,5 +1,5 @@
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { existsSync } from "node:fs";
 import { chmod, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
@@ -8,10 +8,11 @@ import { text } from "node:stream/consumers";
 import { setTimeout as delay } from "node:timers/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
-import { landAdmission, landStateDir, landWaitLog } from "./land-queue.ts";
+import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { LandWaitRecord } from "./land-queue.ts";
+import { landAdmission, landStateDir, landWaitLog } from "./land-queue.ts";
+import type { CiCheck, LandGitHub, LandOptions } from "./land.ts";
 import {
   formatLandFailure,
   land,
@@ -23,7 +24,6 @@ import {
   LAND_WORKFLOW,
   landRecordDiagnostic,
 } from "./land.ts";
-import type { CiCheck, LandGitHub, LandOptions } from "./land.ts";
 
 const SLOW = 30_000;
 

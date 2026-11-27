@@ -1,6 +1,6 @@
 import { regex } from "arkregex";
-import { findNodeAtOffset, getLocation, parseTree } from "jsonc-parser";
 import type { Node } from "jsonc-parser";
+import { findNodeAtOffset, getLocation, parseTree } from "jsonc-parser";
 
 import type { ContractType } from "@zotlit/db/contract/ir";
 
@@ -11,8 +11,8 @@ import {
   resolve,
   sampleJson,
 } from "./contract.ts";
-import { expressionClasses } from "./expression-tokens.ts";
 import type { ExpressionRole } from "./expression-tokens.ts";
+import { expressionClasses } from "./expression-tokens.ts";
 import { templateToken } from "./highlight.ts";
 import { jsonOperators, jsonFunctions } from "./json-e-catalog.ts";
 import { rankSuggestions } from "./matching.ts";

@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
-import { SecretWriteAuthorizationStore } from "./write-authorization.ts";
 import type { SecretStore } from "./write-authorization.ts";
+import { SecretWriteAuthorizationStore } from "./write-authorization.ts";
 
 const SERVER_ID = "XmplSrv00Id1";
 const OTHER_SERVER_ID = "Zzzz11119999";

@@ -1,5 +1,5 @@
-import { Scope } from "obsidian";
 import type { App } from "obsidian";
+import { Scope } from "obsidian";
 
 import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
 import type { FocusScope } from "@zotlit/obsidian-kit/focus-scope.ts";
@@ -8,13 +8,13 @@ import { composing } from "@zotlit/ui";
 
 import { readingAngle } from "./free-text-layout.ts";
 import type { TextDraft } from "./reader-surface-state.ts";
+import type { MeasuredFont, OverlayPageView } from "./render.ts";
 import {
   darken,
   pageUnitSize,
   pixelsPerPdfPoint,
   unitPointOf,
 } from "./render.ts";
-import type { MeasuredFont, OverlayPageView } from "./render.ts";
 
 export interface TextDraftEvents {
   input: (text: string) => void;

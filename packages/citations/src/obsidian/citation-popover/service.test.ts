@@ -2,10 +2,10 @@ import type { CitationPopoverFixtureDeps } from "#__fixtures__/citation-popover.
 import type { CitationPopoverContentProps } from "#desktop/citation-popover/content.tsx";
 import type { DocumentCitations } from "#obsidian/citation-text/service.ts";
 import type { BibliographyRenderResult } from "#obsidian/pandoc/render-cache.ts";
+import type { Layer } from "effect";
 import { Effect } from "effect";
 // @vitest-environment happy-dom
 import { Logger, References, Stream } from "effect";
-import type { Layer } from "effect";
 import { TFile } from "obsidian";
 import { act } from "preact/test-utils";
 import type { ReactElement, ReactNode } from "react";

@@ -45,12 +45,12 @@ import {
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { citationKey, presentedCitationEqual } from "./present.ts";
 import type {
   CitationSource,
   DocumentCitations,
   FormattedOccurrence,
 } from "./present.ts";
+import { citationKey, presentedCitationEqual } from "./present.ts";
 
 import { mapsEqual } from "#core/citation-text/maps-equal.ts";
 import { CitationLookup } from "#obsidian/citation-index/lookup-service.ts";

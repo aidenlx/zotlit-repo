@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import type { LinkProps } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 
 export function BackCrumb({
   to,

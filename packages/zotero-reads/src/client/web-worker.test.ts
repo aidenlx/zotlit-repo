@@ -12,12 +12,12 @@ import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";
 import { writePack } from "@zotlit/resource-pack/writer.ts";
 import type { PackSource } from "@zotlit/resource-pack/writer.ts";
 
+import type { StartWebWorkerOptions, WebWorkerPack } from "./web-worker.ts";
 import {
   readWebWorkerWasm,
   replicaDirectory,
   startWebWorker,
 } from "./web-worker.ts";
-import type { StartWebWorkerOptions, WebWorkerPack } from "./web-worker.ts";
 
 import { TEMPORAL_PIECE_URL_GLOBAL } from "#contract/web-worker.ts";
 

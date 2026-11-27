@@ -13,13 +13,13 @@ import type { CapturedLogs } from "@zotlit/plugin-kernel/__fixtures__/log-captur
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { ConnectHandlers } from "@zotlit/reader-api";
 
-import { ExcerptImageService as ExcerptImages } from "./service.ts";
-import { excerptAnnotationRecord, excerptFingerprint } from "./service.ts";
 import type {
   ExcerptEntry,
   ExcerptIdentity,
   ExcerptRequest,
 } from "./service.ts";
+import { ExcerptImageService as ExcerptImages } from "./service.ts";
+import { excerptAnnotationRecord, excerptFingerprint } from "./service.ts";
 
 import { excerptImageFixture } from "#__fixtures__/excerpt-image/effect-service.ts";
 import { redPng, corruptPng } from "#__fixtures__/excerpt-image/png.ts";

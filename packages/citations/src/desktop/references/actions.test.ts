@@ -12,14 +12,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { ClipboardRepresentation } from "@zotlit/plugin-kernel/clipboard.ts";
 
+import type {
+  CopyBibliographyOutcome,
+  CopyBibliographySnapshot,
+} from "./actions.ts";
 import {
   copyBibliography,
   copyBibliographyMessage,
   createReferenceActions,
-} from "./actions.ts";
-import type {
-  CopyBibliographyOutcome,
-  CopyBibliographySnapshot,
 } from "./actions.ts";
 
 import { ambiguousCandidates } from "#__fixtures__/citation-index/ambiguous-candidates.ts";

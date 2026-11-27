@@ -6,13 +6,13 @@ import type {
 } from "#obsidian/annotation-repository/service.ts";
 import { describe, expect, it } from "vitest";
 
-import {
-  excerptImageOwnership,
-  excerptImageTarget,
-} from "./excerpt-image-state.ts";
 import type {
   ExcerptImageOwnership,
   ExcerptImageTarget,
+} from "./excerpt-image-state.ts";
+import {
+  excerptImageOwnership,
+  excerptImageTarget,
 } from "./excerpt-image-state.ts";
 
 import { PNG_FORMAT } from "#core/excerpt-image/format.ts";

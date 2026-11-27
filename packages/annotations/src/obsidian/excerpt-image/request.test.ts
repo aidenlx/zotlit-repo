@@ -31,8 +31,8 @@ import {
   savedExcerptRequestFor,
   savedExcerptRequestOver,
 } from "./request.ts";
-import { excerptRequest } from "./service.ts";
 import type { ExcerptEntry } from "./service.ts";
+import { excerptRequest } from "./service.ts";
 
 import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/node-service.ts";
 import { fakeReaderEngine } from "#__fixtures__/pdf-engine.ts";

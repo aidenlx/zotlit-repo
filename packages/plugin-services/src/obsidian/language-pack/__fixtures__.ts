@@ -8,12 +8,12 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { catalog } from "@zotlit/plugin-messages/catalog.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 
+import type { LanguagePackIdentity } from "./service.ts";
 import {
   LanguagePack,
   layerLanguagePack,
   startLanguagePack,
 } from "./service.ts";
-import type { LanguagePackIdentity } from "./service.ts";
 
 const ZOTLIT_IDENTITY: LanguagePackIdentity = {
   catalog,

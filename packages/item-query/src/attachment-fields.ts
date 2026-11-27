@@ -8,13 +8,13 @@ import type { QueryAnnotation } from "./annotation-fields.ts";
 import type { AttachmentNeeds } from "./attachment-hydration.ts";
 import { compareStrings } from "./collation.ts";
 import type { SortableField } from "./dataset.ts";
-import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields.ts";
 import type {
   FieldDefinition as ItemFieldDefinition,
   QueryItem,
   FieldNeeds,
   ValueShape,
 } from "./fields.ts";
+import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields.ts";
 import { timestamp } from "./filter-dates.ts";
 import type { FilterRegistry } from "./filter-plan.ts";
 import type { FilterValue } from "./filter-values.ts";

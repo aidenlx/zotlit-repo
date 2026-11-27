@@ -4,8 +4,8 @@ import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { readerStatusCopy } from "./status.ts";
 import type { ReaderStatus } from "./status.ts";
+import { readerStatusCopy } from "./status.ts";
 
 export const FALLBACK_NOTICE_KEY = "zotlit-reader-fallback-notices";
 

@@ -10,8 +10,8 @@ import { Context, Effect, Fiber, Layer } from "effect";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { ButtonComponent, Modal, SuggestModal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
+import { ButtonComponent, Modal, SuggestModal, TextComponent } from "obsidian";
 import { expect, vi } from "vitest";
 
 import * as nativeDialog from "@zotlit/obsidian-desktop/require.ts";
@@ -40,8 +40,8 @@ import {
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { importProfileDialog } from "./dialogs.ts";
-import { ImportProfileModal } from "./import-profile-modal.ts";
 import type { ImportProfileDeps } from "./import-profile-modal.ts";
+import { ImportProfileModal } from "./import-profile-modal.ts";
 
 import { profileReader } from "#__fixtures__/profile/reader.ts";
 import { profileServiceFixture } from "#__fixtures__/profile/service.ts";

@@ -4,8 +4,8 @@ import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeMessage } from "@zotlit/obsidian-kit/notifier.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { LinkOutcome } from "./outcome.ts";
 import type { LinkOutcomeVariants } from "./outcome.ts";
+import { LinkOutcome } from "./outcome.ts";
 
 export function linkOutcomeNotices<R>(
   show: (message: NoticeMessage) => Effect.Effect<void, never, R>,

@@ -1,5 +1,5 @@
-import { Effect, Layer } from "effect";
 import type { Scope } from "effect";
+import { Effect, Layer } from "effect";
 
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";

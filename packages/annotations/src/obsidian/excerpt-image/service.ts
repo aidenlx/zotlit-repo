@@ -1,8 +1,8 @@
 import type { ExcerptCacheWriteError } from "#core/excerpt-image/error.ts";
 import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import type { ExcerptPdfQueue } from "#core/excerpt-image/pdf-queue.ts";
-import { Context } from "effect";
 import type { Cause, Effect, Scope } from "effect";
+import { Context } from "effect";
 
 import type { ExcerptRequest } from "./contract.ts";
 import type { ExcerptOutcomeScope } from "./outcome-scope.ts";

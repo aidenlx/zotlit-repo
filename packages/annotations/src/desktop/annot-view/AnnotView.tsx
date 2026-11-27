@@ -4,6 +4,7 @@ import type {
   HeaderShape,
 } from "#obsidian/annot-view/presentation.ts";
 import type { IconName } from "obsidian";
+import type { CSSProperties, RefObject } from "react";
 import {
   Fragment,
   useCallback,
@@ -13,7 +14,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { CSSProperties, RefObject } from "react";
 
 import {
   iconButton,

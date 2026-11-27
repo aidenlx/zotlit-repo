@@ -8,13 +8,13 @@ import type {
 import type { TextField } from "#obsidian/annotation-repository/write.ts";
 import { Effect } from "effect";
 
-import { TEXT_FIELD_SPECS, sameText } from "./model.ts";
 import type {
   AnnotationRecord,
   ConfirmedWrite,
   GroupWrite,
   GroupWrites,
 } from "./model.ts";
+import { TEXT_FIELD_SPECS, sameText } from "./model.ts";
 import type { CoreState } from "./state.ts";
 
 import {

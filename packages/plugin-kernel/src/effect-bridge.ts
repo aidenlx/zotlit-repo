@@ -1,5 +1,5 @@
-import { Cause, Context, Effect, Exit, Fiber, Scope } from "effect";
 import type { ManagedRuntime, Stream } from "effect";
+import { Cause, Context, Effect, Exit, Fiber, Scope } from "effect";
 
 import { AbortError } from "./abort-error.ts";
 import { withLogCategory } from "./effect-log.ts";

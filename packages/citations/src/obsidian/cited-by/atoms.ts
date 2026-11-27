@@ -14,8 +14,8 @@ import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 
-import { sourceOutline } from "./store.ts";
 import type { CitedByPreview, SourceFileFacts } from "./store.ts";
+import { sourceOutline } from "./store.ts";
 
 import { activeCitedByAtom } from "#obsidian/citation-index/atoms.ts";
 import { flashOccurrence } from "#obsidian/citation-index/reveal-occurrence.ts";

@@ -2,8 +2,8 @@ import { Effect, Stream } from "effect";
 
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
-import { hoverPreferences } from "./index.ts";
 import type { HoverPreferences } from "./index.ts";
+import { hoverPreferences } from "./index.ts";
 
 import { citationSettings } from "#core/citation-index/settings.ts";
 

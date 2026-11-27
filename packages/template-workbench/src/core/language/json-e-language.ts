@@ -1,9 +1,9 @@
 import { closeBrackets } from "@codemirror/autocomplete";
 import { json, jsonLanguage } from "@codemirror/lang-json";
-import { Prec } from "@codemirror/state";
 import type { Range } from "@codemirror/state";
-import { Decoration } from "@codemirror/view";
+import { Prec } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
+import { Decoration } from "@codemirror/view";
 import { highlightTree } from "@lezer/highlight";
 
 import { decorationLayer, gapsAround } from "./decorations.ts";

@@ -4,11 +4,11 @@ import {
   filterExpressionLanguage,
   highlightFilterExpression,
 } from "./filter-expression.ts";
-import { templateToken } from "./highlight.ts";
 import type { TemplateToken } from "./highlight.ts";
+import { templateToken } from "./highlight.ts";
 import { jsonSyntaxTokens } from "./json-e.ts";
-import { completionEdit, hoverHint, suggestions } from "./suggestions.ts";
 import type { SuggestionConfig } from "./suggestions.ts";
+import { completionEdit, hoverHint, suggestions } from "./suggestions.ts";
 
 const config: SuggestionConfig = {
   root: "note",
