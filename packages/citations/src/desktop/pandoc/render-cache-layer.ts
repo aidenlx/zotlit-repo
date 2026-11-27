@@ -5,6 +5,7 @@ import type {
 import type {
   BibliographyRenderEvent,
   BibliographyRenderState,
+  ReadOptions,
   RenderPresentation,
 } from "#obsidian/pandoc/render-cache.ts";
 import type { QueryFunction } from "@tanstack/query-core";
@@ -334,7 +335,7 @@ export const layerBibliographyRender = Layer.effect(
         },
       ),
       readBibliography: Effect.fn("BibliographyRender.readBibliography")(
-        function* (items, { presentation } = {}) {
+        function* (items, { presentation }: ReadOptions = {}) {
           const prepared = yield* prepare(presentation);
           if (prepared.reason !== undefined) return null;
           return yield* queries.readFresh(
@@ -347,7 +348,7 @@ export const layerBibliographyRender = Layer.effect(
       readCitations: Effect.fn("BibliographyRender.readCitations")(function* (
         citations,
         items,
-        { presentation } = {},
+        { presentation }: ReadOptions = {},
       ) {
         const prepared = yield* prepare(presentation);
         if (prepared.reason !== undefined) return null;

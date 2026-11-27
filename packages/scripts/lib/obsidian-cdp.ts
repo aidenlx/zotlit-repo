@@ -150,7 +150,7 @@ export async function openCdpSession(wsUrl: string): Promise<CdpSession> {
     send(
       method,
       params = {},
-      { timeoutMs = OBSIDIAN_CALL_TIMEOUT_MS, sessionId } = {},
+      { timeoutMs = OBSIDIAN_CALL_TIMEOUT_MS, sessionId }: SendOptions = {},
     ) {
       if (socket.readyState !== WebSocket.OPEN) {
         return Promise.reject(

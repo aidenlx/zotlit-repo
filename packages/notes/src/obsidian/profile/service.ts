@@ -936,7 +936,7 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       import: ({
         includeMatch: approvedMatch = includeMatch,
         replacePartials,
-      } = {}) =>
+      }: Parameters<PreparedProfileImport["import"]>[0] = {}) =>
         mutate(
           Effect.gen(function* () {
             yield* settle();

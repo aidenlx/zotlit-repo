@@ -305,7 +305,7 @@ export async function openDocsWalk(
   return {
     vaultId,
     zotero,
-    async capture(layer, { notice } = {}) {
+    async capture(layer, { notice }: Parameters<DocsWalk["capture"]>[1] = {}) {
       if (!captureRequested()) return;
       const recordedNotice = taken.get(layer);
       taken.delete(layer);
@@ -335,7 +335,11 @@ export async function openDocsWalk(
         { windowsHide: true },
       );
     },
-    async record(name, actions, { notice } = {}) {
+    async record(
+      name,
+      actions,
+      { notice }: Parameters<DocsWalk["record"]>[2] = {},
+    ) {
       if (!recordRequested(name)) return actions();
       const frames = join(captures, `${name}.frames`);
       await rm(frames, { recursive: true, force: true });
@@ -391,7 +395,10 @@ export async function openDocsWalk(
         return join(frames, dir);
       };
       const result = await run({
-        async obsidian(actions, { notice } = {}) {
+        async obsidian(
+          actions,
+          { notice }: Parameters<ClipShots["obsidian"]>[1] = {},
+        ) {
           const dir = shot("obsidian");
           await mkdir(dir, { recursive: true });
           await startRecording(vaultId, dir, settings);
@@ -706,7 +713,10 @@ async function startRecording(
       };
 
       page.scratch.docsWalkPointer = {
-        async point(el, { inset } = {}) {
+        async point(
+          el,
+          { inset }: Parameters<DocsWalkPointer["point"]>[1] = {},
+        ) {
           const { x, y, rect } = aim(el, inset);
           await glide(x, y);
           events.push({ kind: "point", t: now(), x, y, rect });
@@ -754,7 +764,10 @@ async function startRecording(
           );
           events.push({ kind: "keys", t, end: now(), ...(rect && { rect }) });
         },
-        async look(target, { padding } = {}) {
+        async look(
+          target,
+          { padding }: Parameters<DocsWalkPointer["look"]>[1] = {},
+        ) {
           const targets = (
             Array.isArray(target) ? target : [target]
           ) as readonly LookTarget[];

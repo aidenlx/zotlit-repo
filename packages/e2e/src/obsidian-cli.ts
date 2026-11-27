@@ -165,7 +165,7 @@ export async function obRunUntil<A = undefined, R = boolean>(
   for (let attempt = 0; attempt < tries; attempt++) {
     try {
       // oxlint-disable-next-line zotlit-tests/no-eval-capture -- Forward the caller-checked callback through the transport.
-      const value = await obRun(vaultId, callback, args);
+      const value = await obRun<A, R>(vaultId, callback, args);
       last = value;
       if (ready(value)) return value;
     } catch (error) {

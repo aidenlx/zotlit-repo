@@ -97,7 +97,7 @@ import {
   scrollMarkIntoView,
   withPosition,
 } from "./render.ts";
-import type { MarkGestures } from "./selection.ts";
+import type { MarkGestures, SelectOptions } from "./selection.ts";
 import { MarkSelection } from "./selection.ts";
 import {
   createTextDraftArea,
@@ -636,7 +636,10 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
       records: () => this.#records,
       structure: () => this.#structure(),
       repaint: () => this.#repaint(),
-      reveal: (annotationKey, { commenting } = {}) => {
+      reveal: (
+        annotationKey,
+        { commenting }: Pick<SelectOptions, "commenting"> = {},
+      ) => {
         void this.refreshed.then(() =>
           this.#selection?.select(annotationKey, { commenting }),
         );

@@ -99,7 +99,7 @@ export async function readQueryViewUntil<A, T>(
       async () => {
         try {
           // oxlint-disable-next-line zotlit-tests/no-eval-capture -- Forward the caller-checked callback through the transport.
-          return await obRun(vaultId, callback, args);
+          return await obRun<A, T>(vaultId, callback, args);
         } catch (error) {
           if (isRevealFailure(error)) throw error;
           lastError = String(error);
