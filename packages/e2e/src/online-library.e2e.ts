@@ -537,9 +537,17 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
         releaseItems();
       }
       await statusShows(upToDate, "the first build to end up to date");
-      expect((await librarySourceRows(vaultId, names)).accepted).toBe(
-        m.settings_online_key_accepted({ username: api.main.username }),
-      );
+      const accepted = m.settings_online_key_accepted({
+        username: api.main.username,
+      });
+      expect(
+        (
+          await librarySourceRows(vaultId, names, {
+            ready: (rows) => rows.accepted === accepted,
+            what: "the status to name the account that Zotero accepted",
+          })
+        ).accepted,
+      ).toBe(accepted);
       expect(
         await obRun(
           vaultId,
@@ -1446,9 +1454,17 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
       });
       await statusShows(upToDate, "the replica of the new account");
       await rowsShow(onlineRows, "the offer to go away");
-      expect((await librarySourceRows(vaultId, names)).accepted).toBe(
-        m.settings_online_key_accepted({ username: SECOND_ACCOUNT.username }),
-      );
+      const accepted = m.settings_online_key_accepted({
+        username: SECOND_ACCOUNT.username,
+      });
+      expect(
+        (
+          await librarySourceRows(vaultId, names, {
+            ready: (rows) => rows.accepted === accepted,
+            what: "the status to name the new account that Zotero accepted",
+          })
+        ).accepted,
+      ).toBe(accepted);
       await searchUntil(
         SECOND_ITEM.title,
         (keys) => keys.includes(SECOND_ITEM.key),

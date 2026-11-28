@@ -422,9 +422,17 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       await openLibrary(layout);
       const parts = await obRunUntil(
         vaultId,
-        async ({ app }, { box, layout }) => {
-          const remote =
-            require("@electron/remote") as typeof import("@electron/remote");
+        (
+          { app },
+          { box, layout },
+        ): {
+          row: number;
+          gutter: number | null;
+          parts: Record<
+            string,
+            { outline: Record<string, number>; row: Record<string, number> }
+          >;
+        } | null => {
           const view = app.workspace.getLeavesOfType("zotlit-library")[0]!
             .view as LibraryView;
           const list = view.contentEl.querySelector<HTMLElement>(box);
@@ -467,92 +475,114 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             };
           };
           const at = rect(entry);
-          const frame = () =>
-            new Promise((resolve) => requestAnimationFrame(resolve));
-          for (const el of entries) el.style.visibility = "hidden";
-          const contents = remote.getCurrentWebContents();
-          const zoom = contents.getZoomFactor();
-          const image = await (async () => {
-            try {
-              await frame();
-              await frame();
-              return await contents.capturePage({
-                x: Math.round(bounds.left * zoom),
-                y: Math.round(at.top * zoom),
-                width: Math.round((bounds.right - bounds.left) * zoom),
-                height: Math.round((at.bottom - at.top + 2) * zoom),
-              });
-            } finally {
-              for (const el of entries) el.style.visibility = "";
-            }
-          })();
-          const size = image.getSize();
-          const bmp = image.toBitmap();
-          const k = Math.sqrt(bmp.length / 4 / (size.width * size.height));
-          const W = Math.round(size.width * k);
-          const H = Math.round(size.height * k);
-          const scale = W / (bounds.right - bounds.left);
-          const lum = (x: number, y: number) => {
-            const i = (y * W + x) * 4;
-            return (bmp[i]! + bmp[i + 1]! * 2 + bmp[i + 2]!) >> 2;
-          };
-          const hist = new Uint32Array(256);
-          for (let y = 0; y < H; y++)
-            for (let x = 0; x < W; x++) hist[lum(x, y)]!++;
-          let bg = 0;
-          for (let i = 1; i < 256; i++) if (hist[i]! > hist[bg]!) bg = i;
-          const ink = ({
-            left,
-            right,
-            top,
-            bottom,
-          }: {
-            left: number;
-            right: number;
-            top: number;
-            bottom: number;
-          }) => {
-            const x0 = Math.max(0, Math.round((left - bounds.left) * scale));
-            const x1 = Math.min(W, Math.round((right - bounds.left) * scale));
-            const y0 = Math.max(0, Math.round((top - at.top) * scale));
-            const y1 = Math.min(H, Math.round((bottom - at.top) * scale));
-            let found = null as null | {
-              left: number;
-              top: number;
-              right: number;
-              bottom: number;
-            };
-            for (let y = y0; y < y1; y++)
-              for (let x = x0; x < x1; x++) {
-                if (Math.abs(lum(x, y) - bg) < 8) continue;
-                found ??= { left: x, top: y, right: x + 1, bottom: y + 1 };
-                found.left = Math.min(found.left, x);
-                found.top = Math.min(found.top, y);
-                found.right = Math.max(found.right, x + 1);
-                found.bottom = Math.max(found.bottom, y + 1);
-              }
-            return (
-              found && {
-                left: found.left / scale + bounds.left,
-                top: found.top / scale + at.top,
-                right: found.right / scale + bounds.left,
-                bottom: found.bottom / scale + at.top,
-              }
-            );
-          };
           const middle = (r: { top: number; bottom: number }) =>
             (r.top + r.bottom) / 2;
-          const end = bounds.left + list.clientLeft + list.clientWidth;
-          const line = ink({
-            left: end - 40,
-            right: end - 20,
-            top: at.bottom - 6,
-            bottom: at.bottom,
+          const split = (text: string, by: string) => {
+            const out: string[] = [];
+            let depth = 0;
+            let start = 0;
+            for (let i = 0; i < text.length; i++) {
+              const c = text[i];
+              if (c === "(") depth++;
+              else if (c === ")") depth--;
+              else if (c === by && depth === 0) {
+                out.push(text.slice(start, i).trim());
+                start = i + 1;
+              }
+            }
+            out.push(text.slice(start).trim());
+            return out.filter((part) => part !== "");
+          };
+          const length = (value: string, basis: number) => {
+            const tokens = value.match(
+              /min\(|max\(|calc\(|[\d.]+(?:e-?\d+)?(?:px|%)?|[-+*/(),]/g,
+            )!;
+            let i = 0;
+            const sum = (): number => {
+              let total = product();
+              while (tokens[i] === "+" || tokens[i] === "-")
+                total += tokens[i++] === "+" ? product() : -product();
+              return total;
+            };
+            const product = (): number => {
+              let total = unit();
+              while (tokens[i] === "*" || tokens[i] === "/")
+                total = tokens[i++] === "*" ? total * unit() : total / unit();
+              return total;
+            };
+            const unit = (): number => {
+              const token = tokens[i++]!;
+              if (token === "-") return -unit();
+              if (token === "min(" || token === "max(") {
+                const args = [sum()];
+                while (tokens[i++] === ",") args.push(sum());
+                return token === "min(" ? Math.min(...args) : Math.max(...args);
+              }
+              if (token === "calc(" || token === "(") {
+                const inner = sum();
+                i++;
+                return inner;
+              }
+              const number = Number.parseFloat(token);
+              return token.endsWith("%") ? (number * basis) / 100 : number;
+            };
+            return sum();
+          };
+          const tileOrigin = style.backgroundOrigin.split(",")[0]!.trim();
+          const inset = (side: "Left" | "Top" | "Right") =>
+            tileOrigin === "border-box"
+              ? -Number.parseFloat(style[`border${side}Width`])
+              : tileOrigin === "content-box"
+                ? Number.parseFloat(style[`padding${side}`])
+                : 0;
+          const area = {
+            left: bounds.left + list.clientLeft + inset("Left"),
+            top: bounds.top + list.clientTop + inset("Top"),
+            width: list.clientWidth - inset("Left") - inset("Right"),
+          };
+          const sizes = split(style.backgroundSize, ",");
+          const positions = split(style.backgroundPosition, ",");
+          const layers = split(style.backgroundImage, ",").map((image, i) => {
+            const [width, height] = split(sizes[i]!, " ");
+            const tile = length(height!, 0);
+            const [x, y] = split(positions[i]!, " ");
+            const left = area.left + length(x!, area.width);
+            const offset = area.top + length(y!, 0);
+            const top = offset + Math.round((at.top - offset) / tile) * tile;
+            const stops = split(image.slice(image.indexOf("(") + 1, -1), ",")
+              .filter((stop) => !/^to |deg$/.test(stop))
+              .map((stop) => {
+                const words = split(stop, " ");
+                const color = words.shift()!;
+                return {
+                  shown: !/^(transparent|rgba\(.*,\s*0\))$/.test(color),
+                  at: words.map((word) => length(word, tile)),
+                };
+              });
+            let last = 0;
+            const clamped = stops.map((stop) =>
+              stop.at.map((p) => (last = Math.max(last, p))),
+            );
+            const shown = stops.findIndex((stop) => stop.shown);
+            const from = clamped[shown]!;
+            const to =
+              from.length > 1
+                ? from.at(-1)!
+                : (clamped[shown + 1]?.[0] ?? tile);
+            return {
+              left,
+              right: left + length(width!, area.width),
+              top: top + from[0]!,
+              bottom: top + to,
+            };
           });
           const border = Number.parseFloat(
-            getComputedStyle(entry).borderBottomWidth,
+            getComputedStyle(
+              layout === "table" ? entry.querySelector("td")! : entry,
+            ).borderBottomWidth,
           );
-          const under = line && {
+          const line = layers.at(-1)!;
+          const under = {
             outline: { top: line.top },
             row: { top: at.bottom - border },
           };
@@ -562,17 +592,12 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             const padding = Number.parseFloat(
               getComputedStyle(cell).paddingLeft,
             );
-            const bar = ink({
-              left: gutter.right - 2,
-              right: gutter.right + 60,
-              top: at.top + 2,
-              bottom: at.bottom - 3,
-            });
+            const bar = layers[0]!;
             return {
               row,
               gutter: gutter.right,
               parts: {
-                bar: bar && {
+                bar: {
                   outline: { left: bar.left, middle: middle(bar) },
                   row: { left: rect(cell).left + padding, middle: middle(at) },
                 },
@@ -584,35 +609,18 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           const shape = rect(icon.querySelector("svg") ?? icon);
           const title = rect(entry.querySelector("[data-query-papers-title]")!);
           const meta = rect(entry.querySelector("[data-query-papers-meta]")!);
-          const iconInk = ink({
-            left: shape.left - 3,
-            right: shape.right + 2,
-            top: at.top + 2,
-            bottom: at.bottom - 3,
-          });
-          const titleInk = ink({
-            left: title.left - 3,
-            right: title.left + 40,
-            top: at.top + 2,
-            bottom: title.bottom,
-          });
-          const metaInk = ink({
-            left: meta.left - 3,
-            right: meta.left + 40,
-            top: meta.top,
-            bottom: at.bottom - 3,
-          });
+          const [iconBar, titleBar, metaBar] = layers;
           return {
             row,
             gutter: null,
             parts: {
-              icon: iconInk && { outline: iconInk, row: shape },
-              title: titleInk && {
-                outline: { left: titleInk.left, middle: middle(titleInk) },
+              icon: { outline: iconBar!, row: shape },
+              title: {
+                outline: { left: titleBar!.left, middle: middle(titleBar!) },
                 row: { left: title.left, middle: middle(title) },
               },
-              meta: metaInk && {
-                outline: { left: metaInk.left, middle: middle(metaInk) },
+              meta: {
+                outline: { left: metaBar!.left, middle: middle(metaBar!) },
                 row: { left: meta.left, middle: middle(meta) },
               },
               line: under,
@@ -635,7 +643,7 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           part,
           pair != null &&
             Object.entries(pair.outline).every(
-              ([key, value]) => Math.abs(value - pair.row[key]!) <= 1,
+              ([key, value]) => Math.abs(value - pair.row[key]!) <= 0.5,
             ),
         ]),
       );

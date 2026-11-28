@@ -1,6 +1,6 @@
 import type { WorkspaceLeaf, WorkspaceTabs, MarkdownView } from "obsidian";
 
-import type { QueryJob } from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
+import type { QueryTypedJob } from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
 export type LibraryTabs = WorkspaceTabs & {
   setDimension(percent: number): void;
 };
@@ -10,7 +10,7 @@ export type LinkMarkdownView = MarkdownView & {
 };
 export type LibraryWorkerMessage = [
   unknown,
-  { tag: string; payload: { job: QueryJob } },
+  { tag: string; payload: { job: QueryTypedJob } },
 ];
 declare module "./page-helpers.ts" {
   interface PageScratch {

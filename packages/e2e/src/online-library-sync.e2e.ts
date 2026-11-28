@@ -154,10 +154,13 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
           const pending = new Set<Promise<unknown>>();
           let stopped = false;
           const searches: SearchSample[] = [];
-          let searching = false;
-          const searchDuringSync = () => {
-            if (searchDuringApply === null || searching) return;
-            searching = true;
+          let searching = 0;
+          let sentInApply = false;
+          const searchDuringSync = (inApply: boolean) => {
+            if (searchDuringApply === null) return;
+            if (inApply && !sentInApply) sentInApply = true;
+            else if (searching > 0) return;
+            searching++;
             const start = now();
             const done = services.bridge
               .runPromise(
@@ -180,7 +183,7 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
                 });
               })
               .finally(() => {
-                searching = false;
+                searching--;
                 pending.delete(done);
               });
             pending.add(done);
@@ -199,7 +202,8 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
                   syncing: status.syncing,
                   lastApply: status.lastApply ?? null,
                 });
-                if (status.syncing) searchDuringSync();
+                if (status.syncing)
+                  searchDuringSync(status.progress?.phase === "apply");
               } catch {
                 samples.push({
                   start,
@@ -516,17 +520,34 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
       });
     }, 1_800_000);
 
-    it(`measures a sync of ${count(CHANGED_ITEMS)} changed items on the ${ROOT}`, async () => {
+    it(`measures a sync of ${count(CHANGED_ITEMS)} changed items, and answers a search sent during its apply after the commit, on the ${ROOT}`, async () => {
       await ensureBuilt();
       changeSeededItems(api.user, { items: CHANGED_ITEMS, round: 1 });
+      const query = "Seeded study 4321 of reading habits, revision 1";
       const measure = await probedSync("sync of changed items", {
         withReads: false,
+        searchDuringApply: query,
         trigger: () => markTrigger("sync-now"),
       });
       report(
         `sync of ${count(CHANGED_ITEMS)} changed items in ${count(SEEDED_ITEMS)}`,
         measure,
       );
+      const apply = applyOfSync;
+      if (!apply) throw new Error("Missing: the apply of the sync");
+      const during = searchesOfSync.find(
+        (search) =>
+          search.start >= apply.beganAt && search.start < apply.committedAt,
+      );
+      if (!during)
+        throw new Error(
+          "Missing: a search sent between the begin and the commit of the apply",
+        );
+      expect(during.end).toBeGreaterThanOrEqual(apply.committedAt);
+      expect(during.hits).toContainEqual(
+        expect.objectContaining({ key: seedItemKey(4320), title: query }),
+      );
+      expect(during.hits).toEqual(await searchItems(query));
       checkPerformanceBudgets(() => {
         expect(measure.applyMs).toBeLessThanOrEqual(
           TARGETS[ROOT].changedApplyMs,
@@ -538,10 +559,8 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
     it(`measures the longest wait of a read in a daily sync of ${DAILY_ITEMS} changed items on the ${ROOT}`, async () => {
       await ensureBuilt();
       changeSeededItems(api.user, { items: DAILY_ITEMS, round: 2 });
-      const query = "Seeded study 1 of reading habits, revision 2";
       const measure = await probedSync("daily sync", {
         withReads: true,
-        searchDuringApply: query,
         trigger: async () => {
           await idleReads(10);
           await markTrigger("sync-now");
@@ -553,21 +572,6 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
       );
       expect(measure.readsFailed).toBe(0);
       expect(measure.readsInApply).toBeGreaterThan(0);
-      const apply = applyOfSync;
-      if (!apply) throw new Error("Missing: the apply of the daily sync");
-      const during = searchesOfSync.find(
-        (search) =>
-          search.start >= apply.beganAt && search.start < apply.committedAt,
-      );
-      if (!during)
-        throw new Error(
-          "Missing: a search sent between the begin and the commit of the apply",
-        );
-      expect(during.end).toBeGreaterThanOrEqual(apply.committedAt);
-      expect(during.hits).toContainEqual(
-        expect.objectContaining({ key: seedItemKey(0), title: query }),
-      );
-      expect(during.hits).toEqual(await searchItems(query));
       checkPerformanceBudgets(() => {
         expect(measure.readWaitMs).toBeLessThanOrEqual(
           TARGETS[ROOT].dailyReadWaitMs,
