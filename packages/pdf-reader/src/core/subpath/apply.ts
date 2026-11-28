@@ -6,13 +6,14 @@ import { integerOf } from "#/core/subpath/parse.ts";
 
 const HIGHLIGHT_LAYER = "zpr-highlight";
 const SCROLL_MARGIN = 50;
+const PDFJS_PAGE_TOP = -1;
 
 export function pageDestination(subpath: Subpath): Destination | null {
   if (subpath.page === null) return null;
   const parts = subpath.params.get("offset")?.split(",") ?? [];
   const [left, top, zoom] = [0, 1, 2].map((index) => integerOf(parts[index]));
   return zoom === null
-    ? [subpath.page - 1, { name: "FitBH" }, top]
+    ? [subpath.page - 1, { name: "FitBH" }, top ?? PDFJS_PAGE_TOP]
     : [subpath.page - 1, { name: "XYZ" }, left, top, zoom];
 }
 

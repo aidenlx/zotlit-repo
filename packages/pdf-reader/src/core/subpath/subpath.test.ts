@@ -162,6 +162,7 @@ it.skipIf(!testElectron)(
     expect(report.offsets.top).toBeGreaterThan(-20);
     expect(report.offsets.xyz).toBeLessThan(report.offsets.top - 400);
     expect(report.offsets.fitbh).toBeCloseTo(report.offsets.xyz, 0);
+    expect(report.offsets.plain).toBeCloseTo(report.offsets.top, 0);
 
     expect(report.selection.marked.split("|").length).toBe(3);
     expect(report.selection.marked).toBe(report.selection.expected);
@@ -189,6 +190,7 @@ it.skipIf(!testElectron)(
       "#page=4&offset=0,792,0",
       "#page=4&offset=0,300,0",
       "#page=4&offset=,300",
+      "#page=4",
       "#page=2&selection=2,5,4,10",
       "#page=4&annotation=5R&selection=0,0,1,3",
     ]);

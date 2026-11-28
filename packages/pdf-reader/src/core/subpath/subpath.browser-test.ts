@@ -37,6 +37,7 @@ export interface SubpathReport {
     readonly top: number;
     readonly xyz: number;
     readonly fitbh: number;
+    readonly plain: number;
   };
   readonly selection: { readonly marked: string; readonly expected: string };
   readonly noSource: { readonly landing: Landing; readonly marked: string };
@@ -190,6 +191,8 @@ async function navigation(engine: PdfEngine) {
   const xyz = pageTop(reader, 3);
   await land(reader, "#page=4&offset=,300");
   const fitbh = pageTop(reader, 3);
+  await land(reader, "#page=4");
+  const plain = pageTop(reader, 3);
 
   const range: readonly [number, number, number, number] = [2, 5, 4, 10];
   await land(reader, `#page=2&selection=${range.join(",")}`);
@@ -226,7 +229,7 @@ async function navigation(engine: PdfEngine) {
   return {
     mount,
     table,
-    offsets: { top, xyz, fitbh },
+    offsets: { top, xyz, fitbh, plain },
     selection,
     annotation,
     announced,
