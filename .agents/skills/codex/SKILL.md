@@ -35,7 +35,7 @@ codex exec -m <model> -c model_reasoning_effort='"high"' --approve-for-me \
   "Read <absolute path to SPEC.md> and carry it out exactly." < /dev/null > .scratch/<task>/log.txt 2>&1
 ```
 
-Run it in the background; the harness notifies on exit.
+Run it in the background; the harness notifies on exit. For a run that lasts hours, loops toward a target or measures on a shared device, follow [LONG-RUN.md](LONG-RUN.md): how to watch it, when to stop it, and how to answer its questions.
 
 - **Session:** the run above keeps its session, and the log's header prints `session id: <uuid>`. Keep the session for work that can need a second turn: a ticket, an implementation, anything the lead reviews and sends back. Add `--ephemeral` to a one-shot whose report is the whole product (an audit, a classification, a slice, a review): an ephemeral session cannot be resumed, so a stop leaves only `log.txt` to recover from.
 - **Provider:** read the `provider:` line in the log header; a `custom` block in `~/.codex/config.toml` can sit unselected, so the file does not say which provider runs. `~/.codex/config.toml` holds an API key: print only the lines you need.
@@ -79,7 +79,8 @@ codex exec -C <worktree> review -m <model> -c model_reasoning_effort='"xhigh"' -
 ```
 
 - **Worktree:** `-C` is an option of `codex exec`, so it goes before `review`. Placed after `review`, it fails with a usage error.
-- **Scope:** a prompt and a scope flag (`--base`, `--uncommitted`, `--commit`) are mutually exclusive. A briefed review names its scope inside the brief: "Review the diff from `git diff <fixed-point>...HEAD`, commits: `<list>`."
+- **Scope:** a prompt and a scope flag (`--base`, `--uncommitted`, `--commit`) are mutually exclusive. A briefed review names its scope inside the brief: "Review the diff from `git diff <fixed-point>...HEAD`, commits: `<list>`." On a branch that merged its base, list the commits from `git log --no-merges --first-parent <fixed-point>..HEAD`, so the review stays on the branch's own work.
+- **Reach:** the brief asks each finding to state how a user reaches it. Codex reports many defects that need an injected fault or two failures at once; the lead weighs each finding by reach, impact and cost before a fix round.
 - **Report only:** the brief ends with "Report findings only. Change no files."
 - **Approvals:** `review` has no `--approve-for-me`. It takes approvals from `~/.codex/config.toml`: `approvals_reviewer = "auto_review"`, `approval_policy = "on-request"` and `sandbox_mode = "workspace-write"`. Pass them as `-c` overrides on a machine whose config differs.
 - **Usage errors:** a misplaced or unknown flag exits `2` and writes no report. The log holds the usage message.

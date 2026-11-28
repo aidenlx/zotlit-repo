@@ -15,7 +15,9 @@ Drive the running Obsidian app to verify plugin changes against real rendered st
 is the source of truth.
 
 **iOS** — for a real iPhone, follow [ios.md](ios.md) to attach to the Obsidian WebView, install a
-plugin build, and read start-up time from the Mac.
+plugin build, run a long measurement, and read start-up time, memory and page kills from the Mac.
+Before code depends on an API, the vault ID, storage or memory on Mobile, read
+[ios-platform.md](ios-platform.md).
 
 **Android** — follow [android.md](android.md) to set up the global emulator or a USB device, attach
 to the Obsidian WebView and its Workers, install a plugin build, and read start-up time and memory.
@@ -217,6 +219,8 @@ probe that awaits one never answers; scroll events never dispatch; and screensho
 behind the DOM. Pass `--no-throttle` to every call that probes, scrolls, or captures: it lifts
 throttling from the main window and its popouts for that call and puts it back after.
 `document.visibilityState` can still read `hidden` — judge by frames and events.
+
+A timed run that lasts longer than one call needs the throttling lifted for its whole length: a throttled window ran a 2.6 s job in 345 s. Call `require("@electron/remote").getCurrentWebContents().setBackgroundThrottling(false)` before the run and `(true)` after it (`prepareRunWindow` in `packages/e2e/src/background-throttling.ts` does this for the window and its popouts).
 
 ### Focus without the OS
 
