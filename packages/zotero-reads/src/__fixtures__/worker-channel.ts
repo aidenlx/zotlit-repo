@@ -1,7 +1,16 @@
-import { Effect } from "effect";
+import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
+import { Effect, Layer } from "effect";
 import type { Scope } from "effect";
+import { RpcClient, RpcWorker } from "effect/rpc";
 
 import type { StartWebWorkerOptions } from "#client/web-worker.ts";
+import type {
+  FileReadsConfig,
+  ZoteroReadsClient,
+} from "#contract/rpc.ts";
+import { WorkerInitSchema, ZoteroReads } from "#contract/rpc.ts";
+import type { ZoteroReadsWorkerHost } from "#worker/serve.ts";
+import { serveZoteroReads } from "#worker/serve.ts";
 import type { WorkerScope } from "#worker/worker-launch.ts";
 
 type HostWorker = ReturnType<NonNullable<StartWebWorkerOptions["spawn"]>>;
@@ -53,3 +62,39 @@ export const workerChannel: Effect.Effect<WorkerChannel, never, Scope.Scope> =
       },
     };
   });
+
+export const workerChannelClient = Effect.fnUntraced(function* (
+  host: ZoteroReadsWorkerHost,
+  config: FileReadsConfig,
+): Effect.fn.Return<ZoteroReadsClient, never, Scope.Scope> {
+  const channel = yield* workerChannel;
+  serveZoteroReads(channel.scope, host);
+  const logs = new MessageChannel();
+  yield* Effect.addFinalizer(() =>
+    Effect.sync(() => {
+      logs.port1.close();
+      logs.port2.close();
+    }),
+  );
+  const protocol = yield* Layer.build(
+    RpcClient.layerProtocolWorker({ size: 1 }).pipe(
+      Layer.provide(BrowserWorker.layer(() => channel.spawn() as never)),
+      Layer.provide(
+        RpcWorker.layerInitialMessage(
+          WorkerInitSchema,
+          Effect.succeed({
+            ...config,
+            snapshotOwner: "worker-channel",
+            deferOpen: false,
+            logs: logs.port2,
+          }),
+        ),
+      ),
+    ),
+  ).pipe(Effect.orDie);
+  const client = yield* RpcClient.make(ZoteroReads).pipe(
+    Effect.provideContext(protocol),
+  );
+  yield* Effect.orDie(client.Configure(config));
+  return client;
+});

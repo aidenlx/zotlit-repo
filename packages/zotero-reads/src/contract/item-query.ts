@@ -7,6 +7,11 @@ export interface ItemQueryJobShape {
   readonly values?: DecodedValues;
 }
 
+export interface ItemQueryTypedJobShape {
+  readonly id: string;
+  readonly command: string;
+}
+
 export interface ItemQueryAnswerShape {
   readonly command: string;
 }
@@ -19,6 +24,30 @@ export type ItemQueryJob = ItemQueryTypes extends {
 }
   ? Job
   : ItemQueryJobShape;
+
+export type ItemQueryTypedJob = ItemQueryTypes extends {
+  typedJob: infer Job extends ItemQueryTypedJobShape;
+}
+  ? Job
+  : ItemQueryTypedJobShape;
+
+export type ItemQuerySummary = ItemQueryTypes extends {
+  summary: infer Summary extends object;
+}
+  ? Summary
+  : object;
+
+export type ItemQueryMeasurement = ItemQueryTypes extends {
+  measurement: infer Measurement extends object;
+}
+  ? Measurement
+  : object;
+
+export type ItemQueryDiagnostic = ItemQueryTypes extends {
+  diagnostic: infer Diagnostic extends object;
+}
+  ? Diagnostic
+  : object;
 
 export type ItemQueryAnswer = ItemQueryTypes extends {
   answer: infer Answer extends ItemQueryAnswerShape;

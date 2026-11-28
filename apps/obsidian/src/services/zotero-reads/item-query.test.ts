@@ -1,16 +1,12 @@
 import { it } from "@effect/vitest";
-import { Effect, Fiber, Layer } from "effect";
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { Deferred, Effect, Fiber, Layer, Queue, Stream } from "effect";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { describe, expect, vi } from "vitest";
 
 import type { Attachment } from "@zotlit/db";
 import { rowInstant } from "@zotlit/db-testing";
-import {
-  BULK_LIBRARY,
-  openScenarioDatabase,
-  seedBulkLibrary,
-} from "@zotlit/db-testing/scenario";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
@@ -18,7 +14,10 @@ import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/n
 import { workerQuery } from "@zotlit/query-views/__fixtures__/item-query/worker-query.ts";
 import { queryJobRunner } from "@zotlit/query-views/desktop/item-query/job.ts";
 import { makeAttachmentFileResolver } from "@zotlit/query-views/worker/item-query/attachment-files.ts";
-import type { QueryJob } from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
+import type {
+  QueryJob,
+  QueryTypedJob,
+} from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
 import {
   fileConfig,
   inProcessClient,
@@ -37,12 +36,6 @@ const IDENTITY = {
     id: "source-1",
     databasePath: "/zotero/zotero.sqlite",
   },
-};
-
-const BULK = {
-  library: `group:${BULK_LIBRARY.groupID}`,
-  limit: "all",
-  fields: '["title","tags"]',
 };
 
 const ATTACHMENT_PATHS = {
@@ -84,11 +77,7 @@ function attachment(
   };
 }
 
-function jobOf(
-  id: string,
-  params: Record<string, string>,
-  stagePath?: string,
-): QueryJob {
+function jobOf(id: string, params: Record<string, string>): QueryJob {
   return {
     schema: false,
     dataset: "items",
@@ -98,38 +87,49 @@ function jobOf(
     vault: IDENTITY.vault,
     scope: MY_LIBRARY_SCOPE,
     attachmentPaths: ATTACHMENT_PATHS,
-    ...(stagePath === undefined ? {} : { stagePath }),
   };
 }
 
-function bulkExport(
-  scenario: ScenarioDatabase<NodeDatabaseClient>,
-  id: string,
-): QueryJob {
-  const directory = dirname(scenario.path);
-  return jobOf(
+function viewJobOf(id: string): QueryTypedJob {
+  return {
+    command: "zotlit:query",
+    schema: false,
+    view: { from: "items", fields: [], limit: 1 },
     id,
-    { ...BULK, output: join(directory, `${id}.json`) },
-    join(directory, `.zotlit-query-${id}.tmp`),
-  );
+    vault: IDENTITY.vault,
+    scope: MY_LIBRARY_SCOPE,
+    attachmentPaths: ATTACHMENT_PATHS,
+  };
 }
 
-function clientOf(scenario: ScenarioDatabase<NodeDatabaseClient>) {
+function clientOf(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  { hold }: { hold?: Deferred.Deferred<void> } = {},
+) {
   let borrows = 0;
+  const acquired = Effect.runSync(Queue.unbounded<void>());
+  const released = Effect.runSync(Queue.unbounded<void>());
   const counted = Layer.effect(Connection)(
     Effect.gen(function* () {
       const connection = yield* Connection;
       return Connection.of({
         ...connection,
-        borrow: Effect.acquireRelease(
-          Effect.sync(() => {
-            borrows++;
-          }),
-          () =>
+        borrow: Effect.gen(function* () {
+          let taken = false;
+          yield* Effect.addFinalizer(() =>
             Effect.sync(() => {
+              if (!taken) return;
               borrows--;
+              Queue.offerUnsafe(released, undefined);
             }),
-        ).pipe(Effect.andThen(connection.borrow)),
+          );
+          const client = yield* connection.borrow;
+          taken = true;
+          borrows++;
+          Queue.offerUnsafe(acquired, undefined);
+          if (hold) yield* Deferred.await(hold);
+          return client;
+        }),
       });
     }),
   ).pipe(Layer.provide(layerRcRef(sharedClientOpener(scenario.db))));
@@ -140,40 +140,44 @@ function clientOf(scenario: ScenarioDatabase<NodeDatabaseClient>) {
       fileConfig(IDENTITY.source.databasePath, IDENTITY.source.id),
     ),
     borrows: () => borrows,
+    acquired: (count: number) =>
+      Effect.asVoid(Queue.takeBetween(acquired, count, count)),
+    released: (count: number) =>
+      Effect.asVoid(Queue.takeBetween(released, count, count)),
   };
 }
 
-const writing = (job: QueryJob) =>
-  Effect.promise(() =>
-    vi.waitFor(
-      async () => {
-        expect(
-          (await readFile(job.stagePath!, "utf8").catch(() => "")).length,
-        ).toBeGreaterThan(0);
-      },
-      { timeout: 15000, interval: 1 },
-    ),
-  );
-
 describe("ZoteroReads ItemQuery", () => {
-  it.effect("answers the envelope of a job with its receipt", () =>
+  it.effect("streams the envelope of a job", () =>
     Effect.gen(function* () {
       using scenario = openScenarioDatabase(connectClient);
       const { client, borrows } = clientOf(scenario);
 
-      const answer = yield* Effect.scoped(
+      const parts = yield* Effect.scoped(
         Effect.flatMap(client, (reads) =>
-          reads.ItemQuery({ job: jobOf("plain", { limit: "3" }) }),
+          Stream.runCollect(
+            reads.QueryAnswer({ job: jobOf("plain", { limit: "3" }) }),
+          ),
         ),
       );
 
-      expect(answer).toMatchObject({ receipt: { kind: "inline" } });
-      expect(answer).not.toHaveProperty("cancelled");
-      expect(JSON.parse(answer.answer)).toMatchObject({
+      const envelope = {
         ok: true,
         identity: IDENTITY,
         returnedCount: 3,
-      });
+      };
+      expect(parts[0]).toMatchObject({ _tag: "Head", summary: envelope });
+      expect(
+        JSON.parse(
+          new TextDecoder().decode(
+            Buffer.concat(
+              parts.flatMap((part) =>
+                part._tag === "Chunk" ? [part.bytes] : [],
+              ),
+            ),
+          ),
+        ),
+      ).toMatchObject(envelope);
       expect(borrows()).toBe(0);
     }),
   );
@@ -182,26 +186,23 @@ describe("ZoteroReads ItemQuery", () => {
     "cancels a job while it waits for a slot, and then the running jobs",
     () =>
       Effect.gen(function* () {
-        using scenario = openScenarioDatabase(connectClient, {
-          storage: "temp-directory",
-        });
-        seedBulkLibrary(scenario.sqlite, 20000);
-        const { client, borrows } = clientOf(scenario);
-        const first = bulkExport(scenario, "first");
+        using scenario = openScenarioDatabase(connectClient);
+        const hold = yield* Deferred.make<void>();
+        const { client, borrows, acquired } = clientOf(scenario, { hold });
 
         const answers = yield* Effect.scoped(
           Effect.gen(function* () {
             const reads = yield* client;
             const running = yield* Effect.forkChild(
               Effect.forEach(
-                [first, bulkExport(scenario, "second")],
+                [viewJobOf("first"), viewJobOf("second")],
                 (job) => reads.ItemQuery({ job }),
                 { concurrency: "unbounded" },
               ),
             );
-            yield* writing(first);
+            yield* acquired(2);
             const waiting = yield* Effect.forkChild(
-              reads.ItemQuery({ job: jobOf("waiting", { limit: "1" }) }),
+              reads.ItemQuery({ job: viewJobOf("waiting") }),
             );
             yield* Effect.yieldNow;
             expect(borrows()).toBe(2);
@@ -220,8 +221,6 @@ describe("ZoteroReads ItemQuery", () => {
 
         expect(answers.cancelled).toEqual({
           command: "zotlit:query",
-          answer: "",
-          receipt: { kind: "inline" },
           cancelled: true,
         });
         expect(answers.stillRunning).toBe(true);
@@ -235,39 +234,27 @@ describe("ZoteroReads ItemQuery", () => {
     "ends the job of a request that the client interrupts, and releases its borrow",
     () =>
       Effect.gen(function* () {
-        using scenario = openScenarioDatabase(connectClient, {
-          storage: "temp-directory",
+        using scenario = openScenarioDatabase(connectClient);
+        const hold = yield* Deferred.make<void>();
+        const { client, borrows, acquired, released } = clientOf(scenario, {
+          hold,
         });
-        seedBulkLibrary(scenario.sqlite, 20000);
-        const { client, borrows } = clientOf(scenario);
-        const job = bulkExport(scenario, "abandoned");
+        const job = viewJobOf("abandoned");
 
         const next = yield* Effect.scoped(
           Effect.gen(function* () {
             const reads = yield* client;
             const request = yield* Effect.forkChild(reads.ItemQuery({ job }));
-            yield* writing(job);
+            yield* acquired(1);
             yield* Fiber.interrupt(request);
-            yield* Effect.promise(() =>
-              vi.waitFor(() => expect(borrows()).toBe(0), {
-                timeout: 15000,
-                interval: 1,
-              }),
-            );
-            return yield* reads.ItemQuery({
-              job: jobOf("next", { limit: "1" }),
-            });
+            yield* released(1);
+            expect(borrows()).toBe(0);
+            yield* Deferred.succeed(hold, undefined);
+            return yield* reads.ItemQuery({ job: viewJobOf("next") });
           }),
         );
 
-        const staged = yield* Effect.promise(() =>
-          readFile(job.stagePath!, "utf8"),
-        );
-        expect(() => JSON.parse(staged) as unknown).toThrow();
-        expect(
-          yield* Effect.promise(() => readdir(dirname(job.stagePath!))),
-        ).not.toContain("abandoned.json");
-        expect(JSON.parse(next.answer)).toMatchObject({ ok: true });
+        expect(next.view).toMatchObject({ kind: "result" });
       }),
   );
 });

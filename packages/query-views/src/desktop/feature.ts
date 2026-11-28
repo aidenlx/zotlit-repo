@@ -48,6 +48,7 @@ import {
 import { AnnotationView } from "./annot-view/view.tsx";
 import { registerAnnotationSuggest } from "./annotation-suggest/register.ts";
 import { layerQueryCli } from "./item-query/cli.ts";
+import { nodeExportFiles } from "./item-query/export-files-node.ts";
 import { bindQuery } from "./item-query/handle.ts";
 import { layerItemMatchQuery } from "./item-query/item-matches.ts";
 import { layerQueryMeasureCli } from "./item-query/measure.ts";
@@ -107,9 +108,13 @@ export const queryViews = extendFeature(obsidianQueryViews, {
         ],
       },
       Layer.unwrap(
-        Effect.map(PluginHost, (host) =>
-          layerQueryService({ pluginVersion: host.manifest.version }),
-        ),
+        Effect.gen(function* () {
+          const host = yield* PluginHost;
+          return layerQueryService({
+            pluginVersion: host.manifest.version,
+            exportFiles: nodeExportFiles(yield* FileSystem.FileSystem),
+          });
+        }),
       ),
     ),
     serviceGroup(

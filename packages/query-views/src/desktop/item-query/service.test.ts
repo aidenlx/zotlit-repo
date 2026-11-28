@@ -1,20 +1,27 @@
-import type { QueryJob } from "#worker/item-query/worker-protocol.ts";
+import type { WorkerMeasurement } from "#worker/item-query/trace.ts";
+import type {
+  QueryJob,
+  QueryTypedJob,
+} from "#worker/item-query/worker-protocol.ts";
 import { describe, expect, it, vi } from "@effect/vitest";
 import {
   Cause,
   Context,
   DateTime,
+  Deferred,
   Effect,
   Exit,
   Fiber,
   Layer,
   Option,
+  Queue,
   Scope,
   Stream,
   SubscriptionRef,
 } from "effect";
 import { chmod, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import type { CliData } from "obsidian";
 
 import {
   BULK_LIBRARY,
@@ -43,7 +50,10 @@ import {
 } from "@zotlit/zotero-reads/client/service.ts";
 import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
-import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+import {
+  Connection,
+  layerRcRef,
+} from "@zotlit/zotero-reads/worker/connection.ts";
 import type { ConnectionOpener } from "@zotlit/zotero-reads/worker/connection.ts";
 import type { QueryJobRunner } from "@zotlit/zotero-reads/worker/handlers.ts";
 
@@ -54,7 +64,11 @@ import {
   buildQueryService,
   layerTestQueryService,
 } from "#__fixtures__/item-query.ts";
-import { queryCancelledText } from "#worker/item-query/contract.ts";
+import {
+  QUERY_VALUES_COMMAND,
+  RESULT_TOO_LARGE_HINTS,
+  queryCancelledText,
+} from "#worker/item-query/contract.ts";
 
 const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
   Effect.acquireDisposable(
@@ -69,7 +83,11 @@ const SOURCE = (scenario: ScenarioDatabase<NodeDatabaseClient>) => ({
 });
 
 function counter() {
-  const state = { leases: 0, jobs: [] as QueryJob[] };
+  const state = {
+    leases: 0,
+    jobs: [] as (QueryJob | QueryTypedJob)[],
+    answerOptions: [] as unknown[],
+  };
   const wrap = (client: ZoteroReadsClient): ZoteroReadsClient => ({
     ...client,
     ItemQuery: (payload, options) => {
@@ -85,6 +103,24 @@ function counter() {
           }),
       );
     },
+    QueryAnswer: ((
+      payload: Parameters<ZoteroReadsClient["QueryAnswer"]>[0],
+      options?: { readonly streamBufferSize?: number },
+    ) => {
+      state.jobs.push(payload.job);
+      state.answerOptions.push(options);
+      return Stream.unwrap(
+        Effect.acquireRelease(
+          Effect.sync(() => {
+            state.leases++;
+          }),
+          () =>
+            Effect.sync(() => {
+              state.leases--;
+            }),
+        ).pipe(Effect.as(client.QueryAnswer(payload, options))),
+      );
+    }) as ZoteroReadsClient["QueryAnswer"],
   });
   return { state, wrap };
 }
@@ -95,9 +131,33 @@ const harness = Effect.fnUntraced(function* (
   queryJobs: QueryJobRunner = queryJobRunner,
 ) {
   const { state, wrap } = counter();
+  let borrows = 0;
+  let borrowed = 0;
+  let idle: Deferred.Deferred<void> | undefined;
+  const connection = Layer.effect(
+    Connection,
+    Effect.map(Connection, (opened) =>
+      Connection.of({
+        ...opened,
+        borrow: Effect.acquireRelease(
+          Effect.sync(() => {
+            borrows++;
+            borrowed++;
+          }),
+          () =>
+            Effect.sync(() => {
+              borrows--;
+              if (borrows > 0 || idle === undefined) return;
+              Deferred.doneUnsafe(idle, Exit.void);
+              idle = undefined;
+            }),
+        ).pipe(Effect.andThen(opened.borrow)),
+      }),
+    ),
+  ).pipe(Layer.provide(layerRcRef(opener)));
   const client = Effect.map(
     inProcessClient(
-      layerRcRef(opener),
+      connection,
       { queryJobs },
       fileConfig(scenario.path, SOURCE(scenario).sourceId),
     ),
@@ -123,6 +183,13 @@ const harness = Effect.fnUntraced(function* (
     service: Context.get(context, QueryService),
     leases: () => state.leases,
     jobs: () => state.jobs,
+    answerOptions: () => state.answerOptions,
+    borrowsReleased: Effect.suspend(() =>
+      borrows === 0
+        ? Effect.void
+        : Deferred.await((idle ??= Deferred.makeUnsafe<void>())),
+    ),
+    borrowed: () => borrowed,
     unload: Scope.close(serviceScope, Exit.void),
   };
 });
@@ -138,7 +205,7 @@ const interruptedOnly = (exit: Exit.Exit<unknown, unknown>) =>
 
 const files = (directory: string) => Effect.promise(() => readdir(directory));
 const temporary = (names: readonly string[]) =>
-  names.filter((name) => name.endsWith(".tmp"));
+  names.filter((name) => name.endsWith(".zotlit-partial"));
 const readText = (path: string) => Effect.promise(() => readFile(path, "utf8"));
 const nextTurn = Effect.promise(
   () => new Promise((resolve) => setTimeout(resolve, 0)),
@@ -571,6 +638,68 @@ describe("Item Query worker jobs", () => {
       }),
   );
 
+  it.effect.each<{
+    name: string;
+    params: CliData;
+    totalCount: number;
+    returnedCount: number;
+    groups: number;
+  }>([
+    {
+      name: "library groups",
+      params: { group: "library", library: "all", limit: "1", fields: "[]" },
+      totalCount: 12,
+      returnedCount: 2,
+      groups: 2,
+    },
+    {
+      name: "overlapping element groups",
+      params: {
+        group: "tags[].name",
+        filter: 'tags.contains("methods")',
+        library: "personal",
+        limit: "all",
+        fields: "[]",
+        sort: "key",
+      },
+      totalCount: 2,
+      returnedCount: 4,
+      groups: 3,
+    },
+  ])(
+    "exports a grouped JSON answer byte-identical to the inline answer, with a receipt that holds no groups: $name",
+    ({ params, totalCount, returnedCount, groups }) =>
+      Effect.gen(function* () {
+        const scenario = yield* scenarioOf({ storage: "temp-directory" });
+        const { service, leases } = yield* harness(scenario);
+        const inline = yield* service.query({ from: "items", ...params });
+        const output = join(dirname(scenario.path), "grouped.json");
+
+        const receipt = yield* json(
+          service.query({ from: "items", ...params, output }),
+        );
+
+        const saved = yield* readText(output);
+        expect(saved).toBe(inline);
+        expect(
+          (JSON.parse(saved) as { groups: unknown[] }).groups,
+        ).toHaveLength(groups);
+        expect(receipt).toMatchObject({
+          ok: true,
+          totalCount,
+          returnedCount,
+          file: {
+            path: output,
+            bytes: Buffer.byteLength(saved),
+            format: "json",
+          },
+        });
+        expect(receipt).not.toHaveProperty("groups");
+        expect(receipt).not.toHaveProperty("rows");
+        expect(leases()).toBe(0);
+      }),
+  );
+
   it.effect(
     "asks for an output file with CSV and TSV, and names the formats it writes",
     () =>
@@ -659,6 +788,188 @@ describe("Item Query worker jobs", () => {
   );
 
   it.effect(
+    "stops an inline query above the limit early, and ends its borrow",
+    () =>
+      Effect.gen(function* () {
+        const scenario = yield* scenarioOf({ storage: "temp-directory" });
+        seedBulkLibrary(scenario.sqlite, 20000);
+        let sent = 0;
+        const counted: QueryJobRunner = {
+          ...queryJobRunner,
+          answer: (job, read) =>
+            queryJobRunner.answer(job, read).pipe(
+              Stream.tap((part) =>
+                Effect.sync(() => {
+                  if (part._tag === "Chunk") sent += part.bytes.byteLength;
+                }),
+              ),
+            ),
+        };
+        const { service, leases, answerOptions, borrowsReleased, borrowed } =
+          yield* harness(scenario, sharedClientOpener(scenario.db), counted);
+        expect(
+          yield* json(service.query({ from: "items", ...bulk })),
+        ).toMatchObject({
+          ok: false,
+          diagnostic: {
+            code: "result-too-large",
+            hint: "Run the query with output=<absolute-path> to write the complete response to a new JSON file, or reduce the fields or limit.",
+          },
+        });
+        expect(leases()).toBe(0);
+        expect(borrowed()).toBeGreaterThan(0);
+        yield* borrowsReleased;
+        expect(answerOptions()).toEqual([
+          expect.objectContaining({ streamBufferSize: 0 }),
+        ]);
+        const stopped = sent;
+        const output = join(dirname(scenario.path), "complete.json");
+        yield* service.query({ from: "items", ...bulk, output });
+        const complete = Buffer.byteLength(yield* readText(output));
+        expect(stopped).toBeGreaterThan(1024 * 1024);
+        expect(stopped).toBeLessThanOrEqual(1024 * 1024 + 2 * 256 * 1024);
+        expect(complete).toBeGreaterThan(2 * stopped);
+      }),
+  );
+
+  it.effect(
+    "bounds a listing of zotlit:query-values and gives a recovery action for this command",
+    () =>
+      Effect.gen(function* () {
+        const scenario = yield* scenarioOf({ storage: "temp-directory" });
+        scenario.sqlite
+          .prepare(
+            "insert into collections (collectionName, libraryID, key) values (?, 1, 'HUGECL22')",
+          )
+          .run("a".repeat(1024 * 1024));
+        const { service, leases } = yield* harness(scenario);
+        const result = yield* json(
+          service.values({ kind: "collections", limit: "all" }),
+        );
+        expect(result).toMatchObject({
+          ok: false,
+          diagnostic: { code: "result-too-large" },
+        });
+        expect(result.diagnostic.hint).toBe(
+          RESULT_TOO_LARGE_HINTS[QUERY_VALUES_COMMAND],
+        );
+        expect(result.diagnostic.report.at(-1)).toBe(result.diagnostic.hint);
+        expect(leases()).toBe(0);
+      }),
+  );
+
+  it.effect(
+    "gives the measure command the Worker measurement of a query that fails and of a result above the inline limit",
+    () =>
+      Effect.gen(function* () {
+        const scenario = yield* scenarioOf({ storage: "temp-directory" });
+        seedBulkLibrary(scenario.sqlite, 6000);
+        const { service } = yield* harness(scenario);
+        const measured = (params: CliData) =>
+          Effect.gen(function* () {
+            const measurements: WorkerMeasurement[] = [];
+            const answer = yield* json(
+              service.measure(params, {
+                heap: false,
+                completed: (measurement) => measurements.push(measurement),
+              }),
+            );
+            return { answer, measurements };
+          });
+
+        const failed = yield* measured({ fields: '["notAField"]' });
+        const tooLarge = yield* measured({ from: "items", ...bulk });
+
+        expect(failed.answer).toMatchObject({
+          ok: false,
+          diagnostic: { code: "unknown-field" },
+        });
+        expect(failed.measurements).toEqual([
+          expect.objectContaining({ workerMs: expect.any(Number) }),
+        ]);
+        expect(tooLarge.answer).toMatchObject({
+          ok: false,
+          diagnostic: { code: "result-too-large" },
+        });
+        expect(tooLarge.measurements).toEqual([
+          expect.objectContaining({ workerMs: expect.any(Number) }),
+        ]);
+      }),
+  );
+
+  it.effect(
+    "cancels a queued export at once, and starts no borrow for it",
+    () => {
+      const release = Deferred.makeUnsafe<void>();
+      return Effect.gen(function* () {
+        const scenario = yield* scenarioOf({ storage: "temp-directory" });
+        seedBulkLibrary(scenario.sqlite, 1);
+        const holding = yield* Queue.unbounded<void>();
+        const held: QueryJobRunner = {
+          ...queryJobRunner,
+          answer: (job, read) =>
+            Stream.unwrap(
+              Effect.as(
+                Queue.offer(holding, undefined),
+                queryJobRunner
+                  .answer(job, read)
+                  .pipe(Stream.tap(() => Deferred.await(release))),
+              ),
+            ),
+        };
+        const { service, leases, borrowed } = yield* harness(
+          scenario,
+          sharedClientOpener(scenario.db),
+          held,
+        );
+        const directory = dirname(scenario.path);
+        const exportTo = (id: string) =>
+          started(
+            service.query({
+              from: "items",
+              ...bulk,
+              id,
+              output: join(directory, `${id}.json`),
+            }),
+          );
+        const first = yield* exportTo("first");
+        const second = yield* exportTo("second");
+        yield* Queue.take(holding);
+        yield* Queue.take(holding);
+        const borrowsWithSlotsHeld = borrowed();
+        const queued = yield* exportTo("queued");
+        yield* Effect.promise(() =>
+          vi.waitFor(() => expect(leases()).toBe(3), {
+            timeout: 15000,
+            interval: 1,
+          }),
+        );
+
+        expect(yield* service.cancel("queued")).toBe(true);
+        yield* Effect.promise(() =>
+          vi.waitFor(() => expect(queued.pollUnsafe()).toBeDefined(), {
+            timeout: 2000,
+            interval: 1,
+          }),
+        );
+
+        expect(yield* Effect.flip(Fiber.join(queued))).toMatchObject({
+          _tag: "QueryCancelled",
+          message: queryCancelledText("queued"),
+        });
+        expect(borrowed()).toBe(borrowsWithSlotsHeld);
+        expect(first.pollUnsafe()).toBeUndefined();
+        expect(second.pollUnsafe()).toBeUndefined();
+        yield* Deferred.succeed(release, undefined);
+        expect(JSON.parse(yield* Fiber.join(first)).ok).toBe(true);
+        expect(JSON.parse(yield* Fiber.join(second)).ok).toBe(true);
+        expect(borrowed()).toBe(borrowsWithSlotsHeld);
+        expect(temporary(yield* files(directory))).toEqual([]);
+      }).pipe(Effect.ensuring(Deferred.succeed(release, undefined)));
+    },
+  );
+
+  it.effect(
     "cancels an export and a queued job, lets another query finish, and recovers a worker",
     () =>
       Effect.gen(function* () {
@@ -738,6 +1049,37 @@ describe("Item Query worker jobs", () => {
           ),
         ).toMatchObject({ ok: true, returnedCount: 1 });
       }),
+  );
+
+  it.effect("cancels a running inline query by its id and frees the id", () =>
+    Effect.gen(function* () {
+      const scenario = yield* scenarioOf({ storage: "temp-directory" });
+      seedBulkLibrary(scenario.sqlite, 20000);
+      const { service, leases, jobs } = yield* harness(scenario);
+      const running = yield* started(
+        service.query({ from: "items", ...bulk, fields: "[]", id: "inline" }),
+      );
+      yield* Effect.promise(() =>
+        vi.waitFor(() => expect(leases()).toBe(1), {
+          timeout: 15000,
+          interval: 1,
+        }),
+      );
+
+      expect(yield* service.cancel("inline")).toBe(true);
+      expect(yield* Effect.flip(Fiber.join(running))).toMatchObject({
+        _tag: "QueryCancelled",
+        message: queryCancelledText("inline"),
+      });
+
+      expect(jobs()).toHaveLength(1);
+      expect(leases()).toBe(0);
+      expect(yield* service.cancel("inline")).toBe(false);
+      expect(yield* service.runningJobs).toBe(0);
+      expect(
+        yield* json(service.query({ from: "items", id: "inline", limit: "1" })),
+      ).toMatchObject({ ok: true, returnedCount: 1 });
+    }),
   );
 
   it.effect(

@@ -7,14 +7,15 @@ import type {
   SchemaCustomField,
   SortSpec,
 } from "@zotlit/item-query";
+import { renderDiagnostic } from "@zotlit/item-query";
 import {
   INVALID_ARGUMENT_HINT,
   SOURCE_UNAVAILABLE_HINT,
   createRenderedCliDiagnostics,
 } from "@zotlit/obsidian-kit/worker/cli-diagnostic.ts";
-import { DELIMITED_FORMATS } from "@zotlit/shared/delimited";
 import type { SchemaAsset } from "@zotlit/template-workbench/worker/cli/schema-asset.ts";
 import type { WorkbenchIdentity } from "@zotlit/template-workbench/worker/cli/workbench-identity.ts";
+import { QUERY_EXPORT_FORMATS } from "@zotlit/zotero-reads/contract/query-codec.ts";
 import type { SourceIdentity } from "@zotlit/zotero-reads/contract/source-identity.ts";
 
 import contractVersion from "./contract-version.json" with { type: "json" };
@@ -35,8 +36,7 @@ export type QueryCliCommand =
   | typeof QUERY_GUIDE_COMMAND;
 
 export const DEFAULT_CLI_LIMIT = 100;
-export const INLINE_MAX_BYTES = 1024 * 1024;
-export const QUERY_OUTPUT_FORMATS = ["json", ...DELIMITED_FORMATS] as const;
+export const QUERY_OUTPUT_FORMATS = QUERY_EXPORT_FORMATS;
 export type QueryOutputFormat = (typeof QUERY_OUTPUT_FORMATS)[number];
 export const QUERY_ID_MAX_LENGTH = 128;
 export const QUERY_ID_FORM = `1 to ${QUERY_ID_MAX_LENGTH} ASCII letters, digits, ., _, or -`;
@@ -49,7 +49,7 @@ export const DIAGNOSTIC_HINTS = {
   "result-too-large":
     "Run the query with output=<absolute-path> to write the complete response to a new JSON file, or reduce the fields or limit.",
   "export-unavailable":
-    "Reduce the fields or the limit, and run the query without output and format.",
+    "Run the query again without output and format to get the answer inline, and reduce the fields or the limit until the answer fits the inline limit.",
   "output-error":
     "Use an absolute output path in an existing writable directory, with a filename that does not exist.",
   "invalid-argument": INVALID_ARGUMENT_HINT,
@@ -64,6 +64,13 @@ export const DIAGNOSTIC_HINTS = {
   "unsupported-database-layout":
     "Ask the user to update ZotLit: this ZotLit version cannot read the way their Zotero version stores its data. Running the command again gives the same result until then.",
 } as const satisfies Record<string, string>;
+
+export const RESULT_TOO_LARGE_HINTS = {
+  [QUERY_VALUES_COMMAND]:
+    "Narrow match or reduce limit in zotlit:query-values, then run it again.",
+  [QUERY_SCHEMA_COMMAND]:
+    "Run zotlit:query-schema with from=<items|attachments|annotations> to describe one Query Dataset.",
+} as const satisfies Partial<Record<QueryCliCommand, string>>;
 
 type AdapterDiagnosticCode = keyof typeof DIAGNOSTIC_HINTS;
 
@@ -84,6 +91,25 @@ export function diagnostic(
   details?: Diagnostic["details"],
 ): Diagnostic {
   return base.diagnostic(code, message, details);
+}
+
+export function deliveryDiagnostic(
+  code: "result-too-large" | "output-error" | "export-unavailable",
+  message: string,
+  commandName: QueryCliCommand,
+): Diagnostic {
+  if (code === "export-unavailable")
+    return diagnostic(code, message, { parameter: "output" });
+  const hint =
+    code === "result-too-large" &&
+    Object.hasOwn(RESULT_TOO_LARGE_HINTS, commandName)
+      ? RESULT_TOO_LARGE_HINTS[
+          commandName as keyof typeof RESULT_TOO_LARGE_HINTS
+        ]
+      : undefined;
+  return hint === undefined
+    ? diagnostic(code, message)
+    : renderDiagnostic({ ...diagnostic(code, message), hint });
 }
 
 export function rejectionDiagnostic(rejection: DecodeFault): Diagnostic {
@@ -162,6 +188,18 @@ export type EnvelopeTail =
     };
 
 export function envelope(command: QueryCliCommand, tail: EnvelopeTail): string {
+  return serialize(command, tail);
+}
+
+export function fileReceipt(
+  command: QueryCliCommand,
+  summary: { readonly ok: true } & Readonly<Record<string, unknown>>,
+  file: { path: string; bytes: number; format: QueryOutputFormat },
+): string {
+  return serialize(command, { ...summary, file });
+}
+
+function serialize(command: QueryCliCommand, tail: object): string {
   return JSON.stringify(
     { contractVersion: CONTRACT_VERSION, command, ...tail },
     null,

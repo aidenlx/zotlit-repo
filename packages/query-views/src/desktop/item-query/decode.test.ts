@@ -427,7 +427,7 @@ describe("decodeQuery output", () => {
       expect(
         yield* decodeQuery({ output: "/exports/items.json" }),
       ).toMatchObject({
-        output: "/exports/items.json",
+        export: { path: "/exports/items.json", format: "json" },
       });
     }),
   );

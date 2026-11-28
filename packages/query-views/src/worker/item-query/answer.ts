@@ -1,5 +1,4 @@
-import type { Scope } from "effect";
-import { Cause, Clock, Data, Effect } from "effect";
+import { Cause, Data, Effect } from "effect";
 
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { readLibraries } from "@zotlit/db/item-query";
@@ -10,27 +9,20 @@ import type {
 } from "@zotlit/db/item-query";
 import {
   listQueryValues,
-  renderDiagnostic,
   AttachmentFileResolver,
   consumeQuery,
   describeQueryCustomFields,
-  SLICE_BUDGET_MS,
   ITEMS,
-  valueText,
 } from "@zotlit/item-query";
 import type {
   ItemQueryRequest,
   ItemQueryError,
-  ProjectionJson,
   QueryRow,
   QuerySummary,
   ResolveAttachmentFile,
 } from "@zotlit/item-query";
-import { monotonicMillis } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import { resourceReleaseUrl } from "@zotlit/plugin-kernel/worker/release-url.ts";
-import { delimitedLines, delimitedStart } from "@zotlit/shared/delimited";
-import type { DelimitedFormat } from "@zotlit/shared/delimited";
 import type { DbUnavailable } from "@zotlit/zotero-reads/contract/db-unavailable.ts";
 import {
   resolveLibraryScope,
@@ -44,21 +36,20 @@ import type {
   DecodedQuery,
   NamedLibraries,
 } from "@zotlit/zotero-reads/contract/query-codec.ts";
+import { QueryFailed } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type {
   Diagnostic,
+  LibraryValues,
   QueryCliCommand,
   QueryIdentity,
+  QueryOutputFormat,
   LibraryWire,
 } from "./contract.ts";
-import {
-  DEFAULT_CLI_LIMIT,
-  diagnostic,
-  envelope,
-  failure,
-  INLINE_MAX_BYTES,
-} from "./contract.ts";
+import { DEFAULT_CLI_LIMIT, diagnostic, envelope } from "./contract.ts";
 import { CLI_DATASETS } from "./datasets.ts";
+import type { EmitPiece } from "./encode.ts";
+import { encodeAnswer } from "./encode.ts";
 import type {
   QueryViewGroup,
   QueryViewResult,
@@ -68,7 +59,6 @@ import type {
   QueryAnswer,
   QueryCommand,
   QueryCustomFieldsCommand,
-  QueryReply,
   QueryViewCommand,
   QueryViewReply,
 } from "./worker-protocol.ts";
@@ -83,22 +73,11 @@ export interface AnswerEnv {
   attachmentFiles?: ResolveAttachmentFile;
   instrument?: QueryInstrument;
   onAnswerStep?: (ms: number) => void;
-  openOutput?: (
-    path: string,
-  ) => Effect.Effect<QueryWriter, QueryOutputError, Scope.Scope>;
 }
 
 export type QueryInstrument = <A, E, R>(
   operation: Effect.Effect<A, E, R>,
 ) => Effect.Effect<A, E, R>;
-
-export interface QueryWriter {
-  write(text: string): Effect.Effect<number, QueryOutputError>;
-}
-
-export class QueryOutputError extends Data.TaggedError("QueryOutputError")<{
-  diagnostic: Diagnostic;
-}> {}
 
 export class TargetLibrariesUnavailable extends Data.TaggedError(
   "TargetLibrariesUnavailable",
@@ -107,70 +86,130 @@ export class TargetLibrariesUnavailable extends Data.TaggedError(
   readonly missing?: LibrarySelector;
 }> {}
 
-export function answer(
-  job: AnswerJob,
-  env: AnswerEnv,
-): Effect.Effect<QueryReply, never, ItemQueryDatabase | Scope.Scope> {
-  if ("values" in job) return answerValues(job, env);
-  return job.schema
-    ? answerSchema(job, env, job.pluginVersion)
-    : answerQuery(job, env, job.query);
+export type AnswerSummary = {
+  readonly ok: true;
+  readonly identity: QueryIdentity;
+} & Readonly<Record<string, unknown>>;
+
+export interface AnswerSink {
+  readonly head: (summary: AnswerSummary) => Effect.Effect<void>;
+  readonly emit: EmitPiece<never>;
 }
 
-function answerSchema(
+export function encodeCommand(
   job: AnswerJob,
   env: AnswerEnv,
-  pluginVersion: string,
-): Effect.Effect<QueryReply, never, ItemQueryDatabase> {
-  const { command } = job;
+  sink: AnswerSink,
+): Effect.Effect<void, AnswerFailure, ItemQueryDatabase> {
+  if ("values" in job) return encodeValues(job, env, sink);
+  if (job.schema) return encodeSchema(job, env, sink);
+  return encodeQuery(job, env, sink);
+}
+
+export function queryFailed(job: AnswerJob) {
+  const parameter = namedParameter(job);
+  return <A, R>(
+    run: Effect.Effect<A, AnswerFailure, R>,
+  ): Effect.Effect<A, QueryFailed, R> =>
+    run.pipe(
+      Effect.catch((failed) =>
+        Effect.flatMap(failureDiagnostic(failed, parameter), (diagnostic) =>
+          Effect.fail(new QueryFailed({ diagnostic })),
+        ),
+      ),
+      Effect.catchDefect((defect) => dieOfDefect(defect)),
+    );
+}
+
+const namedParameter = (
+  job: AnswerJob,
+): NamedLibraries["parameter"] | undefined =>
+  "values" in job
+    ? job.values.libraries?.parameter
+    : job.schema
+      ? undefined
+      : job.query.libraries?.parameter;
+
+function encodeSchema(
+  job: Extract<AnswerJob, { schema: true }>,
+  env: AnswerEnv,
+  sink: AnswerSink,
+): Effect.Effect<void, AnswerFailure, ItemQueryDatabase> {
+  const { command, pluginVersion } = job;
   const selected = Object.entries(CLI_DATASETS).filter(
     ([id]) => job.dataset === undefined || id === job.dataset,
   );
   return Effect.all([describeQueryCustomFields(ITEMS), env.identity]).pipe(
-    Effect.map(([customFields, identity]) =>
-      inline(
-        command,
-        envelope(command, {
-          ok: true,
-          identity,
-          schema: {
-            url: `${resourceReleaseUrl(RELEASE_REPOSITORY, pluginVersion)}/query.schema.json`,
-            fileName: `zotlit-query-${pluginVersion}.schema.json`,
-          },
-          customFields,
-          datasets: Object.fromEntries(
-            selected.map(([id, { dataset }]) => [
-              id,
-              {
-                fields: dataset.names,
-                customPrefix: dataset.customPrefix,
-              },
-            ]),
-          ),
-          defaults: Object.fromEntries(
-            selected.map(([id, { dataset }]) => [
-              id,
-              {
-                fields: dataset.defaultFields,
-                sort: dataset.defaultSort,
-                limit: DEFAULT_CLI_LIMIT,
-                library: { source: "library-scope" as const },
-              },
-            ]),
-          ),
-        }),
-      ),
-    ),
-    answerFailure(command),
+    Effect.flatMap(([customFields, identity]) => {
+      const summary = { ok: true as const, identity };
+      return Effect.andThen(
+        sink.head(summary),
+        sink.emit(
+          envelope(command, {
+            ...summary,
+            schema: {
+              url: `${resourceReleaseUrl(RELEASE_REPOSITORY, pluginVersion)}/query.schema.json`,
+              fileName: `zotlit-query-${pluginVersion}.schema.json`,
+            },
+            customFields,
+            datasets: Object.fromEntries(
+              selected.map(([id, { dataset }]) => [
+                id,
+                {
+                  fields: dataset.names,
+                  customPrefix: dataset.customPrefix,
+                },
+              ]),
+            ),
+            defaults: Object.fromEntries(
+              selected.map(([id, { dataset }]) => [
+                id,
+                {
+                  fields: dataset.defaultFields,
+                  sort: dataset.defaultSort,
+                  limit: DEFAULT_CLI_LIMIT,
+                  library: { source: "library-scope" as const },
+                },
+              ]),
+            ),
+          }),
+        ),
+      );
+    }),
   );
 }
 
-function answerQuery(
-  job: AnswerJob,
+type QueryJobOf = Extract<AnswerJob, { query: DecodedQuery }>;
+
+function encodeQuery(
+  job: QueryJobOf,
   env: AnswerEnv,
-  decoded: DecodedQuery,
-): Effect.Effect<QueryReply, never, ItemQueryDatabase | Scope.Scope> {
-  const { command } = job;
+  sink: AnswerSink,
+): Effect.Effect<void, AnswerFailure, ItemQueryDatabase> {
+  return runQuery(job, env, (summary, context) =>
+    createDocument(summary, context, sink),
+  );
+}
+
+function runQuery<A, E, R>(
+  job: QueryJobOf,
+  env: AnswerEnv,
+  consume: (
+    summary: QuerySummary,
+    context: DocumentContext,
+  ) => Effect.Effect<
+    {
+      write: (
+        rows: readonly QueryRow[],
+        groupIndex?: number,
+      ) => Effect.Effect<void, E>;
+      end: Effect.Effect<A, E>;
+    },
+    E,
+    R
+  >,
+) {
+  const { command, query: decoded } = job;
   const named = decoded.libraries;
   const operation = Effect.gen(function* () {
     const identity = yield* env.identity;
@@ -193,7 +232,7 @@ function answerQuery(
       CLI_DATASETS[decoded.from].dataset,
       request,
       (summary) =>
-        createAnswer(summary, {
+        consume(summary, {
           command,
           from: decoded.from,
           identity,
@@ -202,10 +241,8 @@ function answerQuery(
               ? { ...selector, name: name ?? "" }
               : selector,
           ),
+          format: decoded.export?.format ?? "json",
           onAnswerStep: env.onAnswerStep,
-          output: decoded.output,
-          format: decoded.format,
-          openOutput: env.openOutput,
         }),
     ).pipe(
       Effect.provideService(
@@ -214,9 +251,7 @@ function answerQuery(
       ),
     );
   });
-  return (env.instrument?.(operation) ?? operation).pipe(
-    answerFailure(command, named?.parameter),
-  );
+  return env.instrument?.(operation) ?? operation;
 }
 
 export function answerCustomFields(
@@ -224,10 +259,13 @@ export function answerCustomFields(
 ): Effect.Effect<QueryAnswer, never, ItemQueryDatabase> {
   return describeQueryCustomFields(ITEMS).pipe(
     Effect.map((fields): QueryAnswer => ({
-      ...inline(command, ""),
+      command,
       customFields: fields.map(({ name }) => name),
     })),
-    answerFailure(command),
+    Effect.catch((failed) =>
+      Effect.as(failureDiagnostic(failed, undefined), { command }),
+    ),
+    Effect.catchDefect((defect) => dieOfDefect(defect)),
   );
 }
 
@@ -298,8 +336,6 @@ const viewReply = (
   view: QueryViewReply["view"],
 ): QueryViewReply => ({
   command,
-  answer: "",
-  receipt: { kind: "inline" },
   view,
 });
 
@@ -353,9 +389,10 @@ const targetLibraries = Effect.fnUntraced(function* (
   return available;
 });
 
-const answerValues = (
+const encodeValues = (
   job: Extract<AnswerJob, { values: unknown }>,
   env: AnswerEnv,
+  sink: AnswerSink,
 ) =>
   Effect.gen(function* () {
     const decoded = job.values;
@@ -370,8 +407,8 @@ const answerValues = (
       });
     }
     const identity = yield* env.identity;
-    const text = envelope(job.command, {
-      ok: true,
+    const summary = {
+      ok: true as const,
       identity,
       libraries: available.map(({ selector, name }) =>
         selector.type === "group"
@@ -389,130 +426,59 @@ const answerValues = (
         0,
       ),
       truncated: values.some((library) => library.truncated),
+    };
+    yield* sink.head(summary);
+    yield* emitListings(
+      envelope(job.command, { ...summary, values: [] }),
       values,
-    });
-    if (exceedsInlineLimit(text)) {
-      return yield* new QueryOutputError({
-        diagnostic: renderDiagnostic({
-          ...diagnostic(
-            "result-too-large",
-            `The JSON response exceeds the inline limit of ${INLINE_MAX_BYTES} bytes.`,
-          ),
-          hint: "Narrow match or reduce limit in zotlit:query-values, then run it again.",
-        }),
-      });
+      sink.emit,
+    );
+  });
+
+const EMPTY_LIST_END = "[]\n}";
+
+const emitListings = Effect.fnUntraced(function* (
+  head: string,
+  listings: readonly LibraryValues[],
+  emit: EmitPiece<never>,
+) {
+  if (listings.length === 0) return yield* emit(head);
+  yield* emit(`${head.slice(0, -EMPTY_LIST_END.length)}[`);
+  for (const [index, listing] of listings.entries()) {
+    const separator = index === 0 ? "" : ",";
+    const item = indent(
+      JSON.stringify({ ...listing, values: [] }, null, 2),
+      "    ",
+    );
+    if (listing.values.length === 0) {
+      yield* emit(`${separator}\n    ${item}`);
+      continue;
     }
-    return inline(job.command, text);
-  }).pipe(answerFailure(job.command, job.values.libraries?.parameter));
-
-export const exportUnavailable = (command: QueryCliCommand): QueryReply =>
-  inline(
-    command,
-    failure(
-      command,
-      diagnostic(
-        "export-unavailable",
-        "This library source cannot write an export file.",
-        { parameter: "output" },
-      ),
-    ),
-  );
-
-const inline = (command: QueryCliCommand, text: string): QueryReply => ({
-  command,
-  answer: text,
-  receipt: { kind: "inline" },
+    yield* emit(
+      `${separator}\n    ${item.slice(0, -indent(EMPTY_LIST_END, "    ").length)}[`,
+    );
+    for (const [at, value] of listing.values.entries())
+      yield* emit(
+        `${at === 0 ? "" : ","}\n        ${indent(JSON.stringify(value, null, 2), "        ")}`,
+      );
+    yield* emit("\n      ]\n    }");
+  }
+  yield* emit("\n  ]\n}");
 });
 
-const ANSWER_STEP_BUDGET_MS = SLICE_BUDGET_MS / 2;
-const NO_ROWS = "[]\n}";
-const CHUNK_START = '{\n  "rows": [';
-const CHUNK_END = "\n  ]\n}";
-const FIRST_CHUNK_ROWS = 64;
-const CHUNK_TEXT_LENGTH = 256 * 1024;
+const indent = (text: string, by: string) => text.replaceAll("\n", `\n${by}`);
 
-interface AnswerContext {
+interface DocumentContext {
   from: DecodedQuery["from"];
   command: QueryCliCommand;
   identity: QueryIdentity;
   libraries: readonly LibraryWire[];
+  format: QueryOutputFormat;
   onAnswerStep?: (ms: number) => void;
-  output?: string;
-  format?: DelimitedFormat;
-  openOutput?: AnswerEnv["openOutput"];
 }
 
-interface RowsEncoder {
-  readonly start: string;
-  group(groupIndex: number, previous: number | undefined): string;
-  rows(chunk: readonly QueryRow[], groupIndex: number | undefined): string;
-  end(lastGroup: number | undefined): string;
-}
-
-function jsonRows(result: QuerySummary, head: string): RowsEncoder {
-  const grouped = result.groups !== undefined;
-  let first = true;
+function answerSummary(result: QuerySummary, context: DocumentContext) {
   return {
-    start:
-      result.returnedCount === 0 ? head : `${head.slice(0, -NO_ROWS.length)}[`,
-    group(groupIndex, previous) {
-      const group = result.groups![groupIndex]!;
-      const header = JSON.stringify({ ...group, rows: [] }, null, 2);
-      first = true;
-      return `${previous === undefined ? "" : "\n      ]\n    },"}\n    ${header.slice(0, -NO_ROWS.length).replaceAll("\n", "\n    ")}[`;
-    },
-    rows(chunk) {
-      const wire = JSON.stringify({ rows: chunk }, null, 2).slice(
-        CHUNK_START.length,
-        -CHUNK_END.length,
-      );
-      const indented = grouped ? wire.replaceAll("\n", "\n    ") : wire;
-      const part = first ? indented : `,${indented}`;
-      first = false;
-      return part;
-    },
-    end: (lastGroup) =>
-      `${lastGroup === undefined ? "" : "\n      ]\n    }"}${result.returnedCount > 0 ? CHUNK_END : ""}`,
-  };
-}
-
-function delimitedRows(
-  result: QuerySummary,
-  format: DelimitedFormat,
-): RowsEncoder {
-  const grouped = result.groups !== undefined;
-  const { fields } = result.query;
-  const header = [...(grouped ? ["group"] : []), "indexedKey", ...fields];
-  return {
-    start: delimitedStart(format) + delimitedLines([header], format),
-    group: () => "",
-    rows(chunk, groupIndex) {
-      const group = grouped
-        ? [valueText(result.groups[groupIndex!]!.value)]
-        : [];
-      const wire = JSON.parse(JSON.stringify(chunk)) as readonly {
-        indexedKey: string;
-        values: Readonly<Record<string, ProjectionJson>>;
-      }[];
-      return delimitedLines(
-        wire.map((row) => [
-          ...group,
-          row.indexedKey,
-          ...fields.map((field) => valueText(row.values[field])),
-        ]),
-        format,
-      );
-    },
-    end: () => "",
-  };
-}
-
-const createAnswer = Effect.fnUntraced(function* (
-  result: QuerySummary,
-  context: AnswerContext,
-) {
-  const now = monotonicMillis(yield* Clock.Clock);
-  const summary = {
     ok: true as const,
     identity: context.identity,
     libraries: context.libraries,
@@ -528,119 +494,37 @@ const createAnswer = Effect.fnUntraced(function* (
       : { totalCount: result.totalCount }),
     warnings: result.warnings,
   };
-  const grouped = result.groups !== undefined;
-  const { output, openOutput, format } = context;
-  if (format !== undefined && output === undefined)
-    return yield* Effect.die(
-      new Error(`ZotLit Query ${format} export has no output path`),
-    );
-  const encoder =
-    format === undefined
-      ? jsonRows(
-          result,
-          envelope(context.command, {
+}
+
+const createDocument = Effect.fnUntraced(function* (
+  result: QuerySummary,
+  context: DocumentContext,
+  sink: AnswerSink,
+) {
+  const summary = answerSummary(result, context);
+  yield* sink.head(summary);
+  const { format } = context;
+  return yield* encodeAnswer(
+    result,
+    format === "json"
+      ? {
+          format,
+          head: envelope(context.command, {
             ...summary,
-            ...(grouped ? { groups: [] } : { rows: [] }),
+            ...(result.groups !== undefined ? { groups: [] } : { rows: [] }),
           }),
-        )
-      : delimitedRows(result, format);
-  let activeGroup: number | undefined;
-  let text = "";
-  let bytes = 0;
-  let chunkRows = FIRST_CHUNK_ROWS;
-  let file: QueryWriter | undefined;
-  if (output !== undefined) {
-    if (!openOutput)
-      return yield* Effect.die(
-        new Error("ZotLit Query export has no file writer"),
-      );
-    file = yield* openOutput(output);
-  }
-  const tooLarge = () =>
-    Effect.fail(
-      new QueryOutputError({
-        diagnostic: resultTooLarge(openOutput !== undefined),
-      }),
-    );
-  const append = (chunk: string) =>
-    Effect.suspend(() => {
-      if (file)
-        return Effect.map(file.write(chunk), (written) => {
-          bytes += written;
-        });
-      text += chunk;
-      return text.length > INLINE_MAX_BYTES ? tooLarge() : Effect.void;
-    });
-  yield* append(encoder.start);
-  return {
-    write: Effect.fnUntraced(function* (
-      rows: readonly QueryRow[],
-      groupIndex?: number,
-    ) {
-      if (grouped && groupIndex !== activeGroup) {
-        yield* append(encoder.group(groupIndex!, activeGroup));
-        activeGroup = groupIndex;
-      }
-      let stepMs = 0;
-      for (let start = 0; start < rows.length;) {
-        const stepStart = now();
-        const chunk = rows.slice(start, start + chunkRows);
-        const part = encoder.rows(chunk, groupIndex);
-        start += chunk.length;
-        chunkRows = Math.max(
-          1,
-          Math.ceil(CHUNK_TEXT_LENGTH / (part.length / chunk.length)),
-        );
-        stepMs += now() - stepStart;
-        yield* append(part);
-        if (stepMs < ANSWER_STEP_BUDGET_MS) continue;
-        context.onAnswerStep?.(stepMs);
-        stepMs = 0;
-      }
-      context.onAnswerStep?.(stepMs);
-    }),
-    end: Effect.gen(function* () {
-      yield* append(encoder.end(activeGroup));
-      if (output === undefined)
-        return exceedsInlineLimit(text)
-          ? yield* tooLarge()
-          : inline(context.command, text);
-      return {
-        command: context.command,
-        answer: envelope(context.command, {
-          ...summary,
-          file: { path: output, bytes, format: format ?? "json" },
-        }),
-        receipt: { kind: "file", path: output, bytes },
-      } satisfies QueryReply;
-    }),
-  };
+        }
+      : { format },
+    { emit: sink.emit, onAnswerStep: context.onAnswerStep },
+  );
 });
 
-type AnswerFailure =
+export type AnswerFailure =
   | DbUnavailable
   | ItemQueryError
   | ItemQueryLayoutError
   | ItemQueryDatabaseError
-  | QueryOutputError
   | TargetLibrariesUnavailable;
-
-function answerFailure(
-  command: QueryCliCommand,
-  parameter?: NamedLibraries["parameter"],
-) {
-  return <R>(
-    run: Effect.Effect<QueryReply, AnswerFailure, R>,
-  ): Effect.Effect<QueryReply, never, R> =>
-    run.pipe(
-      Effect.catch((failed) =>
-        Effect.map(failureDiagnostic(failed, parameter), (diagnostic) =>
-          inline(command, failure(command, diagnostic)),
-        ),
-      ),
-      Effect.catchDefect((defect) => dieOfDefect(defect)),
-    );
-}
 
 const dieOfDefect = (defect: unknown): Effect.Effect<never> =>
   Effect.logError("ZotLit Query failed with a defect").pipe(
@@ -661,8 +545,6 @@ function failureDiagnostic(
   failed: AnswerFailure,
   parameter: NamedLibraries["parameter"] | undefined,
 ): Effect.Effect<Diagnostic> {
-  if (failed._tag === "QueryOutputError")
-    return Effect.succeed(failed.diagnostic);
   if (failed._tag === "TargetLibrariesUnavailable")
     return Effect.succeed(targetLibrariesFailure(failed, parameter));
   if (failed._tag === "ItemQueryError")
@@ -724,23 +606,4 @@ function describeSelector(selector: LibrarySelector): string {
 
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
-}
-
-const inlineEncoder = new TextEncoder();
-
-export function exceedsInlineLimit(text: string): boolean {
-  return (
-    text.length > INLINE_MAX_BYTES ||
-    inlineEncoder.encode(text).byteLength > INLINE_MAX_BYTES
-  );
-}
-
-function resultTooLarge(writesFiles: boolean): Diagnostic {
-  const message = `The JSON response exceeds the inline limit of ${INLINE_MAX_BYTES} bytes.`;
-  return writesFiles
-    ? diagnostic("result-too-large", message)
-    : renderDiagnostic({
-        ...diagnostic("result-too-large", message),
-        hint: "Reduce the fields or the limit, then run the query again.",
-      });
 }

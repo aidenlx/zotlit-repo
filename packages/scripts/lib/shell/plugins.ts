@@ -42,7 +42,7 @@ export const PUBLISHED_PLUGINS = {
     giscus: true,
     changelog: "https://zotlit.aidenlx.site/changelog/",
     budget: {
-      mainJsBytes: 5_700_000,
+      mainJsBytes: 5_720_000,
       stylesCssBytes: 146_143,
       startupDailyMs: 100,
       startupUpdateMs: 100,

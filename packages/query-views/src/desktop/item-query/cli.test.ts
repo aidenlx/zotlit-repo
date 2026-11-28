@@ -21,17 +21,20 @@ import {
   registerQueryCli,
 } from "./cli.ts";
 import { decodeQuery } from "./decode.ts";
-import { GUIDE_EXAMPLES, GUIDE_FILTERS } from "./guide.ts";
+import { GUIDE_EXAMPLES, GUIDE_FILTERS, renderGuide } from "./guide.ts";
 
-import { answer } from "#worker/item-query/answer.ts";
+import { answerText } from "#__fixtures__/item-query/answer-text.ts";
 import {
   DIAGNOSTIC_HINTS,
+  RESULT_TOO_LARGE_HINTS,
+  deliveryDiagnostic,
   diagnostic,
   failure,
   QUERY_CANCEL_COMMAND,
   QUERY_COMMAND,
   QUERY_GUIDE_COMMAND,
   QUERY_SCHEMA_COMMAND,
+  QUERY_VALUES_COMMAND,
 } from "#worker/item-query/contract.ts";
 
 const itemQueryGuideHandler = guideHandler;
@@ -43,7 +46,7 @@ function answerTextOf(
   return (params: CliData = {}) =>
     decodeQuery(params).pipe(
       Effect.flatMap((query) =>
-        answer(
+        answerText(
           {
             schema: false,
             dataset: query.from,
@@ -66,7 +69,6 @@ function answerTextOf(
       Effect.scoped,
       Effect.provideService(ItemQueryDatabase, { client: scenario.db }),
       Effect.provideService(Scheduler.Scheduler, new ItemQueryScheduler()),
-      Effect.map((reply) => reply.answer),
     );
 }
 
@@ -298,6 +300,32 @@ describe("zotlit:query-guide", () => {
     }),
   );
 
+  it("prints each diagnostic code of the adapter with its recovery text", () => {
+    const [, list] = renderGuide("results").split(
+      "a diagnostic can give a more specific action:\n",
+    );
+    const printed = Object.fromEntries(
+      list!
+        .trim()
+        .split(/\n {2}(?! )/)
+        .map((entry) => {
+          const text = entry.replaceAll(/\n {4}/g, " ");
+          const at = text.indexOf(": ");
+          return [text.slice(0, at), text.slice(at + 2)];
+        }),
+    );
+
+    expect(printed).toEqual({
+      ...DIAGNOSTIC_HINTS,
+      ...Object.fromEntries(
+        Object.entries(RESULT_TOO_LARGE_HINTS).map(([command, hint]) => [
+          `result-too-large from ${command}`,
+          hint,
+        ]),
+      ),
+    });
+  });
+
   it("shows each example where a shell passes it through unchanged", () => {
     const quoted = GUIDE_EXAMPLES.flatMap(Object.values).filter((value) =>
       value.includes("'"),
@@ -397,5 +425,22 @@ it.each(Object.keys(DIAGNOSTIC_HINTS) as (keyof typeof DIAGNOSTIC_HINTS)[])(
     });
     expect(answer.diagnostic.report).toEqual([value.message, value.hint]);
     expect(answer.diagnostic.excerpt).toBeUndefined();
+  },
+);
+
+it.each([
+  [QUERY_COMMAND, DIAGNOSTIC_HINTS["result-too-large"]],
+  [QUERY_VALUES_COMMAND, RESULT_TOO_LARGE_HINTS[QUERY_VALUES_COMMAND]],
+  [QUERY_SCHEMA_COMMAND, RESULT_TOO_LARGE_HINTS[QUERY_SCHEMA_COMMAND]],
+] as const)(
+  "gives result-too-large of %s the recovery action of that command",
+  (command, hint) => {
+    const value = deliveryDiagnostic(
+      "result-too-large",
+      "The JSON response exceeds the inline limit.",
+      command,
+    );
+    expect(value).toMatchObject({ code: "result-too-large", hint });
+    expect(value.report.at(-1)).toBe(hint);
   },
 );

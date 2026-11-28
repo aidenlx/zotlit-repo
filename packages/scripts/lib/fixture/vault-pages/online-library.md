@@ -93,6 +93,30 @@ Expected: the download goes on from the items that came in before the stop, so i
 
 Expected: the update goes on. The notice shows again at once with no **Stop sync** button, then "Updating your library: … of …". No failure notice shows. The sync ends with "Up to date. Last sync: <date and time>." and search finds your items.
 
+## Export a query
+
+Run each command from the repository root with the Obsidian CLI client, `node packages/scripts/scripts/obsidian-cli.ts vault=<vault name> zotlit:query …`, while the online library is up to date. `<folder>` is an existing folder outside the vault.
+
+1. Run `zotlit:query limit=all output=<folder>/online.json`.
+
+Expected: the answer has `"ok": true` and a `file` with the path, the format `json` and a byte count equal to the size of `<folder>/online.json`, and no rows. The file holds the rows of your library, and `identity.source.kind` is `web-api`. The folder holds no file that ends in `.zotlit-partial`.
+
+2. Run `zotlit:query limit=all format=csv output=<folder>/online.csv`, then select **Zotero on this computer** in **Library source**, reload, and run `zotlit:query limit=all format=csv output=<folder>/local.csv` with the same Zotero data.
+
+Expected: both answers have `"ok": true` and the format `csv`. `online.csv` and `local.csv` hold the same bytes. Select **Zotero online library** again and reload.
+
+3. Run the command of step 1 again.
+
+Expected: `output-error`, and `<folder>/online.json` keeps its content.
+
+4. Run `zotlit:query limit=all output=<folder>/missing/online.json`, then `zotlit:query fields='["notAField"]' output=<folder>/missing/online.json`.
+
+Expected: the first answers `output-error` with the message of the system. The second answers `unknown-field`: the invalid field wins against the missing folder. No file appears.
+
+5. In a development build, run `app.saveLocalStorage("zotlit-online-library-root", "web")` in the console, reload, and run `zotlit:query limit=all format=tsv output=<folder>/web.tsv`.
+
+Expected: the Mobile engine on desktop writes the file too, with `"ok": true` and the format `tsv`. Run `app.saveLocalStorage("zotlit-online-library-root", null)` and reload to go back.
+
 ## Zotero language
 
 1. Open **Zotero language**.

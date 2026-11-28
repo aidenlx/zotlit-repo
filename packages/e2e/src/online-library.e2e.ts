@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import type { WorkspaceLeaf } from "obsidian";
@@ -634,6 +634,34 @@ describe.skipIf(!reachable).each(REPLICA_ROOTS)(
           },
         ],
       });
+
+      const exportPath = join(
+        e2eFixture.root,
+        `online-export-${root.slug}.csv`,
+      );
+      await using exportCleanup = new AsyncDisposableStack();
+      exportCleanup.defer(() => rm(exportPath, { force: true }));
+      const receipt = JSON.parse(
+        await cliCommand(vaultId, "zotlit:query", {
+          args: {
+            filter: `indexedKey == "${annotationItem.key}"`,
+            fields: "title",
+            format: "csv",
+            output: exportPath,
+          },
+        }),
+      ) as unknown;
+      const exported = await readFile(exportPath);
+      expect(receipt).toMatchObject({
+        ok: true,
+        identity: { source: { id: `web-api:${api.main.userID}` } },
+        returnedCount: 1,
+        file: { path: exportPath, bytes: exported.byteLength, format: "csv" },
+      });
+      expect(receipt).not.toHaveProperty("rows");
+      expect(exported.toString("utf8")).toContain(
+        `${annotationItem.key},${ONLINE_ITEM.title}`,
+      );
 
       await openQueryNote();
       const table = await revealQueryView(vaultId, QUERY_NOTE, {

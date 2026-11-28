@@ -2594,6 +2594,9 @@ importers:
       '@zotlit/notes':
         specifier: workspace:*
         version: link:../notes
+      '@zotlit/obsidian-desktop':
+        specifier: workspace:*
+        version: link:../obsidian-desktop
       '@zotlit/obsidian-kit':
         specifier: workspace:*
         version: link:../obsidian-kit
@@ -2682,9 +2685,6 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../db-testing
-      '@zotlit/obsidian-desktop':
-        specifier: workspace:*
-        version: link:../obsidian-desktop
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../scripts

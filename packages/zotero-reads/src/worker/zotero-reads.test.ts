@@ -258,6 +258,29 @@ const libraryQueryJobs: QueryJobRunner = {
         return answer;
       }),
     ),
+  answer: (job, { client }) =>
+    Stream.fromEffect(
+      readLibraries.pipe(
+        Effect.provideService(ItemQueryDatabase, { client }),
+        Effect.orDie,
+      ),
+    ).pipe(
+      Stream.flatMap((libraries) =>
+        Stream.make(
+          {
+            _tag: "Head" as const,
+            summary: {
+              command: job.command,
+              libraries: libraries.map(({ type, groupID }) => ({
+                type,
+                groupID,
+              })),
+            },
+          },
+          { _tag: "Chunk" as const, bytes: new TextEncoder().encode("{}") },
+        ),
+      ),
+    ),
   cancelled: (job) => ({ command: job.command }),
 };
 
@@ -310,6 +333,36 @@ function describeReadOperations(source: ReadsSource) {
               { type: "group", groupID: 900 },
             ],
           });
+        }),
+    );
+
+    it.effect(
+      "QueryAnswer streams the answer of the root's Query Job runner on the source's database",
+      () =>
+        Effect.gen(function* () {
+          const parts = yield* withSource(
+            "",
+            (reads) =>
+              Stream.runCollect(
+                reads.QueryAnswer({
+                  job: { id: "libraries", command: "zotlit:query" },
+                }),
+              ),
+            { queryJobs: libraryQueryJobs },
+          );
+          expect(parts).toEqual([
+            {
+              _tag: "Head",
+              summary: {
+                command: "zotlit:query",
+                libraries: [
+                  { type: "user", groupID: null },
+                  { type: "group", groupID: 900 },
+                ],
+              },
+            },
+            { _tag: "Chunk", bytes: new TextEncoder().encode("{}") },
+          ]);
         }),
     );
 

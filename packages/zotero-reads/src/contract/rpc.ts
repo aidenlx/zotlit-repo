@@ -41,7 +41,14 @@ import type {
 } from "./citation-lookup.ts";
 import { DbUnavailable } from "./db-unavailable.ts";
 import { Instant } from "./instant-codec.ts";
-import type { ItemQueryAnswer, ItemQueryJob } from "./item-query.ts";
+import type {
+  ItemQueryAnswer,
+  ItemQueryDiagnostic,
+  ItemQueryJob,
+  ItemQueryMeasurement,
+  ItemQuerySummary,
+  ItemQueryTypedJob,
+} from "./item-query.ts";
 import type { LibraryScope } from "./library-scope.ts";
 import { libraryScopeWire } from "./library-scope.ts";
 import { DecodedQuery, DecodedValues } from "./query-codec.ts";
@@ -95,6 +102,23 @@ export class SnapshotExpired extends Schema.TaggedError<
 >()("SnapshotExpired", { snapshot: Schema.String }) {}
 
 export const ReadError = Schema.Union([DbUnavailable, SnapshotExpired]);
+
+export class QueryFailed extends Schema.TaggedError<
+  QueryFailed,
+  { readonly brand: unique symbol }
+>()("QueryFailed", {
+  diagnostic: jsonObject<ItemQueryDiagnostic>(),
+  measurement: Schema.optionalKey(jsonObject<ItemQueryMeasurement>()),
+}) {}
+
+export const QueryAnswerPartSchema = Schema.Union([
+  Schema.TaggedStruct("Head", { summary: jsonObject<ItemQuerySummary>() }),
+  Schema.TaggedStruct("Chunk", { bytes: Transferable.Uint8Array }),
+  Schema.TaggedStruct("Trace", {
+    measurement: jsonObject<ItemQueryMeasurement>(),
+  }),
+]);
+export type QueryAnswerPart = typeof QueryAnswerPartSchema.Type;
 
 export const LibrarySchema = Schema.Struct({
   libraryID: Schema.Int,
@@ -517,9 +541,15 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.Void,
   }),
   Rpc.make("ItemQuery", {
-    payload: { job: QueryJobSchema, ...snapshot },
+    payload: { job: jsonObject<ItemQueryTypedJob>(), ...snapshot },
     success: jsonObject<ItemQueryAnswer>(),
     error: Schema.Union([DbUnavailable, SnapshotExpired]),
+  }),
+  Rpc.make("QueryAnswer", {
+    payload: { job: QueryJobSchema, ...snapshot },
+    success: QueryAnswerPartSchema,
+    error: Schema.Union([DbUnavailable, SnapshotExpired, QueryFailed]),
+    stream: true,
   }),
   Rpc.make("CitationLookup", {
     payload: {

@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import type { CliData } from "obsidian";
 import { expect } from "vitest";
 
@@ -14,7 +14,8 @@ import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts
 
 import { decodeValues } from "./decode.ts";
 
-import { answer } from "#worker/item-query/answer.ts";
+import { answerText } from "#__fixtures__/item-query/answer-text.ts";
+import { encodeCommand } from "#worker/item-query/answer.ts";
 
 const identity = {
   vault: { name: "Research", path: "/vaults/research" },
@@ -78,14 +79,14 @@ const listingOf = (
 ) =>
   decodeValues(params).pipe(
     Effect.flatMap((values) =>
-      answer(
+      answerText(
         { schema: false, command: "zotlit:query-values", values, scope },
         { identity: Effect.succeed(identity) },
       ),
     ),
     Effect.scoped,
     Effect.provideService(ItemQueryDatabase, { client: scenario.db }),
-    Effect.map((reply) => JSON.parse(reply.answer)),
+    Effect.map((text) => JSON.parse(text)),
   );
 
 const scenarioOf = Effect.acquireDisposable(
@@ -255,7 +256,7 @@ it.effect.each([
 );
 
 it.effect(
-  "bounds the listing response and gives a recovery action for this command",
+  "gives a listing above the inline limit in full, because the window owns the limit",
   () =>
     Effect.gen(function* () {
       const scenario = yield* scenarioOf;
@@ -268,11 +269,83 @@ it.effect(
         kind: "collections",
         limit: "all",
       });
-      expect(result).toMatchObject({
-        ok: false,
-        diagnostic: { code: "result-too-large" },
-      });
-      expect(result.diagnostic.hint).toContain("match");
-      expect(result.diagnostic.report.at(-1)).toBe(result.diagnostic.hint);
+      expect(result).toMatchObject({ ok: true });
+      expect(JSON.stringify(result).length).toBeGreaterThan(1024 * 1024);
     }),
+);
+
+it.effect(
+  "encodes a long listing in pieces, so a reader that stops early stops the encoding",
+  () =>
+    Effect.gen(function* () {
+      const scenario = yield* scenarioOf;
+      const insert = scenario.sqlite.prepare(
+        "insert into collections (collectionName, libraryID, key) values (?, 1, ?)",
+      );
+      for (let index = 0; index < 20_000; index++)
+        insert.run(
+          `Collection ${String(index).padStart(5, "0")} ${"x".repeat(40)}`,
+          `K${String(index).padStart(7, "0")}`,
+        );
+      const values = yield* decodeValues({
+        kind: "collections",
+        limit: "all",
+      });
+      const job = {
+        schema: false as const,
+        command: "zotlit:query-values" as const,
+        values,
+        scope: MY_LIBRARY_SCOPE,
+      };
+      const env = { identity: Effect.succeed(identity) };
+      const text = yield* answerText(job, env).pipe(
+        Effect.provideService(ItemQueryDatabase, { client: scenario.db }),
+      );
+      expect(text).toBe(JSON.stringify(JSON.parse(text), null, 2));
+      const complete = Buffer.byteLength(text);
+      const STOP = 256 * 1024;
+      let encoded = 0;
+
+      const exit = yield* encodeCommand(job, env, {
+        head: () => Effect.void,
+        emit: (piece) => {
+          encoded += Buffer.byteLength(piece);
+          return encoded >= STOP ? Effect.interrupt : Effect.void;
+        },
+      }).pipe(
+        Effect.provideService(ItemQueryDatabase, { client: scenario.db }),
+        Effect.exit,
+      );
+
+      expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(
+        true,
+      );
+      expect(complete).toBeGreaterThan(4 * STOP);
+      expect(encoded).toBeLessThan(STOP + 1024);
+    }),
+);
+
+it.effect.each<CliData>([
+  { kind: "tags", library: "all", limit: "all" },
+  { kind: "tags", library: "all", match: "no such tag" },
+  { kind: "collections", library: "all" },
+])("encodes a listing as the pretty JSON of its envelope: %j", (params) =>
+  Effect.gen(function* () {
+    const scenario = yield* scenarioOf;
+    const text = yield* decodeValues(params).pipe(
+      Effect.flatMap((values) =>
+        answerText(
+          {
+            schema: false,
+            command: "zotlit:query-values",
+            values,
+            scope: MY_LIBRARY_SCOPE,
+          },
+          { identity: Effect.succeed(identity) },
+        ),
+      ),
+      Effect.provideService(ItemQueryDatabase, { client: scenario.db }),
+    );
+    expect(text).toBe(JSON.stringify(JSON.parse(text), null, 2));
+  }),
 );

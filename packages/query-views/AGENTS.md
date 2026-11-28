@@ -24,7 +24,7 @@ Each unit registers itself: `QueryService` adds itself to `ViewServiceRegistry` 
 
 ## Query Job lifecycle
 
-When changing CLI decoding, Worker execution, cancellation or result publication, read the [adapter reference](README.md). It names the owners and the lifetime of the database borrow and staging file.
+When changing CLI decoding, Worker execution, cancellation or result publication, read the [adapter reference](README.md). It names the owners of run, encode and deliver, the cancel rule, and the lifetime of the database borrow and staging file ([ADR 0121](../../docs/adr/0121-the-window-delivers-a-zotlit-query-answer.md)). The Worker runs the query and encodes the answer. A CLI answer, inline or export, crosses to the window as the answer stream (`QueryAnswer`: a head, the byte chunks, an optional trace). Bulk values cross to the renderer only as byte chunks of about 256 KiB. The delivery module `desktop/item-query/delivery.ts` (`deliverAnswer`) reads the answer stream, owns the inline limit and the cancel rule of an export, answers the text or the receipt, and gives an export to the file port `ExportFiles` (`core/item-query/export-files.ts`). The host composition fills the port: the desktop feature passes the Node adapter (`desktop/item-query/export-files-node.ts`); a host with no adapter answers `export-unavailable`. The Worker holds no limit and no file.
 
 ## Tests
 

@@ -17,7 +17,7 @@ import {
 } from "./annotation-guide.ts";
 import { decodeQuery } from "./decode.ts";
 
-import { answer } from "#worker/item-query/answer.ts";
+import { answerText } from "#__fixtures__/item-query/answer-text.ts";
 import { QUERY_COMMAND } from "#worker/item-query/contract.ts";
 
 const IDENTITY = {
@@ -35,7 +35,7 @@ function runAnnotationQuery(
 ) {
   return decodeQuery({ ...params, from: "annotations" }).pipe(
     Effect.flatMap((decoded) =>
-      answer(
+      answerText(
         {
           schema: false,
           dataset: "annotations",
@@ -49,7 +49,7 @@ function runAnnotationQuery(
     Effect.scoped,
     Effect.provideService(ItemQueryDatabase, { client: scenario.db }),
     Effect.provideService(Scheduler.Scheduler, new ItemQueryScheduler()),
-    Effect.map((reply) => JSON.parse(reply.answer) as Record<string, unknown>),
+    Effect.map((text) => JSON.parse(text) as Record<string, unknown>),
   );
 }
 

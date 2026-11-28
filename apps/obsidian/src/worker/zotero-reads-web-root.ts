@@ -21,10 +21,7 @@ void fillMissing(self, {
       ],
     );
     serveZoteroReadsWeb(self, {
-      queryJobs: makeQueryJobRunner({
-        meter: webQueryMeter,
-        writesFiles: false,
-      }),
+      queryJobs: makeQueryJobRunner({ meter: webQueryMeter }),
     });
   })
   .catch((error: unknown) => {

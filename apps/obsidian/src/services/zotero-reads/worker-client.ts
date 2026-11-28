@@ -75,6 +75,21 @@ const queriesAfterConfigure = (
   ...reads,
   ItemQuery: (payload, options) =>
     Effect.andThen(delivered, reads.ItemQuery(payload, options)),
+  QueryAnswer: ((
+    payload: Parameters<ZoteroReadsClient["QueryAnswer"]>[0],
+    options?: Parameters<ZoteroReadsClient["QueryAnswer"]>[1],
+  ) =>
+    options?.asQueue
+      ? Effect.andThen(
+          delivered,
+          reads.QueryAnswer(payload, { ...options, asQueue: true }),
+        )
+      : Stream.unwrap(
+          Effect.as(
+            delivered,
+            reads.QueryAnswer(payload, { ...options, asQueue: false }),
+          ),
+        )) as ZoteroReadsClient["QueryAnswer"],
   SourceIdentity: (payload, options) =>
     Effect.andThen(delivered, reads.SourceIdentity(payload, options)),
 });

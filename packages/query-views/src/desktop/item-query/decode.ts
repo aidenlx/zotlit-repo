@@ -341,8 +341,7 @@ function decodedQuery(
     ...(fields === undefined ? {} : { fields }),
     ...(formulas === undefined ? {} : { formulas }),
     ...(sort === undefined ? {} : { sort }),
-    ...(output === undefined ? {} : { output }),
-    ...(format === "json" ? {} : { format }),
+    ...(output === undefined ? {} : { export: { path: output, format } }),
     ...(id === undefined ? {} : { id }),
     ...(item === undefined && attachment === undefined
       ? {}

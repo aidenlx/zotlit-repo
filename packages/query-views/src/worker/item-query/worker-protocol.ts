@@ -4,6 +4,7 @@ import type { WorkbenchIdentity } from "@zotlit/template-workbench/worker/cli/wo
 import type {
   ItemQueryAnswer,
   ItemQueryJob,
+  ItemQueryTypedJob,
 } from "@zotlit/zotero-reads/contract/item-query.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type {
@@ -11,7 +12,9 @@ import type {
   DecodedValues,
 } from "@zotlit/zotero-reads/contract/query-codec.ts";
 
+import type { AnswerSummary } from "./answer.ts";
 import type {
+  Diagnostic,
   QUERY_COMMAND,
   QUERY_SCHEMA_COMMAND,
   QueryCliCommand,
@@ -41,50 +44,48 @@ export interface QueryCustomFieldsCommand {
   customFields: true;
 }
 
-export type QueryJob = (
-  | QueryCommand
-  | QueryViewCommand
-  | QueryCustomFieldsCommand
-) & {
+interface QueryJobContext {
   id: string;
   vault: WorkbenchIdentity["vault"];
   scope: LibraryScope;
   uses?: Readonly<Record<string, number>>;
   attachmentPaths: AttachmentPathContext;
-  stagePath?: string;
-  measure?: boolean;
-  heap?: boolean;
-};
-
-export type QueryReceipt =
-  | { kind: "inline" }
-  | { kind: "file"; path: string; bytes: number };
-
-export interface QueryReply {
-  command: QueryCliCommand;
-  answer: string;
-  receipt: QueryReceipt;
 }
 
-export interface QueryViewReply extends QueryReply {
+export type QueryJob = QueryCommand &
+  QueryJobContext & {
+    measure?: boolean;
+    heap?: boolean;
+  };
+
+export type QueryTypedJob = (QueryViewCommand | QueryCustomFieldsCommand) &
+  QueryJobContext;
+
+export interface QueryViewReply {
+  command: QueryCliCommand;
   view: Exclude<QueryViewOutcome, { kind: "cancelled" }>;
 }
 
-export interface QueryAnswer extends QueryReply {
+export interface QueryAnswer {
+  command: QueryCliCommand;
   cancelled?: true;
   view?: QueryViewReply["view"];
   customFields?: readonly string[];
-  measurement?: WorkerMeasurement;
 }
 
 type Expect<T extends true> = T;
 type Equals<A, B> = [A, B] extends [B, A] ? true : false;
 type _Job = Expect<Equals<ItemQueryJob, QueryJob>>;
+type _TypedJob = Expect<Equals<ItemQueryTypedJob, QueryTypedJob>>;
 type _Answer = Expect<Equals<ItemQueryAnswer, QueryAnswer>>;
 
 declare module "@zotlit/zotero-reads/contract/item-query.ts" {
   interface ItemQueryTypes {
     job: QueryJob;
+    typedJob: QueryTypedJob;
     answer: QueryAnswer;
+    summary: AnswerSummary;
+    measurement: WorkerMeasurement;
+    diagnostic: Diagnostic;
   }
 }

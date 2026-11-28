@@ -28,7 +28,11 @@ import { afterEach, beforeEach, describe, expect } from "vitest";
 import { LogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 
 import type { TempSweepOptions } from "./temp-sweep.ts";
-import { isOlderThan, sweepTempDirectory } from "./temp-sweep.ts";
+import {
+  isOlderThan,
+  isProcessLive,
+  sweepTempDirectory,
+} from "./temp-sweep.ts";
 
 let directory: string;
 
@@ -312,5 +316,20 @@ describe("isOlderThan", () => {
         );
       }),
     ),
+  );
+});
+
+describe("isProcessLive", () => {
+  it.effect("calls this process and its parent live", () =>
+    Effect.gen(function* () {
+      expect(yield* isProcessLive(process.pid)).toBe(true);
+      expect(yield* isProcessLive(process.ppid)).toBe(true);
+    }),
+  );
+
+  it.effect("calls a process id that no process holds not live", () =>
+    Effect.gen(function* () {
+      expect(yield* isProcessLive(4_194_305)).toBe(false);
+    }),
   );
 });

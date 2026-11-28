@@ -2,10 +2,12 @@ import type { ReapWorkerSnapshots } from "#client/worker-host.ts";
 import { Effect } from "effect";
 import { tmpdir } from "node:os";
 
-import { sweepTempDirectory } from "@zotlit/obsidian-desktop/temp-sweep.ts";
+import {
+  isProcessLive,
+  sweepTempDirectory,
+} from "@zotlit/obsidian-desktop/temp-sweep.ts";
 import type { ReapTempsOptions } from "@zotlit/obsidian-desktop/temp-sweep.ts";
 import { ZOTERO_DB_READ_TEMP_PREFIX } from "@zotlit/plugin-kernel/constants.ts";
-import { isErrno } from "@zotlit/plugin-kernel/errno.ts";
 
 import { readParentBeside } from "./read-parent.ts";
 
@@ -19,7 +21,7 @@ export const reapReadClones = Effect.fnUntraced(function* ({
       const pid = parseTempPid(name);
       return pid === null || pid === process.pid
         ? Effect.succeed(false)
-        : Effect.map(isPidLive(pid), (live) => !live);
+        : Effect.map(isProcessLive(pid), (live) => !live);
     },
   });
 });
@@ -67,14 +69,4 @@ function parseTempPid(entry: string): number | null {
   if (end <= 0) return null;
   const pid = Number(rest.slice(0, end));
   return Number.isSafeInteger(pid) && pid > 0 ? pid : null;
-}
-
-function isPidLive(pid: number): Effect.Effect<boolean> {
-  return Effect.try({
-    try: () => process.kill(pid, 0),
-    catch: (error) => isErrno(error, "EPERM"),
-  }).pipe(
-    Effect.as(true),
-    Effect.catch((ownedByAnotherUser) => Effect.succeed(ownedByAnotherUser)),
-  );
 }

@@ -1,5 +1,11 @@
-import type { ItemQueryAnswer, ItemQueryJob } from "#contract/item-query.ts";
 import type {
+  ItemQueryAnswer,
+  ItemQueryJob,
+  ItemQueryTypedJob,
+} from "#contract/item-query.ts";
+import type {
+  QueryAnswerPart,
+  QueryFailed,
   ReadsConfig,
   SegmenterBinary,
   WorkLabelSource,
@@ -93,7 +99,7 @@ const COLLECTION_SCOPE_QUERIES = {
 
 export interface QueryJobRunner {
   readonly run: (
-    job: ItemQueryJob,
+    job: ItemQueryTypedJob,
     read: {
       readonly client: ZoteroDatabase;
       readonly identity: Effect.Effect<SourceIdentity, DbUnavailable>;
@@ -103,8 +109,14 @@ export interface QueryJobRunner {
     never,
     FileSystem.FileSystem | Scope.Scope
   >;
-  readonly cancelled: (job: ItemQueryJob) => ItemQueryAnswer;
-  readonly refused?: (job: ItemQueryJob) => ItemQueryAnswer | undefined;
+  readonly answer: (
+    job: ItemQueryJob,
+    read: {
+      readonly client: ZoteroDatabase;
+      readonly identity: Effect.Effect<SourceIdentity, DbUnavailable>;
+    },
+  ) => Stream.Stream<QueryAnswerPart, QueryFailed, FileSystem.FileSystem>;
+  readonly cancelled: (job: ItemQueryTypedJob) => ItemQueryAnswer;
 }
 
 export const DEFAULT_SLICE_SIZE = 500;
@@ -182,6 +194,8 @@ function workLabelSource(
 const noQueryJobs: QueryJobRunner = {
   run: (job) =>
     Effect.die(new Error(`No Item Query adapter runs the Query Job ${job.id}`)),
+  answer: (job) =>
+    Stream.die(new Error(`No Item Query adapter runs the Query Job ${job.id}`)),
   cancelled: (job) => {
     throw new Error(`No Item Query adapter ran the Query Job ${job.id}`);
   },
@@ -333,8 +347,6 @@ export function handlersLayer(options: HandlersOptions) {
         CancelItemQuery: ({ id }) => FiberMap.remove(queryJobs, id),
         ItemQuery: ({ job, snapshot }) =>
           Effect.gen(function* () {
-            const refused = queryJobRunner.refused?.(job);
-            if (refused) return refused;
             const fiber = yield* FiberMap.run(
               queryJobs,
               job.id,
@@ -357,6 +369,17 @@ export function handlersLayer(options: HandlersOptions) {
               return queryJobRunner.cancelled(job);
             return yield* exit;
           }),
+        QueryAnswer: ({ job, snapshot }) =>
+          Stream.unwrap(
+            Effect.gen(function* () {
+              yield* querySlots.takeScoped(1);
+              const client = yield* borrow(snapshot);
+              return queryJobRunner.answer(job, {
+                client,
+                identity: connection.identity(client),
+              });
+            }),
+          ).pipe(Stream.provideService(FileSystem.FileSystem, fs)),
         CitationLookup: citationLookup.lookup,
         Libraries: ({ snapshot }) => withClient(snapshot, getLibraries),
 

@@ -1,3 +1,4 @@
+import type { ExportFiles } from "#core/item-query/export-files.ts";
 import type {
   Diagnostic,
   QueryCliCommand,
@@ -6,25 +7,22 @@ import type {
   QueryViewOutcome,
   QueryViewRequest,
 } from "#worker/item-query/query-view.ts";
-import type {
-  CancellationEvent,
-  QueryObserver,
-} from "#worker/item-query/trace.ts";
+import type { QueryObserver } from "#worker/item-query/trace.ts";
 import type {
   QueryAnswer,
   QueryCommand,
+  QueryJob,
   QueryCustomFieldsCommand,
+  QueryTypedJob,
   QueryViewCommand,
 } from "#worker/item-query/worker-protocol.ts";
 import {
   Cause,
-  Clock,
   Context,
   Effect,
   Exit,
   Fiber,
   FiberMap,
-  FileSystem,
   Layer,
   Option,
   Result,
@@ -32,10 +30,8 @@ import {
   Scope,
   Stream,
 } from "effect";
-import type { PlatformError } from "effect/PlatformError";
 import type { RpcClientError } from "effect/rpc";
 import { randomUUID } from "node:crypto";
-import { dirname, join } from "node:path";
 import type { CliData } from "obsidian";
 
 import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
@@ -49,14 +45,21 @@ import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/ser
 import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-import type { SnapshotExpired } from "@zotlit/zotero-reads/contract/rpc.ts";
+import type { DbUnavailable } from "@zotlit/zotero-reads/contract/db-unavailable.ts";
+import type {
+  QueryFailed,
+  SnapshotExpired,
+} from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { decodeQuery, decodeSchemaArguments, decodeValues } from "./decode.ts";
+import type { DeliveryFailure } from "./delivery.ts";
+import { deliverAnswer, reportCancel } from "./delivery.ts";
 
 import {
   QUERY_COMMAND,
   QUERY_SCHEMA_COMMAND,
   QUERY_VALUES_COMMAND,
+  deliveryDiagnostic,
   diagnostic,
   failure,
   queryCancelledText,
@@ -65,21 +68,15 @@ import {
 } from "#worker/item-query/contract.ts";
 
 function unavailableAnswer(
-  command: QueryCommand | QueryViewCommand | QueryCustomFieldsCommand,
+  command: QueryViewCommand | QueryCustomFieldsCommand,
   unavailable: Diagnostic,
 ): QueryAnswer {
   return "view" in command
     ? {
         command: command.command,
-        answer: "",
-        receipt: { kind: "inline" },
         view: { kind: "failed", diagnostic: unavailable },
       }
-    : {
-        command: command.command,
-        answer: failure(command.command, unavailable),
-        receipt: { kind: "inline" },
-      };
+    : { command: command.command };
 }
 
 export type ItemQueryError = SnapshotExpired | RpcClientError.RpcClientError;
@@ -122,18 +119,14 @@ const unnamedKey = (): string => `:${randomUUID()}`;
 
 export function layerQueryService({
   pluginVersion,
+  exportFiles,
 }: {
   readonly pluginVersion: string;
+  readonly exportFiles: ExportFiles | undefined;
 }): Layer.Layer<
   QueryService,
   never,
-  | ZoteroReads
-  | ZoteroPref
-  | LibraryScope
-  | UseLedger
-  | ObsidianEnv
-  | VaultDisk
-  | FileSystem.FileSystem
+  ZoteroReads | ZoteroPref | LibraryScope | UseLedger | ObsidianEnv | VaultDisk
 > {
   return Layer.effect(
     QueryService,
@@ -144,7 +137,6 @@ export function layerQueryService({
       const useLedger = yield* UseLedger;
       const env = yield* ObsidianEnv;
       const disk = yield* VaultDisk;
-      const fs = yield* FileSystem.FileSystem;
       const scope = yield* Scope.Scope;
       const jobs = yield* FiberMap.make<string, unknown, ItemQueryError>();
       let viewRuns = 0;
@@ -181,37 +173,46 @@ export function layerQueryService({
           }),
         );
 
+      const contextOf = (id: string) =>
+        Effect.gen(function* () {
+          return {
+            id,
+            vault: { name: env.vaultName, path: disk.basePath },
+            scope: yield* libraryScope.effective,
+            uses: yield* useLedger.uses,
+            attachmentPaths: yield* libraryFilePaths.pipe(
+              Effect.provideService(ZoteroPref, pref),
+            ),
+          };
+        });
+
+      const jobOf = (
+        command: QueryCommand,
+        measure: QueryMeasure | undefined,
+      ) =>
+        Effect.map(
+          contextOf(randomUUID()),
+          (context) =>
+            ({
+              ...context,
+              ...command,
+              measure: measure !== undefined,
+              ...(measure ? { heap: measure.heap } : {}),
+            }) satisfies QueryJob,
+        );
+
       const send = (
-        command: QueryCommand | QueryViewCommand | QueryCustomFieldsCommand,
-        {
-          id = randomUUID(),
-          stagePath,
-          measure,
-        }: {
-          id?: string;
-          stagePath?: string | undefined;
-          measure?: QueryMeasure | undefined;
-        } = {},
+        command: QueryViewCommand | QueryCustomFieldsCommand,
       ): Effect.Effect<QueryAnswer, ItemQueryError> =>
         Effect.gen(function* () {
-          const report = (phase: CancellationEvent["phase"]) =>
-            reportCancel(measure, phase);
+          const id = randomUUID();
           const call = yield* Effect.forkChild(
             reads
               .ItemQuery({
                 job: {
-                  id,
-                  ...(stagePath ? { stagePath } : {}),
+                  ...(yield* contextOf(id)),
                   ...command,
-                  vault: { name: env.vaultName, path: disk.basePath },
-                  scope: yield* libraryScope.effective,
-                  uses: yield* useLedger.uses,
-                  attachmentPaths: yield* libraryFilePaths.pipe(
-                    Effect.provideService(ZoteroPref, pref),
-                  ),
-                  measure: measure !== undefined,
-                  ...(measure ? { heap: measure.heap } : {}),
-                },
+                } satisfies QueryTypedJob,
               })
               .pipe(
                 Effect.catchTags({
@@ -227,48 +228,42 @@ export function layerQueryService({
           );
           const result = yield* Effect.interruptible(Fiber.join(call)).pipe(
             Effect.onInterrupt(() =>
-              report("requested").pipe(
-                Effect.andThen(report("sent")),
-                Effect.andThen(reads.CancelItemQuery({ id })),
-                Effect.ignoreCause,
-                Effect.ensuring(Fiber.await(call)),
-              ),
+              reads
+                .CancelItemQuery({ id })
+                .pipe(Effect.ignoreCause, Effect.ensuring(Fiber.await(call))),
             ),
           );
           if (result.cancelled) return yield* Effect.interrupt;
-          if (result.measurement) measure?.completed(result.measurement);
           return result;
         });
 
       const job = (
         command: QueryCommand,
         measure?: QueryMeasure,
-      ): Effect.Effect<string, ItemQueryError> =>
-        Effect.gen(function* () {
-          const id = randomUUID();
-          const output = command.schema ? undefined : command.query?.output;
-          const stagePath =
-            output === undefined
-              ? undefined
-              : yield* stageExport(fs, output, id);
-          const result = yield* send(command, { id, stagePath, measure });
-          if (result.view)
-            return yield* Effect.die(
-              new Error("ZotLit Query answered a CLI command with data."),
-            );
-          if (stagePath !== undefined && result.receipt.kind === "file")
-            return yield* publishExport(fs, {
-              stagePath,
-              output: result.receipt.path,
-              answer: result.answer,
-              command: result.command,
-            });
-          return result.answer;
+      ): Effect.Effect<string, ItemQueryError> => {
+        const exported = command.schema ? undefined : command.query?.export;
+        return Effect.gen(function* () {
+          const job = yield* jobOf(command, measure);
+          return yield* deliverAnswer({
+            command: command.command,
+            target:
+              exported === undefined
+                ? { kind: "inline" }
+                : {
+                    kind: "file",
+                    path: exported.path,
+                    format: exported.format,
+                  },
+            answer: reads.QueryAnswer({ job }),
+            files: exportFiles,
+            observer: measure,
+          });
         }).pipe(
-          Effect.scoped,
+          replyFailure(command),
           Effect.onInterrupt(() => reportCancel(measure, "cleanup-finished")),
           withLogCategory("item-query"),
         );
+      };
 
       const start = Effect.fnUntraced(function* (
         command: QueryCliCommand,
@@ -405,6 +400,36 @@ export function layerQueryService({
   );
 }
 
+function replyFailure(command: QueryCommand) {
+  return <R>(
+    reply: Effect.Effect<
+      string,
+      ItemQueryError | DbUnavailable | QueryFailed | DeliveryFailure,
+      R
+    >,
+  ): Effect.Effect<string, ItemQueryError, R> =>
+    reply.pipe(
+      Effect.catchTags({
+        DbUnavailable: (error) =>
+          Effect.succeed(
+            failure(
+              command.command,
+              diagnostic("source-unavailable", error.message),
+            ),
+          ),
+        QueryFailed: (error) =>
+          Effect.succeed(failure(command.command, error.diagnostic)),
+        DeliveryFailure: ({ code, message }) =>
+          Effect.succeed(
+            failure(
+              command.command,
+              deliveryDiagnostic(code, message, command.command),
+            ),
+          ),
+      }),
+    );
+}
+
 function decodeOrAnswer<A>(
   command: QueryCliCommand,
   decode: Effect.Effect<A, CliRejection>,
@@ -415,68 +440,6 @@ function decodeOrAnswer<A>(
     ),
     Effect.result,
   );
-}
-
-function reportCancel(
-  measure: QueryObserver | undefined,
-  phase: CancellationEvent["phase"],
-): Effect.Effect<void> {
-  return Effect.gen(function* () {
-    if (measure?.cancelled === undefined) return;
-    const atEpochMs = yield* Clock.currentTimeMillis;
-    measure.cancelled({ phase, atEpochMs });
-  });
-}
-
-function stageExport(
-  fs: FileSystem.FileSystem,
-  output: string,
-  id: string,
-): Effect.Effect<string, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => join(dirname(output), `.zotlit-query-${id}.tmp`)),
-    (stagePath) =>
-      fs
-        .remove(stagePath, { force: true })
-        .pipe(
-          Effect.catch((error) =>
-            Effect.logWarning(
-              "ZotLit Query could not remove its temporary export {path}",
-            ).pipe(Effect.annotateLogs({ path: stagePath, error })),
-          ),
-        ),
-  );
-}
-
-function publishExport(
-  fs: FileSystem.FileSystem,
-  {
-    stagePath,
-    output,
-    answer,
-    command,
-  }: {
-    stagePath: string;
-    output: string;
-    answer: string;
-    command: QueryCliCommand;
-  },
-): Effect.Effect<string> {
-  return fs.link(stagePath, output).pipe(
-    Effect.as(answer),
-    Effect.catchTag("PlatformError", (error) =>
-      error.reason._tag === "BadArgument"
-        ? Effect.die(error)
-        : Effect.succeed(
-            failure(command, diagnostic("output-error", systemMessage(error))),
-          ),
-    ),
-  );
-}
-
-function systemMessage(error: PlatformError): string {
-  const cause = error.reason.cause;
-  return Error.isError(cause) ? cause.message : error.message;
 }
 
 declare module "@zotlit/obsidian-kit/view-atoms.ts" {

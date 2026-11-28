@@ -14,11 +14,15 @@ import {
   QUERY_SCHEMA_COMMAND,
 } from "@zotlit/query-views/worker/item-query/contract.ts";
 import type { QueryViewRequest } from "@zotlit/query-views/worker/item-query/query-view.ts";
-import type { QueryJob } from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
+import type {
+  QueryJob,
+  QueryTypedJob,
+} from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
 import { writePack } from "@zotlit/resource-pack/writer.ts";
 import { openScenarioApi } from "@zotlit/web-library/fake-zotero-api/scenario";
 import { startWebWorker } from "@zotlit/zotero-reads/client/web-worker.ts";
 import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { QueryAnswerPart } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { FloorFetch } from "./__fixtures__/floor-worker.ts";
 import {
@@ -99,7 +103,7 @@ function floorQuery(id: string, params: Record<string, string>): QueryJob {
   };
 }
 
-const floorView = (id: string, view: QueryViewRequest): QueryJob => ({
+const floorView = (id: string, view: QueryViewRequest): QueryTypedJob => ({
   command: QUERY_COMMAND,
   schema: false,
   view,
@@ -107,8 +111,16 @@ const floorView = (id: string, view: QueryViewRequest): QueryJob => ({
   ...FLOOR_JOB,
 });
 
-const envelopeOf = (answer: { readonly answer: string }) =>
-  JSON.parse(answer.answer) as {
+const envelopeOf = (parts: Iterable<QueryAnswerPart>) =>
+  JSON.parse(
+    new TextDecoder().decode(
+      Buffer.concat(
+        [...parts].flatMap((part) =>
+          part._tag === "Chunk" ? [part.bytes] : [],
+        ),
+      ),
+    ),
+  ) as {
     ok: boolean;
     returnedCount?: number;
     groups?: {
@@ -226,17 +238,19 @@ describe("the Web Worker root of main.js", () => {
           });
           const tags = yield* reads.TagNames({});
           const collections = yield* reads.CollectionPaths({ libraryIDs: [1] });
-          const itemQuery = yield* reads.ItemQuery({
-            job: floorQuery("floor-items", {
-              filter:
-                'date.year >= 1000 && tags.map(value.lower()).length >= 0 && title.lower().contains("")',
-              formulas: '{"year":"date.year","next":"formula.year + 1"}',
-              fields: "title,formula.next",
-              sort: "-date,title",
-              group: "itemType",
-              limit: "all",
+          const itemQuery = yield* Stream.runCollect(
+            reads.QueryAnswer({
+              job: floorQuery("floor-items", {
+                filter:
+                  'date.year >= 1000 && tags.map(value.lower()).length >= 0 && title.lower().contains("")',
+                formulas: '{"year":"date.year","next":"formula.year + 1"}',
+                fields: "title,formula.next",
+                sort: "-date,title",
+                group: "itemType",
+                limit: "all",
+              }),
             }),
-          });
+          );
           const suggesterView = yield* reads.ItemQuery({
             job: floorView("floor-suggester", {
               from: "annotations",
@@ -267,13 +281,15 @@ describe("the Web Worker root of main.js", () => {
               ...FLOOR_JOB,
             },
           });
-          const attachmentQuery = yield* reads.ItemQuery({
-            job: floorQuery("floor-attachments", {
-              from: "attachments",
-              fields: "title,path,exists",
-              limit: "all",
+          const attachmentQuery = yield* Stream.runCollect(
+            reads.QueryAnswer({
+              job: floorQuery("floor-attachments", {
+                from: "attachments",
+                fields: "title,path,exists",
+                limit: "all",
+              }),
             }),
-          });
+          );
           yield* reads.Configure(
             floorConfig("revokedfloorkey000000000", "https://api.zotero.test"),
           );

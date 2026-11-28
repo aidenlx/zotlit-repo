@@ -32,6 +32,14 @@ const Formulas = Schema.declare(
   ),
 );
 
+export const QUERY_EXPORT_FORMATS = ["json", ...DELIMITED_FORMATS] as const;
+
+export const QueryExport = Schema.Struct({
+  path: Schema.String,
+  format: Schema.Literals(QUERY_EXPORT_FORMATS),
+});
+export type QueryExport = typeof QueryExport.Type;
+
 export const DecodedQuery = Schema.Struct({
   from: Schema.Literals(QUERY_DATASETS),
   libraries: Schema.NullOr(NamedLibraries),
@@ -48,8 +56,7 @@ export const DecodedQuery = Schema.Struct({
       }),
     ),
   ),
-  output: Schema.optionalKey(Schema.String),
-  format: Schema.optionalKey(Schema.Literals(DELIMITED_FORMATS)),
+  export: Schema.optionalKey(QueryExport),
   id: Schema.optionalKey(Schema.String),
   context: Schema.optionalKey(
     Schema.Struct({

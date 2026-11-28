@@ -1,6 +1,5 @@
-import type { AnswerEnv, QueryWriter } from "#worker/item-query/answer.ts";
+import type { AnswerEnv } from "#worker/item-query/answer.ts";
 import type { Diagnostic } from "#worker/item-query/contract.ts";
-import type { QueryReply } from "#worker/item-query/worker-protocol.ts";
 import { it } from "@effect/vitest";
 import type { Scope } from "effect";
 import { Cause, Effect, Exit, Fiber, Scheduler } from "effect";
@@ -24,15 +23,9 @@ import {
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
+import { answerText } from "#__fixtures__/item-query/answer-text.ts";
 import { workerQuery } from "#__fixtures__/item-query/worker-query.ts";
 import {
-  answer,
-  exceedsInlineLimit,
-  QueryOutputError,
-} from "#worker/item-query/answer.ts";
-import {
-  diagnostic,
-  INLINE_MAX_BYTES,
   QUERY_COMMAND,
   QUERY_SCHEMA_COMMAND,
 } from "#worker/item-query/contract.ts";
@@ -94,7 +87,7 @@ function queryOf(
   return (params: CliData = {}): Effect.Effect<string> =>
     onJob(
       client,
-      answer(
+      answerText(
         {
           schema: false,
           dataset: workerQuery(params).from,
@@ -104,7 +97,7 @@ function queryOf(
         },
         env,
       ),
-    ).pipe(Effect.map((reply: QueryReply) => reply.answer));
+    );
 }
 
 function setup(
@@ -894,10 +887,10 @@ describe("zotlit:query borrowed source", () => {
         const scenario = yield* scenarioOf();
         const defect = new TypeError("boom");
         const { run } = setup(scenario, {
-          openOutput: () => Effect.die(defect),
+          instrument: () => Effect.die(defect),
         });
 
-        const exit = yield* Effect.exit(run({ output: "/exports/items.json" }));
+        const exit = yield* Effect.exit(run());
 
         expect(Exit.isFailure(exit)).toBe(true);
         const error = Exit.isFailure(exit)
@@ -1000,7 +993,7 @@ function setupSchema(
 ) {
   const text = onJob(
     scenario.db,
-    answer(
+    answerText(
       {
         schema: true,
         dataset,
@@ -1009,7 +1002,7 @@ function setupSchema(
         scope: MY_LIBRARY_SCOPE,
       },
       { identity: Effect.succeed(IDENTITY) },
-    ).pipe(Effect.map((reply: QueryReply) => reply.answer)),
+    ),
   );
   return {
     text,
@@ -1146,160 +1139,29 @@ it.effect(
     }),
 );
 
-describe("zotlit:query export writer", () => {
-  const BULK = {
-    library: `group:${BULK_LIBRARY.groupID}`,
-    limit: "all",
-    fields: '["title","tags"]',
-  };
-
-  function memoryExport(
-    scenario: ScenarioDatabase<NodeDatabaseClient>,
-    write: (count: number) => Effect.Effect<void, QueryOutputError>,
-  ) {
-    const events: string[] = [];
-    let writes = 0;
-    const openOutput = (): Effect.Effect<QueryWriter, never, Scope.Scope> =>
-      Effect.acquireRelease(
-        Effect.sync(() => events.push("open")),
-        () => Effect.sync(() => events.push("close")),
-      ).pipe(
-        Effect.as({
-          write: () =>
-            Effect.suspend(() => {
-              events.push("write");
-              return Effect.as(write(++writes), 0);
-            }),
-        }),
-      );
-    const run = answer(
-      {
-        schema: false,
-        dataset: "items",
-        command: QUERY_COMMAND,
-        query: workerQuery({ ...BULK, output: "/exports/items.json" }),
-        scope: MY_LIBRARY_SCOPE,
-      },
-      { identity: Effect.succeed(IDENTITY), openOutput },
-    ).pipe(
-      Effect.scoped,
-      Effect.onExit(() => Effect.sync(() => events.push("scope-ended"))),
-      Effect.provideService(ItemQueryDatabase, { client: scenario.db }),
-      Effect.provideService(Scheduler.Scheduler, new ItemQueryScheduler()),
-    );
-    return { events, run };
-  }
-
-  it.effect(
-    "ends interrupted between two chunks and closes the writer before the scope ends",
-    () =>
-      Effect.gen(function* () {
-        const scenario = yield* scenarioOf();
-        seedBulkLibrary(scenario.sqlite, 600);
-        const interrupt = interruptHandle();
-        const { events, run } = memoryExport(scenario, (count) =>
-          Effect.sync(() => {
-            if (count === 2) interrupt();
-          }),
-        );
-
-        const exit = yield* exitOf(run, interrupt);
-
-        expect(
-          Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause),
-        ).toBe(true);
-        expect(events).toEqual([
-          "open",
-          "write",
-          "write",
-          "close",
-          "scope-ended",
-        ]);
-      }),
-  );
-
-  it.effect(
-    "answers output-error for a failed write and closes the writer before the scope ends",
-    () =>
-      Effect.gen(function* () {
-        const scenario = yield* scenarioOf();
-        seedBulkLibrary(scenario.sqlite, 600);
-        const { events, run } = memoryExport(scenario, (count) =>
-          count === 2
-            ? Effect.fail(
-                new QueryOutputError({
-                  diagnostic: diagnostic("output-error", "The disk is full."),
-                }),
-              )
-            : Effect.void,
-        );
-
-        const reply = yield* run;
-
-        expect(reply.receipt).toEqual({ kind: "inline" });
-        expect(JSON.parse(reply.answer)).toMatchObject({
-          ok: false,
-          diagnostic: {
-            code: "output-error",
-            report: { 0: "The disk is full." },
-          },
-        });
-        expect(events).toEqual([
-          "open",
-          "write",
-          "write",
-          "close",
-          "scope-ended",
-        ]);
-      }),
-  );
-});
-
-it.effect(
-  "answers and exports byte-identical grouped envelopes with exact counts",
-  () =>
-    Effect.gen(function* () {
-      const scenario = yield* scenarioOf();
-      let output = "";
-      const { run } = setup(scenario, {
-        openOutput: () =>
-          Effect.succeed({
-            write: (text) =>
-              Effect.sync(() => {
-                output += text;
-                return Buffer.byteLength(text);
-              }),
-          }),
-      });
-      const params = {
-        group: "library",
-        library: "all",
-        limit: "1",
-        fields: "[]",
-      };
-      const found = yield* run(params);
-      expect(found).toMatchObject({
-        request: { group: "library" },
-        totalCount: 12,
-        returnedCount: 2,
-        truncated: true,
-        groups: [
-          { value: "group:4815", count: 2 },
-          { value: "personal", count: 10 },
-        ],
-      });
-      expect(found).not.toHaveProperty("rows");
-      const receipt = yield* run({ ...params, output: "/exports/groups.json" });
-      expect(output).toBe(JSON.stringify(found, null, 2));
-      expect(receipt).toMatchObject({
-        request: { group: "library" },
-        totalCount: 12,
-        returnedCount: 2,
-        file: { bytes: Buffer.byteLength(output), format: "json" },
-      });
-      expect(receipt).not.toHaveProperty("rows");
-      expect(receipt).not.toHaveProperty("groups");
-    }),
+it.effect("answers grouped envelopes with exact counts", () =>
+  Effect.gen(function* () {
+    const scenario = yield* scenarioOf();
+    const { run } = setup(scenario);
+    const params = {
+      group: "library",
+      library: "all",
+      limit: "1",
+      fields: "[]",
+    };
+    const found = yield* run(params);
+    expect(found).toMatchObject({
+      request: { group: "library" },
+      totalCount: 12,
+      returnedCount: 2,
+      truncated: true,
+      groups: [
+        { value: "group:4815", count: 2 },
+        { value: "personal", count: 10 },
+      ],
+    });
+    expect(found).not.toHaveProperty("rows");
+  }),
 );
 
 it.effect(
@@ -1328,81 +1190,33 @@ it.effect(
     }),
 );
 
-it.effect(
-  "answers and exports overlapping element groups with records counted once",
-  () =>
-    Effect.gen(function* () {
-      const scenario = yield* scenarioOf();
-      let output = "";
-      const { run } = setup(scenario, {
-        openOutput: () =>
-          Effect.succeed({
-            write: (text) =>
-              Effect.sync(() => {
-                output += text;
-                return Buffer.byteLength(text);
-              }),
-          }),
-      });
-      const params = {
-        group: "tags[].name",
-        filter: 'tags.contains("methods")',
-        library: "personal",
-        limit: "all",
-        fields: "[]",
-        sort: "key",
-      };
-      const found = yield* run(params);
-      expect(found).toMatchObject({
-        request: { group: "tags[].name" },
-        totalCount: 2,
-        returnedCount: 4,
-        truncated: false,
-        groups: [
-          {
-            value: "methods",
-            count: 2,
-            rows: [{ indexedKey: "ALS2CNFL" }, { indexedKey: "ART2FULL" }],
-          },
-          { value: "to-read", count: 1, rows: [{ indexedKey: "ART2FULL" }] },
-          { value: "To-Read", count: 1, rows: [{ indexedKey: "ART2FULL" }] },
-        ],
-      });
-      const receipt = yield* run({ ...params, output: "/exports/tags.json" });
-      expect(output).toBe(JSON.stringify(found, null, 2));
-      expect(receipt).toMatchObject({ totalCount: 2, returnedCount: 4 });
-    }),
+it.effect("answers overlapping element groups with records counted once", () =>
+  Effect.gen(function* () {
+    const scenario = yield* scenarioOf();
+    const { run } = setup(scenario);
+    const params = {
+      group: "tags[].name",
+      filter: 'tags.contains("methods")',
+      library: "personal",
+      limit: "all",
+      fields: "[]",
+      sort: "key",
+    };
+    const found = yield* run(params);
+    expect(found).toMatchObject({
+      request: { group: "tags[].name" },
+      totalCount: 2,
+      returnedCount: 4,
+      truncated: false,
+      groups: [
+        {
+          value: "methods",
+          count: 2,
+          rows: [{ indexedKey: "ALS2CNFL" }, { indexedKey: "ART2FULL" }],
+        },
+        { value: "to-read", count: 1, rows: [{ indexedKey: "ART2FULL" }] },
+        { value: "To-Read", count: 1, rows: [{ indexedKey: "ART2FULL" }] },
+      ],
+    });
+  }),
 );
-
-describe("the inline limit", () => {
-  const limit = INLINE_MAX_BYTES;
-  it.each<[string, string, boolean]>([
-    ["ASCII at the limit", "a".repeat(limit), false],
-    ["ASCII one byte above", "a".repeat(limit + 1), true],
-    [
-      "3-byte characters at the limit",
-      "€".repeat(Math.floor(limit / 3)),
-      false,
-    ],
-    [
-      "3-byte characters one above, fewer characters than the limit",
-      "€".repeat(Math.floor(limit / 3) + 1),
-      true,
-    ],
-    ["astral characters at the limit", "😀".repeat(limit / 4), false],
-    ["astral characters one above", "😀".repeat(limit / 4 + 1), true],
-    [
-      "lone surrogates at the limit",
-      "\ud800".repeat(Math.floor(limit / 3)),
-      false,
-    ],
-    [
-      "lone surrogates one above",
-      "\ud800".repeat(Math.floor(limit / 3) + 1),
-      true,
-    ],
-  ])("%s", (_, text, exceeds) => {
-    expect(Buffer.byteLength(text) > limit).toBe(exceeds);
-    expect(exceedsInlineLimit(text)).toBe(exceeds);
-  });
-});

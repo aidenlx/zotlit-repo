@@ -1,12 +1,4 @@
-import {
-  Cause,
-  Clock,
-  Effect,
-  Exit,
-  FileSystem,
-  PlatformError,
-  Scope,
-} from "effect";
+import { Clock, Effect, Queue, Stream } from "effect";
 import { Scheduler } from "effect";
 
 import type { ZoteroDatabase } from "@zotlit/db";
@@ -15,171 +7,181 @@ import { ItemQueryScheduler } from "@zotlit/item-query";
 import type { ResolveAttachmentFile } from "@zotlit/item-query";
 import { monotonicMillis } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { DbUnavailable } from "@zotlit/zotero-reads/contract/db-unavailable.ts";
+import type { QueryAnswerPart } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { QueryFailed } from "@zotlit/zotero-reads/contract/rpc.ts";
 import type { QueryJobRunner } from "@zotlit/zotero-reads/worker/handlers.ts";
 
-import type { QueryWriter } from "./answer.ts";
+import type { AnswerSink } from "./answer.ts";
 import {
-  answer,
+  encodeCommand,
+  queryFailed,
   answerCustomFields,
   answerView,
-  exportUnavailable,
-  QueryOutputError,
 } from "./answer.ts";
 import { makeAttachmentFileResolver } from "./attachment-files.ts";
 import type { QueryIdentity } from "./contract.ts";
-import { diagnostic, failure } from "./contract.ts";
 import type { QueryMeter, WorkerMeasurement } from "./trace.ts";
 import { createTrace, finishTrace } from "./trace.ts";
-import type { QueryAnswer, QueryJob } from "./worker-protocol.ts";
+import type {
+  QueryAnswer,
+  QueryJob,
+  QueryTypedJob,
+} from "./worker-protocol.ts";
 
 export interface QueryJobEnv {
   client: ZoteroDatabase;
   identity: Effect.Effect<QueryIdentity, DbUnavailable>;
   attachmentFiles: ResolveAttachmentFile;
   meter: QueryMeter;
-  writesFiles: boolean;
 }
 
 export function runQueryJob(
+  job: QueryTypedJob,
+  env: Pick<QueryJobEnv, "client" | "attachmentFiles">,
+): Effect.Effect<QueryAnswer> {
+  return (
+    "view" in job
+      ? answerView(job, { attachmentFiles: env.attachmentFiles })
+      : answerCustomFields(job.command)
+  ).pipe(onItemQueryDatabase(env.client));
+}
+
+export function answerParts(
   job: QueryJob,
   env: QueryJobEnv,
-): Effect.Effect<QueryAnswer, never, FileSystem.FileSystem> {
-  const stage: StageState = {};
-  return Effect.gen(function* () {
-    const now = monotonicMillis(yield* Clock.Clock);
-    const fs = yield* FileSystem.FileSystem;
-    const startedAt = now();
-    const trace = job.measure
-      ? createTrace(env.meter, job.heap ?? false, now)
-      : undefined;
-    const answerSteps: number[] = [];
-    const reply =
-      "view" in job
-        ? yield* answerView(job, { attachmentFiles: env.attachmentFiles })
-        : "customFields" in job
-          ? yield* answerCustomFields(job.command)
-          : yield* answer(job, {
+): Stream.Stream<QueryAnswerPart, QueryFailed> {
+  return Stream.unwrap(
+    Effect.gen(function* () {
+      const now = monotonicMillis(yield* Clock.Clock);
+      const startedAt = now();
+      const trace = job.measure
+        ? createTrace(env.meter, job.heap ?? false, now)
+        : undefined;
+      const answerSteps: number[] = [];
+      const measured =
+        trace &&
+        ((): WorkerMeasurement =>
+          JSON.parse(
+            JSON.stringify(finishTrace(trace, { startedAt, answerSteps })),
+          ) as WorkerMeasurement);
+      return answerStream(
+        (sink) =>
+          encodeCommand(
+            job,
+            {
               identity: env.identity,
               attachmentFiles: env.attachmentFiles,
               instrument: trace?.instrument,
-              onAnswerStep: job.measure
-                ? (ms: number) => answerSteps.push(ms)
-                : undefined,
-              openOutput: env.writesFiles
-                ? () => openStage(fs, job.stagePath, stage)
-                : undefined,
-            });
-    if (!trace) return reply;
-    return {
-      ...reply,
-      measurement: JSON.parse(
-        JSON.stringify(finishTrace(trace, { startedAt, answerSteps })),
-      ) as WorkerMeasurement,
-    };
-  }).pipe(
-    Effect.scoped,
-    Effect.flatMap((answer) => {
-      const { closeError } = stage;
-      if (closeError === undefined) return Effect.succeed(answer);
-      if (!PlatformError.isPlatformError(closeError))
-        return Effect.die(closeError);
-      return Effect.succeed<QueryAnswer>({
-        command: job.command,
-        answer: failure(job.command, outputError(closeError).diagnostic),
-        receipt: { kind: "inline" },
-      });
+              onAnswerStep: trace && ((ms: number) => answerSteps.push(ms)),
+            },
+            sink,
+          ).pipe(
+            queryFailed(job),
+            Effect.mapError((failed) =>
+              measured
+                ? new QueryFailed({
+                    diagnostic: failed.diagnostic,
+                    measurement: measured(),
+                  })
+                : failed,
+            ),
+            onItemQueryDatabase(env.client),
+          ),
+        measured,
+      );
     }),
-    Effect.provideService(ItemQueryDatabase, { client: env.client }),
-    Effect.provideService(Scheduler.Scheduler, new ItemQueryScheduler()),
+  );
+}
+
+const onItemQueryDatabase =
+  (client: ZoteroDatabase) =>
+  <A, E>(run: Effect.Effect<A, E, ItemQueryDatabase>): Effect.Effect<A, E> =>
+    run.pipe(
+      Effect.provideService(ItemQueryDatabase, { client }),
+      Effect.provideService(Scheduler.Scheduler, new ItemQueryScheduler()),
+    );
+
+const CHUNK_BYTES = 256 * 1024;
+
+export function answerStream<E, R>(
+  produce: (sink: AnswerSink) => Effect.Effect<void, E, R>,
+  measured?: () => WorkerMeasurement,
+): Stream.Stream<QueryAnswerPart, E, R> {
+  return Stream.callback<QueryAnswerPart, E, R>(
+    (queue) =>
+      Effect.gen(function* () {
+        const offer = (part: QueryAnswerPart) =>
+          Effect.asVoid(Queue.offer(queue, part));
+        let pending = "";
+        const flush = Effect.suspend(() => {
+          if (pending === "") return Effect.void;
+          const bytes = encoder.encode(pending);
+          pending = "";
+          if (bytes.byteLength <= CHUNK_BYTES)
+            return offer({ _tag: "Chunk", bytes });
+          const starts: number[] = [];
+          for (let at = 0; at < bytes.byteLength; at += CHUNK_BYTES)
+            starts.push(at);
+          return Effect.forEach(
+            starts,
+            (at) =>
+              offer({
+                _tag: "Chunk",
+                bytes: bytes.slice(at, at + CHUNK_BYTES),
+              }),
+            { discard: true },
+          );
+        });
+        yield* produce({
+          head: (summary) => offer({ _tag: "Head", summary }),
+          emit: (piece) =>
+            Effect.suspend(() => {
+              pending += piece;
+              return pending.length >= CHUNK_BYTES ? flush : Effect.void;
+            }),
+        });
+        yield* flush;
+        if (measured) yield* offer({ _tag: "Trace", measurement: measured() });
+        yield* Queue.end(queue);
+      }),
+    { bufferSize: 0 },
   );
 }
 
 export interface QueryJobRoot {
   readonly meter: QueryMeter;
-  readonly writesFiles: boolean;
 }
 
 export const makeQueryJobRunner = ({
   meter,
-  writesFiles,
 }: QueryJobRoot): QueryJobRunner => ({
-  run: (job, { client, identity }) =>
+  run: (job, { client }) =>
     Effect.gen(function* () {
       return yield* runQueryJob(job, {
         client,
         attachmentFiles: yield* makeAttachmentFileResolver(job.attachmentPaths),
-        meter,
-        writesFiles,
-        identity: Effect.map(identity, (source) => ({
-          vault: job.vault,
-          source,
-        })),
       });
     }),
-  refused: (job) =>
-    !writesFiles && "query" in job && job.query?.output !== undefined
-      ? exportUnavailable(job.command)
-      : undefined,
+  answer: (job, { client, identity }) =>
+    Stream.unwrap(
+      Effect.map(
+        makeAttachmentFileResolver(job.attachmentPaths),
+        (attachmentFiles) =>
+          answerParts(job, {
+            client,
+            attachmentFiles,
+            meter,
+            identity: Effect.map(identity, (source) => ({
+              vault: job.vault,
+              source,
+            })),
+          }),
+      ),
+    ),
   cancelled: (job) => ({
     command: job.command,
-    answer: "",
-    receipt: { kind: "inline" },
     cancelled: true,
   }),
 });
 
-interface StageState {
-  closeError?: unknown;
-}
-
 const encoder = new TextEncoder();
-
-function openStage(
-  fs: FileSystem.FileSystem,
-  stagePath: string | undefined,
-  stage: StageState,
-): Effect.Effect<QueryWriter, QueryOutputError, Scope.Scope> {
-  if (stagePath === undefined)
-    return Effect.die(new Error("Item Query export has no staging path"));
-  return Effect.gen(function* () {
-    const fileScope = yield* Effect.acquireRelease(Scope.make(), (scope) =>
-      Effect.exit(Scope.close(scope, Exit.void)).pipe(
-        Effect.flatMap((exit) =>
-          Effect.sync(() => {
-            if (Exit.isFailure(exit))
-              stage.closeError = Cause.squash(exit.cause);
-          }),
-        ),
-      ),
-    );
-    const file = yield* fileStep(
-      fs
-        .open(stagePath, { flag: "wx", mode: 0o600 })
-        .pipe(Scope.provide(fileScope)),
-    );
-    return {
-      write: (text: string) => {
-        const bytes = encoder.encode(text);
-        return fileStep(file.writeAll(bytes)).pipe(
-          Effect.as(bytes.byteLength),
-          Effect.uninterruptible,
-        );
-      },
-    };
-  });
-}
-
-function fileStep<A>(
-  step: Effect.Effect<A, PlatformError.PlatformError>,
-): Effect.Effect<A, QueryOutputError> {
-  return step.pipe(Effect.mapError((error) => outputError(error)));
-}
-
-function outputError(error: PlatformError.PlatformError): QueryOutputError {
-  return new QueryOutputError({
-    diagnostic: diagnostic(
-      "output-error",
-      Error.isError(error.cause) ? error.cause.message : error.message,
-    ),
-  });
-}

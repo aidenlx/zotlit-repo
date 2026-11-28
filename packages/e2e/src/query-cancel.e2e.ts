@@ -131,7 +131,9 @@ describe.skipIf(!reachable)("ZotLit Query cancel", () => {
 
     const writing = await waitFor(
       async () =>
-        (await readdir(cancelledDir)).some((name) => name.endsWith(".tmp")),
+        (await readdir(cancelledDir)).some((name) =>
+          name.endsWith(".zotlit-partial"),
+        ),
       400,
     );
     expect(writing).toBe(true);

@@ -38,7 +38,7 @@ beforeAll(async () => {
         key: scenario.key,
         fetch: fakeApiFetch(scenario.api),
       },
-      { queryJobs: makeQueryJobRunner({ meter: {}, writesFiles: false }) },
+      { queryJobs: makeQueryJobRunner({ meter: {} }) },
     ),
   );
   const build = (reads: typeof fileReads) =>

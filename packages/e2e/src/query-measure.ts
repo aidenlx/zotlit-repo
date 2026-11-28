@@ -972,7 +972,7 @@ try {
 await mkdir(outDir, { recursive: true });
 const rawPath = join(outDir, "raw.json");
 const notes: string[] = [
-  "Queries run in Electron utility processes. The measurement vault uses the E2E window setup: background throttling is disabled and focus is emulated without moving OS focus. Execution slices and encoding steps retain the spec's 16 ms p99 / 32 ms maximum limits. Renderer timer gaps (4 ms sampling) are an additional check against those limits. All limit=all runs write complete JSON files and return small receipts. These measurements include worker transfer and export publication. Fixture startup and initial search indexing finish before timing begins.",
+  "Queries run in Electron utility processes. The measurement vault uses the E2E window setup: background throttling is disabled and focus is emulated without moving OS focus. Execution slices and encoding steps retain the spec's 16 ms p99 / 32 ms maximum limits. Renderer timer gaps (4 ms sampling) are an additional check against those limits. All limit=all runs export complete JSON files and return small receipts. The Worker sends each answer as byte chunks of about 256 KiB, and the window writes the export file and publishes it, so these measurements include the chunk transfer, the file write in the renderer, and the publication. Fixture startup and initial search indexing finish before timing begins.",
 ];
 const measured = rawTiers.map((raw) => toTier(raw, notes));
 notes.push(

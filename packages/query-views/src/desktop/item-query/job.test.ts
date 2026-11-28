@@ -1,8 +1,12 @@
-import type { QueryJob } from "#worker/item-query/worker-protocol.ts";
+import type { QueryViewRequest } from "#worker/item-query/query-view.ts";
+import type {
+  QueryJob,
+  QueryTypedJob,
+} from "#worker/item-query/worker-protocol.ts";
+import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
-import { Clock, Deferred, Effect, Fiber, Layer, PlatformError } from "effect";
-import { readFile, readdir, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { Clock, Deferred, Effect, Fiber, Layer, Stream } from "effect";
+import { TestClock } from "effect/testing";
 import type { CliData } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
@@ -15,13 +19,13 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQuerySliceObserver } from "@zotlit/item-query";
-import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/node-file-system.ts";
 import {
   inProcessClient,
   sharedClientOpener,
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/db-unavailable.ts";
 import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { QueryAnswerPart } from "@zotlit/zotero-reads/contract/rpc.ts";
 import {
   Connection,
   layerRcRef,
@@ -32,22 +36,9 @@ import { nodeQueryMeter } from "./node-meter.ts";
 import { workerQuery } from "#__fixtures__/item-query/worker-query.ts";
 import { makeAttachmentFileResolver } from "#worker/item-query/attachment-files.ts";
 import { QUERY_COMMAND } from "#worker/item-query/contract.ts";
-import { makeQueryJobRunner, runQueryJob } from "#worker/item-query/job.ts";
+import { answerParts, makeQueryJobRunner } from "#worker/item-query/job.ts";
 
-let closeFailure: PlatformError.PlatformError | undefined;
-
-const testFileSystem = layerNodeFileSystemWith((fs) => ({
-  open: (path, options) =>
-    fs.open(path, options).pipe(
-      Effect.tap(() =>
-        Effect.addFinalizer(() => {
-          const failure = closeFailure;
-          closeFailure = undefined;
-          return failure ? Effect.die(failure) : Effect.void;
-        }),
-      ),
-    ),
-}));
+const testFileSystem = NodeFileSystem.layer;
 
 const IDENTITY = {
   vault: { name: "Research", path: "/vaults/research" },
@@ -69,7 +60,7 @@ const ATTACHMENT_PATHS = {
   baseAttachmentPath: null,
 };
 
-function jobOf(params: CliData, stagePath?: string): QueryJob {
+function jobOf(params: CliData): QueryJob {
   const query = workerQuery(params);
   return {
     schema: false,
@@ -80,23 +71,44 @@ function jobOf(params: CliData, stagePath?: string): QueryJob {
     vault: IDENTITY.vault,
     scope: MY_LIBRARY_SCOPE,
     attachmentPaths: ATTACHMENT_PATHS,
-    ...(stagePath === undefined ? {} : { stagePath }),
   };
 }
 
-const run = (
-  scenario: ScenarioDatabase<NodeDatabaseClient>,
-  job: QueryJob,
-  writesFiles = true,
-) =>
+const answerOf = <E, R>(parts: Stream.Stream<QueryAnswerPart, E, R>) =>
+  Effect.map(Stream.runCollect(parts), (collected) => ({
+    text: new TextDecoder("utf-8", { ignoreBOM: true }).decode(
+      Buffer.concat(
+        collected.flatMap((part) =>
+          part._tag === "Chunk" ? [part.bytes] : [],
+        ),
+      ),
+    ),
+    summary: collected.find((part) => part._tag === "Head")?.summary,
+    measurement: collected.find((part) => part._tag === "Trace")?.measurement,
+  }));
+
+function viewJobOf(view: QueryViewRequest): QueryTypedJob {
+  return {
+    command: QUERY_COMMAND,
+    schema: false,
+    view,
+    id: "view-1",
+    vault: IDENTITY.vault,
+    scope: MY_LIBRARY_SCOPE,
+    attachmentPaths: ATTACHMENT_PATHS,
+  };
+}
+
+const run = (scenario: ScenarioDatabase<NodeDatabaseClient>, job: QueryJob) =>
   Effect.gen(function* () {
-    return yield* runQueryJob(job, {
-      client: scenario.db,
-      identity: Effect.succeed(IDENTITY),
-      meter: nodeQueryMeter,
-      writesFiles,
-      attachmentFiles: yield* makeAttachmentFileResolver(job.attachmentPaths),
-    });
+    return yield* answerOf(
+      answerParts(job, {
+        client: scenario.db,
+        identity: Effect.succeed(IDENTITY),
+        meter: nodeQueryMeter,
+        attachmentFiles: yield* makeAttachmentFileResolver(job.attachmentPaths),
+      }),
+    );
   }).pipe(Effect.provide(testFileSystem));
 
 const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
@@ -104,18 +116,8 @@ const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
     Effect.sync(() => openScenarioDatabase(connectClient, options)),
   );
 
-const textOf = (path: string) => Effect.promise(() => readFile(path, "utf8"));
-
-function exportPaths(scenario: ScenarioDatabase<NodeDatabaseClient>) {
-  const directory = dirname(scenario.path);
-  return {
-    output: join(directory, "items.json"),
-    stagePath: join(directory, ".zotlit-query-job-1.tmp"),
-  };
-}
-
 describe("Query Job", () => {
-  it.effect("answers inline with the pretty JSON of its envelope", () =>
+  it.effect("streams the pretty JSON of its envelope", () =>
     Effect.gen(function* () {
       const scenario = yield* scenarioOf();
 
@@ -124,52 +126,18 @@ describe("Query Job", () => {
         jobOf({ limit: "all", fields: '["title","creators"]' }),
       );
 
-      expect(answer.receipt).toEqual({ kind: "inline" });
-      expect(answer.answer).toBe(
-        JSON.stringify(JSON.parse(answer.answer), null, 2),
+      expect(answer.text).toBe(
+        JSON.stringify(JSON.parse(answer.text), null, 2),
       );
-      expect(JSON.parse(answer.answer)).toMatchObject({
+      expect(JSON.parse(answer.text)).toMatchObject({
         ok: true,
         returnedCount: 10,
       });
     }),
   );
 
-  it.effect.each([undefined, 'tags != "absent"'])(
-    "writes an export and warnings to the staging file and receipt: %s",
-    (filter) =>
-      Effect.gen(function* () {
-        const scenario = yield* scenarioOf({ storage: "temp-directory" });
-        seedBulkLibrary(scenario.sqlite, 600);
-        const { output, stagePath } = exportPaths(scenario);
-        const params = { ...BULK, ...(filter ? { filter } : {}) };
-        const inline = yield* run(scenario, jobOf(params));
-
-        const answer = yield* run(
-          scenario,
-          jobOf({ ...params, output }, stagePath),
-        );
-        const warnings = JSON.parse(inline.answer).warnings;
-        expect(warnings).toHaveLength(filter ? 1 : 0);
-        expect(JSON.parse(answer.answer).warnings).toEqual(warnings);
-
-        const bytes = Buffer.byteLength(inline.answer);
-        expect(answer.receipt).toEqual({ kind: "file", path: output, bytes });
-        expect(JSON.parse(answer.answer)).toMatchObject({
-          ok: true,
-          returnedCount: 600,
-          file: { path: output, bytes, format: "json" },
-        });
-        expect(JSON.parse(answer.answer)).not.toHaveProperty("rows");
-        expect(yield* textOf(stagePath)).toBe(inline.answer);
-        expect(
-          yield* Effect.promise(() => readdir(dirname(output))),
-        ).not.toContain("items.json");
-      }),
-  );
-
   it.effect(
-    "answers result-too-large for an inline result above the limit",
+    "streams a result above the inline limit in full, because the window owns the limit",
     () =>
       Effect.gen(function* () {
         const scenario = yield* scenarioOf();
@@ -177,93 +145,75 @@ describe("Query Job", () => {
 
         const answer = yield* run(scenario, jobOf(BULK));
 
-        expect(answer.receipt).toEqual({ kind: "inline" });
-        expect(JSON.parse(answer.answer)).toMatchObject({
-          ok: false,
-          diagnostic: {
-            code: "result-too-large",
-            hint: "Run the query with output=<absolute-path> to write the complete response to a new JSON file, or reduce the fields or limit.",
-          },
+        expect(Buffer.byteLength(answer.text)).toBeGreaterThan(1024 * 1024);
+        expect(JSON.parse(answer.text)).toMatchObject({
+          ok: true,
+          returnedCount: 6000,
         });
       }),
   );
 
   it.effect(
-    "answers result-too-large without naming output under a root that writes no file",
+    "ends the Worker time of a measured job when the reader takes the last chunk",
     () =>
       Effect.gen(function* () {
         const scenario = yield* scenarioOf();
-        seedBulkLibrary(scenario.sqlite, 6000);
+        const headRead = yield* Deferred.make<void>();
+        const job = { ...jobOf({ limit: "1" }), measure: true };
+        const reading = yield* Effect.forkChild(
+          answerOf(
+            answerParts(job, {
+              client: scenario.db,
+              identity: Effect.succeed(IDENTITY),
+              meter: nodeQueryMeter,
+              attachmentFiles: yield* makeAttachmentFileResolver(
+                job.attachmentPaths,
+              ).pipe(Effect.provide(testFileSystem)),
+            }).pipe(
+              Stream.tap((part) =>
+                part._tag === "Head"
+                  ? Deferred.succeed(headRead, undefined).pipe(
+                      Effect.andThen(Effect.sleep("1 second")),
+                    )
+                  : Effect.void,
+              ),
+            ),
+          ),
+        );
+        yield* Deferred.await(headRead);
+        yield* TestClock.adjust("1 second");
 
-        const answer = yield* run(scenario, jobOf(BULK), false);
+        const answer = yield* Fiber.join(reading);
 
-        const { diagnostic } = JSON.parse(answer.answer) as {
-          diagnostic: { code: string; hint: string; report: string[] };
-        };
-        expect(diagnostic).toMatchObject({
-          code: "result-too-large",
-          hint: "Reduce the fields or the limit, then run the query again.",
-        });
-        expect(diagnostic.report.join("\n")).not.toContain("output");
+        expect(JSON.parse(answer.text)).toMatchObject({ ok: true });
+        expect(answer.measurement?.workerMs).toBeGreaterThanOrEqual(1000);
       }),
   );
 
-  it.effect(
-    "answers output-error with no file receipt when the staging file does not close",
-    () =>
-      Effect.gen(function* () {
-        const scenario = yield* scenarioOf({ storage: "temp-directory" });
-        const { output, stagePath } = exportPaths(scenario);
-        yield* Effect.addFinalizer(() =>
-          Effect.sync(() => {
-            closeFailure = undefined;
+  it.effect("gives the Worker measurement of a measured job that fails", () =>
+    Effect.gen(function* () {
+      const scenario = yield* scenarioOf();
+      const job = { ...jobOf({ fields: '["notAField"]' }), measure: true };
+
+      const failed = yield* Effect.flip(
+        answerOf(
+          answerParts(job, {
+            client: scenario.db,
+            identity: Effect.succeed(IDENTITY),
+            meter: nodeQueryMeter,
+            attachmentFiles: yield* makeAttachmentFileResolver(
+              job.attachmentPaths,
+            ).pipe(Effect.provide(testFileSystem)),
           }),
-        );
-        closeFailure = PlatformError.systemError({
-          _tag: "Unknown",
-          module: "FileSystem",
-          method: "close",
-          cause: Object.assign(new Error("EIO: i/o error, close"), {
-            code: "EIO",
-          }),
-        });
+        ),
+      );
 
-        const answer = yield* run(
-          scenario,
-          jobOf({ output, filter: 'tags != "absent"' }, stagePath),
-        );
-
-        expect(closeFailure).toBeUndefined();
-        expect(answer.receipt).toEqual({ kind: "inline" });
-        expect(JSON.parse(answer.answer)).toMatchObject({
-          ok: false,
-          diagnostic: {
-            code: "output-error",
-            message: "EIO: i/o error, close",
-          },
-        });
-        expect(JSON.parse(answer.answer)).not.toHaveProperty("warnings");
-        expect(yield* textOf(stagePath)).not.toBe("");
-      }),
-  );
-
-  it.effect(
-    "answers output-error when the staging file cannot be opened, and keeps the file there",
-    () =>
-      Effect.gen(function* () {
-        const scenario = yield* scenarioOf({ storage: "temp-directory" });
-        const { output, stagePath } = exportPaths(scenario);
-        yield* Effect.promise(() => writeFile(stagePath, "keep this content"));
-
-        const answer = yield* run(scenario, jobOf({ output }, stagePath));
-
-        expect(answer.receipt).toEqual({ kind: "inline" });
-        expect(JSON.parse(answer.answer)).toMatchObject({
-          ok: false,
-          diagnostic: { code: "output-error" },
-        });
-        expect(yield* textOf(stagePath)).toBe("keep this content");
-      }),
+      expect(failed).toMatchObject({
+        _tag: "QueryFailed",
+        diagnostic: { code: "unknown-field" },
+        measurement: { workerMs: expect.any(Number) },
+      });
+    }),
   );
 
   it.live(
@@ -297,22 +247,23 @@ describe("Query Job", () => {
               fields,
             });
             const fiber = yield* Effect.forkChild(
-              runQueryJob(
-                { ...job, id, measure: true },
-                {
-                  client: scenario.db,
-                  identity: Effect.succeed(IDENTITY),
-                  meter: nodeQueryMeter,
-                  writesFiles: true,
-                  attachmentFiles: () =>
-                    Effect.promise(async () => {
-                      Deferred.doneUnsafe(waiting, Effect.void);
-                      await release.promise;
-                      now += workMs;
-                      return { path: "/paper.pdf", exists: true };
-                    }),
-                },
-              ).pipe(Effect.provide(testFileSystem)),
+              answerOf(
+                answerParts(
+                  { ...job, id, measure: true },
+                  {
+                    client: scenario.db,
+                    identity: Effect.succeed(IDENTITY),
+                    meter: nodeQueryMeter,
+                    attachmentFiles: () =>
+                      Effect.promise(async () => {
+                        Deferred.doneUnsafe(waiting, Effect.void);
+                        await release.promise;
+                        now += workMs;
+                        return { path: "/paper.pdf", exists: true };
+                      }),
+                  },
+                ),
+              ),
             );
             return { fiber, waiting };
           });
@@ -334,11 +285,11 @@ describe("Query Job", () => {
         const answerA = yield* Fiber.join(first.fiber);
         const answerB = yield* Fiber.join(second.fiber);
 
-        expect(JSON.parse(answerA.answer)).toMatchObject({
+        expect(JSON.parse(answerA.text)).toMatchObject({
           ok: true,
           returnedCount: 1,
         });
-        expect(JSON.parse(answerB.answer)).toMatchObject({
+        expect(JSON.parse(answerB.text)).toMatchObject({
           ok: true,
           returnedCount: 1,
         });
@@ -361,21 +312,11 @@ describe("Query Job", () => {
       Effect.gen(function* () {
         const scenario = yield* scenarioOf({ storage: "temp-directory" });
         seedBulkLibrary(scenario.sqlite, 20000);
-        const { output, stagePath } = exportPaths(scenario);
         const events: string[] = [];
         const firstPause = yield* Deferred.make<void>();
 
         const job = yield* Effect.forkChild(
-          runQueryJob(jobOf({ ...BULK, output }, stagePath), {
-            client: scenario.db,
-            identity: Effect.succeed(IDENTITY),
-            meter: nodeQueryMeter,
-            writesFiles: true,
-            attachmentFiles: yield* makeAttachmentFileResolver(
-              ATTACHMENT_PATHS,
-            ).pipe(Effect.provide(testFileSystem)),
-          }).pipe(
-            Effect.provide(testFileSystem),
+          run(scenario, jobOf(BULK)).pipe(
             Effect.provideService(ItemQuerySliceObserver, {
               paused: () => {
                 events.push("pause");
@@ -393,7 +334,7 @@ describe("Query Job", () => {
         const other = events.indexOf("other");
         expect(events[other - 1]).toBe("pause");
         expect(events.slice(other)).toContain("resume");
-        expect(JSON.parse(answer.answer)).toMatchObject({
+        expect(JSON.parse(answer.text)).toMatchObject({
           returnedCount: 20000,
         });
       }),
@@ -401,7 +342,7 @@ describe("Query Job", () => {
 });
 
 describe("the Query Job runner", () => {
-  const runner = makeQueryJobRunner({ meter: {}, writesFiles: false });
+  const runner = makeQueryJobRunner({ meter: {} });
   const MARKER = {
     kind: "web-api" as const,
     id: "web-api:1",
@@ -412,16 +353,18 @@ describe("the Query Job runner", () => {
   it.effect("stamps the identity that the connection gives", () =>
     Effect.gen(function* () {
       const scenario = yield* scenarioOf();
-      const answer = yield* runner
-        .run(jobOf({ limit: "1" }), {
+      const answer = yield* answerOf(
+        runner.answer(jobOf({ limit: "1" }), {
           client: scenario.db,
           identity: Effect.succeed(MARKER),
-        })
-        .pipe(Effect.scoped, Effect.provide(testFileSystem));
-      expect(JSON.parse(answer.answer)).toMatchObject({
+        }),
+      ).pipe(Effect.provide(testFileSystem));
+      const stamped = {
         ok: true,
         identity: { vault: IDENTITY.vault, source: MARKER },
-      });
+      };
+      expect(answer.summary).toMatchObject(stamped);
+      expect(JSON.parse(answer.text)).toMatchObject(stamped);
     }),
   );
 
@@ -435,25 +378,24 @@ describe("the Query Job runner", () => {
           reads++;
           return Effect.fail(new DbUnavailable({ message: "settings gone" }));
         });
-        const cli = yield* runner
-          .run(jobOf({ limit: "1" }), {
-            client: scenario.db,
-            identity: failing,
-          })
-          .pipe(Effect.scoped, Effect.provide(testFileSystem));
-        expect(JSON.parse(cli.answer)).toMatchObject({
-          ok: false,
+        const cli = yield* Effect.flip(
+          answerOf(
+            runner.answer(jobOf({ limit: "1" }), {
+              client: scenario.db,
+              identity: failing,
+            }),
+          ).pipe(Effect.provide(testFileSystem)),
+        );
+        expect(cli).toMatchObject({
+          _tag: "QueryFailed",
           diagnostic: { code: "database-error" },
         });
         expect(reads).toBe(1);
         const view = yield* runner
-          .run(
-            {
-              ...jobOf({}),
-              view: { from: "items", fields: ["title"], limit: 1 },
-            } as QueryJob,
-            { client: scenario.db, identity: failing },
-          )
+          .run(viewJobOf({ from: "items", fields: ["title"], limit: 1 }), {
+            client: scenario.db,
+            identity: failing,
+          })
           .pipe(Effect.scoped, Effect.provide(testFileSystem));
         expect(view.view).toMatchObject({ kind: "result" });
         expect(reads).toBe(1);
@@ -461,7 +403,7 @@ describe("the Query Job runner", () => {
   );
 
   it.effect(
-    "refuses an export through the ItemQuery handler before it borrows the database, on a root that writes no file",
+    "streams the document of an export through the QueryAnswer handler, in the borrow, with no file system of the root",
     () =>
       Effect.gen(function* () {
         const scenario = yield* scenarioOf();
@@ -479,25 +421,42 @@ describe("the Query Job runner", () => {
             }),
           ),
         ).pipe(Layer.provide(layerRcRef(sharedClientOpener(scenario.db))));
-        const answerOf = (writesFiles: boolean, params: CliData) =>
-          Effect.flatMap(
-            inProcessClient(counted, {
-              queryJobs: makeQueryJobRunner({ meter: {}, writesFiles }),
-            }),
-            (reads) => reads.ItemQuery({ job: jobOf(params) }),
-          ).pipe(Effect.scoped);
+        const reads = yield* inProcessClient(counted, { queryJobs: runner });
+        const params = { limit: "all", fields: '["title"]' };
 
-        const refused = yield* answerOf(false, {
-          output: "/exports/items.json",
-        });
-        expect(JSON.parse(refused.answer)).toMatchObject({
-          ok: false,
-          diagnostic: { code: "export-unavailable" },
-        });
-        expect(borrows).toBe(0);
+        const parts = yield* Stream.runCollect(
+          reads.QueryAnswer({
+            job: jobOf({ ...params, format: "csv", output: "/exports/a.csv" }),
+          }),
+        );
 
-        yield* answerOf(false, { limit: "1" });
         expect(borrows).toBe(1);
-      }),
+        expect(parts[0]).toMatchObject({
+          _tag: "Head",
+          summary: { ok: true, returnedCount: 10 },
+        });
+        const lines = new TextDecoder("utf-8", { ignoreBOM: true })
+          .decode(
+            Buffer.concat(
+              parts.flatMap((part) =>
+                part._tag === "Chunk" ? [part.bytes] : [],
+              ),
+            ),
+          )
+          .split("\r\n");
+        const view = yield* reads.ItemQuery({
+          job: viewJobOf({
+            from: "items",
+            fields: ["title"],
+            sort: [{ field: "dateModified", direction: "desc" }],
+          }),
+        });
+        if (view.view?.kind !== "result") throw new Error(view.view?.kind);
+        expect(lines[0]).toBe(`${String.fromCharCode(0xfeff)}indexedKey,title`);
+        expect(lines.slice(1, -1).map((line) => line.split(",")[0])).toEqual(
+          view.view.result.rows?.map((row) => row.indexedKey),
+        );
+        expect(lines.at(-1)).toBe("");
+      }).pipe(Effect.scoped),
   );
 });

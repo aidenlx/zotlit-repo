@@ -1,5 +1,6 @@
+import type { ExportFiles } from "#core/item-query/export-files.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
-import { Effect, Layer, Stream } from "effect";
+import { Effect, FileSystem, Layer, Stream } from "effect";
 
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
 import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
@@ -12,6 +13,7 @@ import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.t
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { LibraryScope as SavedLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
+import { nodeExportFiles } from "#desktop/item-query/export-files-node.ts";
 import { bindQuery } from "#desktop/item-query/handle.ts";
 import type { QueryHandle } from "#desktop/item-query/handle.ts";
 import { layerQueryService, QueryService } from "#desktop/item-query/service.ts";
@@ -31,6 +33,7 @@ export interface QueryFixtureOptions {
   readonly vaultName?: string;
   readonly basePath?: string;
   readonly pluginVersion?: string;
+  readonly exportFiles?: (fs: FileSystem.FileSystem) => ExportFiles | undefined;
 }
 
 function prefSnapshot(source: QuerySource): ZoteroPrefSnapshot {
@@ -56,9 +59,15 @@ export function layerTestQueryService(
     changes: Stream.empty,
   }),
 ): Layer.Layer<QueryService> {
-  return layerQueryService({
-    pluginVersion: options.pluginVersion ?? "2.2.0",
-  }).pipe(
+  const exportFiles = options.exportFiles ?? nodeExportFiles;
+  return Layer.unwrap(
+    Effect.map(FileSystem.FileSystem, (fs) =>
+      layerQueryService({
+        pluginVersion: options.pluginVersion ?? "2.2.0",
+        exportFiles: exportFiles(fs),
+      }),
+    ),
+  ).pipe(
     Layer.provide(
       Layer.mergeAll(
         Layer.mock(ZoteroReads, { reads: options.reads }),

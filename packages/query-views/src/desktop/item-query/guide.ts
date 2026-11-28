@@ -5,17 +5,18 @@ import {
   ANNOTATION_GUIDE_EXAMPLES,
 } from "./annotation-guide.ts";
 import { queryFlags } from "./contract.ts";
+import { INLINE_MAX_BYTES } from "./delivery.ts";
 
 import {
   DEFAULT_CLI_LIMIT,
   DIAGNOSTIC_HINTS,
   QUERY_CANCEL_COMMAND,
   QUERY_COMMAND,
-  INLINE_MAX_BYTES,
   QUERY_GUIDE_COMMAND,
   QUERY_SCHEMA_COMMAND,
   QUERY_VALUES_COMMAND,
   QUERY_ID_FORM,
+  RESULT_TOO_LARGE_HINTS,
   queryCancelledText,
 } from "#worker/item-query/contract.ts";
 
@@ -62,7 +63,13 @@ function querySynopsis(): string {
 }
 
 function diagnosticCodes(): string {
-  return Object.entries(DIAGNOSTIC_HINTS)
+  return [
+    ...Object.entries(DIAGNOSTIC_HINTS),
+    ...Object.entries(RESULT_TOO_LARGE_HINTS).map(([command, hint]) => [
+      `result-too-large from ${command}`,
+      hint,
+    ]),
+  ]
     .map(([code, hint]) => {
       const lines = [""];
       for (const word of `${code}: ${hint}`.split(" ")) {
@@ -431,6 +438,11 @@ FILE EXPORTS
   The export becomes available when the complete file is written. An existing
   file is kept intact. Cancellation removes the unpublished file.
   Example: add output=/absolute/path/items.json to a limit=all query.
+  An export works with each Zotero source: the same command writes the
+  export from the local Zotero database and from the Zotero online library,
+  and identity.source in the CLI answer names the source. A device that
+  cannot write files answers export-unavailable; DIAGNOSTICS below gives
+  its recovery action.
   For a spreadsheet, add format=csv or format=tsv beside output. The file
   then holds one line for each row in place of the JSON envelope: a header
   line, then group (when the query groups), indexedKey, and each field in

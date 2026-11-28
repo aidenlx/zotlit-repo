@@ -30,7 +30,10 @@ import {
 } from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-import type { QueryJob } from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
+import type {
+  QueryJob,
+  QueryTypedJob,
+} from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
 import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import {
   WorkerInitSchema,
@@ -55,6 +58,7 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
   >();
   const refreshed = yield* Queue.unbounded<void>();
   const events: string[] = [];
+  let configuring = 0;
   const holdConfigure = yield* Ref.make<Deferred.Deferred<void> | null>(null);
   const changesEnd = yield* Deferred.make<void>();
   const run = Effect.runSyncWith(yield* Effect.context<never>());
@@ -63,6 +67,8 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
       (rpc) =>
         rpc._tag === "Configure" ||
         rpc._tag === "ItemQuery" ||
+        rpc._tag === "QueryAnswer" ||
+        rpc._tag === "NoteRefs" ||
         rpc._tag === "SourceIdentity" ||
         rpc._tag === "Refresh" ||
         rpc._tag === "Changes" ||
@@ -106,19 +112,28 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
                       Effect.gen(function* () {
                         const file = config as FileReadsConfig;
                         events.push(`configure ${file.databasePath}`);
+                        configuring++;
                         yield* Queue.offer(configured, file);
                         const held = yield* Ref.get(holdConfigure);
                         if (held) yield* Deferred.await(held);
+                        configuring--;
                       }),
                     ItemQuery: ({ job }) =>
                       Effect.sync(() => {
                         events.push("query");
-                        return {
-                          command: job.command,
-                          answer: "",
-                          receipt: { kind: "inline" as const },
-                        };
+                        return { command: job.command };
                       }),
+                    QueryAnswer: () =>
+                      Stream.fromEffect(
+                        Effect.sync(() => {
+                          events.push(
+                            configuring === 0
+                              ? "answer"
+                              : "answer during configure",
+                          );
+                        }),
+                      ).pipe(Stream.drain),
+                    NoteRefs: () => Stream.empty,
                     SourceIdentity: () =>
                       Effect.sync(() => {
                         events.push("identity");
@@ -331,7 +346,7 @@ it.live(
       yield* Ref.set(worker.holdConfigure, held);
       yield* f.pref.setDataDir("/library-b");
       yield* Queue.take(worker.configured);
-      const job: QueryJob = {
+      const job: QueryTypedJob = {
         id: "q",
         command: "zotlit:query-schema",
         schema: false,
@@ -350,6 +365,53 @@ it.live(
       expect(worker.events).toEqual([
         "configure /library-b/zotero.sqlite",
         "query",
+      ]);
+    }),
+);
+
+it.live(
+  "opens the answer stream of a query after the Configure of changed preferences that is still in flight",
+  () =>
+    Effect.gen(function* () {
+      const worker = yield* workerFixture();
+      const f = yield* zoteroPrefFixture();
+      const opening = yield* workerClient().pipe(
+        Effect.provideService(PluginSettings, worker.settings),
+        Effect.provideService(ZoteroPref, f.pref),
+        Effect.provideService(ResourcePackPlatform, worker.pack),
+        Effect.provideService(ObsidianEnv, testObsidianEnv()),
+        Effect.provideService(Workspace, worker.workspace),
+        Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
+        Effect.forkChild,
+      );
+      (yield* Queue.take(worker.spawned)).launch();
+      const reads = yield* Fiber.join(opening);
+      const held = yield* Deferred.make<void>();
+      yield* Ref.set(worker.holdConfigure, held);
+      yield* f.pref.setDataDir("/library-b");
+      yield* Queue.take(worker.configured);
+      const job: QueryJob = {
+        id: "q",
+        command: "zotlit:query-schema",
+        schema: true,
+        pluginVersion: "2.2.0",
+        vault: { name: "Research", path: "/vaults/research" },
+        scope: MY_LIBRARY_SCOPE,
+        attachmentPaths: { dataDir: "/library-b", baseAttachmentPath: null },
+      };
+      const asked = yield* Effect.forkChild(
+        Stream.runDrain(reads.QueryAnswer({ job })),
+        {
+          startImmediately: true,
+        },
+      );
+      yield* Stream.runDrain(reads.NoteRefs({ itemIDs: [] }));
+      expect(worker.events).toEqual(["configure /library-b/zotero.sqlite"]);
+      yield* Deferred.succeed(held, undefined);
+      yield* Fiber.join(asked);
+      expect(worker.events).toEqual([
+        "configure /library-b/zotero.sqlite",
+        "answer",
       ]);
     }),
 );
